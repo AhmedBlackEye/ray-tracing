@@ -1,0 +1,3 @@
+BUILD = main
+CFLAGS = -g 
+LDLIBS	=	-lm
