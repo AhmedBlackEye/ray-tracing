@@ -3,7 +3,7 @@
 
 #include "vec3.h"
 
-typedef struct {
+typedef struct Ray {
   Vec3 origin;
   Vec3 direction;
 } Ray;
