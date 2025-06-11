@@ -7,5 +7,4 @@ typedef Vec3 Color;
 
 void write_color(FILE *out, Color pixel_color);
 
-
 #endif // COLOR_H
