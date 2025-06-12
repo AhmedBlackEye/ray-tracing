@@ -1,9 +1,9 @@
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
 
-#include "../core/interval.h"
-#include "../core/ray.h"
-#include "../core/vec3.h"
+#include "core/interval.h"
+#include "core/ray.h"
+#include "core/vec3.h"
 #include "hittable.h"
 
 typedef struct Triangle Triangle;
