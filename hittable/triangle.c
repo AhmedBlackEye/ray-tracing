@@ -26,7 +26,7 @@ static bool triangle_hit(Triangle *tri, Ray r, Interval t_bounds, HitRecord *rec
     Vec3 s = vec3_sub(r.origin, tri->v0); 
     double u = f * vec3_dot(s,h);
 
-    if ((u < 0 && abs(u) > EPSILON) || (u > 1 && a abs(u-1) > EPSILON)) {
+    if ( u < 0.0 || u > 1.0) {
         return false 
     }
     //Calculate Barycentric Coordinate v
@@ -43,12 +43,11 @@ static bool triangle_hit(Triangle *tri, Ray r, Interval t_bounds, HitRecord *rec
    if (t > t_bounds.min && t < t_bounds.max) {
         rec->t = t;
         rec->p = ray_at(r, t);
-        rec->normal = tri->normal;
         
         // Ensure normal faces outward from ray
-        if (vec3_dot(r.direction, rec->normal) > 0) {
-            rec->normal = vec3_scale(rec->normal, -1);
-        }
+        bool front_face = vec3_dot(r.direction, rec->normal) < 0;\
+        rec->normal = front_face ? tri->normal : vec3_scale(rec->normal, -1);
+        rec-> front_face = front_face;
         
         return true;
     }
