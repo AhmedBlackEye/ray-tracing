@@ -1,9 +1,9 @@
+#include "core/dyn_array.h"
+#include "core/interval.h"
+#include "core/ray.h"
+#include "core/vec3.h"
 #include "hittable.h"
 #include <assert.h>
-#include <core/dyn_array.h>
-#include <core/interval.h>
-#include <core/ray.h>
-#include <core/vec3.h>
 
 #ifndef TRIANGLE_MESH_H
 #define TRIANGLE_MESH
