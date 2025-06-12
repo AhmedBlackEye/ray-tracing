@@ -11,8 +11,7 @@ typedef struct Plane {
   Vec3 normal;
 } Plane;
 
-static bool plane_hit(const Hittable *self, Ray ray, double ray_tmin,
-                       double ray_tmax, HitRecord *rec) {
+static bool plane_hit(const Hittable *self, Ray ray, Interval t_bounds, HitRecord *rec) {
   assert(self != NULL);
   assert(rec != NULL);
 
@@ -26,10 +25,13 @@ static bool plane_hit(const Hittable *self, Ray ray, double ray_tmin,
   Vec3 point_minus_origin = vec3_sub(plane->point, ray.origin);  
   double t = vec3_dot(point_minus_origin, plane->normal) / denominator;
 
-  hitrec_set_face_normal(rec, ray, plane->normal);
+  if (!interval_surrounds(t_bounds, t)) {
+        return false;
+  }
 
-  rec->t = root;
+  rec->t = t;
   rec->p = ray_at(ray, rec->t);
+  hitrec_set_face_normal(rec, ray, plane->normal);
 
   return true;
 }
@@ -47,7 +49,7 @@ Hittable *plane_create(Vec3 point, Vec3 normal) {
   assert(hittable != NULL);
 
   Plane *plane_data = malloc(sizeof(struct Plane));
-  assert(sphere_data != NULL);
+  assert(plane_data != NULL);
 
   plane_data->point = point;
   plane_data->normal = vec3_normalized(normal);
