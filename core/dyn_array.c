@@ -35,6 +35,7 @@ DynArray *dynarray_create(int initial_capacity, GPrintFn pelem,
 
 void dynarray_destroy(DynArray *arr) {
   assert(arr != NULL);
+  assert(arr->delem);
   for (int i = 0; i < arr->size; i++) {
     arr->delem(arr->data[i]);
   }
@@ -78,6 +79,7 @@ void dynarray_remove_last(DynArray *arr) {
 
 void dynarray_clear(DynArray *arr) {
   assert(arr != NULL);
+  assert(arr->delem);
   for (int i = 0; i < arr->size; i++) {
     arr->delem(arr->data[i]);
   }
@@ -97,6 +99,7 @@ GVal dynarray_get(const DynArray *arr, int index) {
 
 void dynarray_print(const DynArray *arr) {
   assert(arr != NULL);
+  assert(arr->pelem);
 
   if (arr->size == 0) {
     puts("[]");
