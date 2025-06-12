@@ -8,10 +8,9 @@
 
 typedef struct Triangle Triangle;
 
-#define EPSILON 1e-8
 extern Triangle *triangle_create(Vec3 v0, Vec3 v1, Vec3 v2);
-extern void triangle_print(const Triangle *tri);
+extern void triangle_print(const Hittable *hittable);
 extern bool triangle_hit(Triangle *tri, Ray r, Interval t_bounds,
-                         HitRecord *rec)
+                         HitRecord *rec);
 
 #endif // TRIANGLE_H
