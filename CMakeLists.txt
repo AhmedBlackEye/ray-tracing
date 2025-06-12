@@ -21,7 +21,7 @@ add_library(hittable
 target_include_directories(hittable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Create main executable
-add_executable(raytracer main.c)
+add_executable(raytracer main.c camera.c)
 
 # Link everything properly
 target_link_libraries(raytracer core hittable m)
