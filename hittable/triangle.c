@@ -1,11 +1,11 @@
-#include <core/vec3.h>
-#include <hittable.h>
-#include <interval.h>
-#include <ray.h>
+#include "core/interval.h"
+#include "core/ray.h"
+#include "core/vec3.h"
+#include "hittable.h"
+
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "hittable.h"
 
 typedef struct Triangle {
   Vec3 v0, v1, v2;   // vertices
@@ -15,7 +15,6 @@ typedef struct Triangle {
 
 // Möller-Trumbore ray-triangle intersection algorithm
 bool triangle_hit(Triangle *tri, Ray r, Interval t_bounds, HitRecord *rec) {
-  const double EPSILON = 1e-8;
 
   // Calculate determinant
   Vec3 h = vec3_cross(r.direction, tri->edge2);
@@ -27,14 +26,14 @@ bool triangle_hit(Triangle *tri, Ray r, Interval t_bounds, HitRecord *rec) {
   double u = f * vec3_dot(s, h);
 
   if (u < 0.0 || u > 1.0) {
-    return false
+    return false;
   }
   // Calculate Barycentric Coordinate v
-  Vec3 q = vec3_cross(s, tr1->edge1);
+  Vec3 q = vec3_cross(s, tri->edge1);
   double v = f * vec3_dot(r.direction, q);
 
   if (v < 0.0 || u + v > 1.0) {
-    return false
+    return false;
   }
 
   // Find intersection point t
@@ -63,16 +62,16 @@ static void triangle_destroy(void *self) {
   free(self);
 }
 
-void triangle_print(const Triangle *tri) {
-  if (tri == NULL) {
+void triangle_print(const Hittable *hittable) {
+  if (hittable == NULL) {
     printf("Triangle: NULL.\n");
     return;
   }
-
+  Triangle *tri = (Triangle *)hittable;
   printf("Triangle v0:(%.2f,%.2f,%.2f), v1:(%.2f, %.2f, %.2f), "
          "v2:(%.2f,%.2f,%.2f)",
          tri->v0.x, tri->v0.y, tri->v0.z, tri->v1.x, tri->v1.y, tri->v1.z,
-         tri->v2.x, tri->v2.y, tri->v2.z, )
+         tri->v2.x, tri->v2.y, tri->v2.z);
 }
 
 Hittable *triangle_create(Vec3 v0, Vec3 v1, Vec3 v2) {
@@ -89,12 +88,13 @@ Hittable *triangle_create(Vec3 v0, Vec3 v1, Vec3 v2) {
   triangle->edge1 = vec3_sub(v1, v0);
   triangle->edge2 = vec3_sub(v2, v0);
 
-  triangle->normal = vec3_normalized(vec3_cross(tri->edge1, tri->edge2));
+  triangle->normal =
+      vec3_normalized(vec3_cross(triangle->edge1, triangle->edge2));
 
   hittable->type = HITTABLE_TRIANGLE;
   hittable->data = triangle;
   hittable->destroy = (HittableDestroyFn)triangle_destroy;
-  hittable->hit = triangle_hit;
+  hittable->hit = (HitFn)triangle_hit;
 
   return hittable;
 }
