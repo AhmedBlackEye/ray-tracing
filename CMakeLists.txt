@@ -17,6 +17,7 @@ add_library(hittable
   hittable/hittable.c
   hittable/hittable_list.c
   hittable/sphere.c
+  hittable/plane.c
 )
 target_include_directories(hittable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
