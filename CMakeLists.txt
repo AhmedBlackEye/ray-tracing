@@ -3,14 +3,19 @@ project(raytracer C)
 
 set(CMAKE_C_STANDARD 11)
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wextra -Wshadow -Wpedantic")
+
 # Create core library
 add_library(core
   core/color.c
+  core/dyn_array.c
 )
 target_include_directories(core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Create hittable library
 add_library(hittable
+  hittable/hittable.c
+  hittable/hittable_list.c
   hittable/sphere.c
 )
 target_include_directories(hittable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
