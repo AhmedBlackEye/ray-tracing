@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <math.h>
-
+#include "plane.h"
 #include "hittable.h"
 
 typedef struct Plane {
@@ -62,13 +62,13 @@ Hittable *plane_create(Vec3 point, Vec3 normal) {
   return hittable;
 }
 
-void plane_print(const Plane *plane) {
-  if (plane == NULL) {
-    printf("Plane: NULL\n");
-    return;
-  }
-
-  printf("Plane { point: (%.3f, %.3f, %.3f), normal: (%.3f, %.3f, %.3f) }\n",
-         plane->point.x, plane->point.y, plane->point.z,
-         plane->normal.x, plane->normal.y, plane->normal.z);
+void plane_print(const Hittable *hittable) {
+    if (hittable == NULL || hittable->type != HITTABLE_PLANE) {
+        printf("Plane: Invalid or NULL\n");
+        return;
+    }
+    const Plane *plane = (const Plane *)hittable->data;
+    printf("Plane { point: (%.3f, %.3f, %.3f), normal: (%.3f, %.3f, %.3f) }\n",
+           plane->point.x, plane->point.y, plane->point.z,
+           plane->normal.x, plane->normal.y, plane->normal.z);
 }
