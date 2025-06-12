@@ -3,9 +3,9 @@
 
 #include <stdbool.h>
 
+#include "core/interval.h"
 #include "core/ray.h"
 #include "core/vec3.h"
-#include "core/interval.h"
 
 typedef struct HitRecord {
   Vec3 p;
@@ -24,7 +24,8 @@ static inline HitRecord hitrecord_zero(void) {
 void hitrec_set_face_normal(HitRecord *rec, Ray r, Vec3 outward_normal);
 
 typedef struct Hittable Hittable;
-typedef bool (*HitFn)(const Hittable *self, Ray r, Interval t_bounds, HitRecord *rec);
+typedef bool (*HitFn)(const Hittable *self, Ray r, Interval t_bounds,
+                      HitRecord *rec);
 
 typedef void (*HittableDestroyFn)(Hittable *self);
 typedef void (*HittablePrintFn)(Hittable *self);
