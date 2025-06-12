@@ -4,6 +4,7 @@
 
 #include "hittable.h" 
 #include "sphere.h"
+#include "plane.h"
 #include "core/generic_types.h"
 #include "core/vec3.h"
 
@@ -21,8 +22,8 @@ void hittable_print(const Hittable *self) {
   case HITTABLE_SPHERE:
     sphere_print(self->data);
     break;
-  case HITTABLE_TRIANGLE:
-    triangle_print(self->data);
+  case HITTABLE_PLANE:
+    plane_print(self->data);
     break;
   default:
     assert(false);
