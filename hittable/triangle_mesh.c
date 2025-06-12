@@ -148,7 +148,7 @@ Hittable *triangle_mesh_create(void) {
 
   hittable->type = HITTABLE_TRIANGLE;
   hittable->data = mesh;
-  hittable->hit = triangle_mesh_hit;
+  hittable->hit = (HitFn)triangle_mesh_hit;
   hittable->destroy = (HittableDestroyFn)triangle_mesh_destroy;
 
   return hittable;
