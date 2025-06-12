@@ -4,33 +4,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "core/vec3.h"
 #include "core/color.h"
+#include "core/dyn_array.h"
 #include "core/ray.h"
+#include "core/vec3.h"
+#include "core/generic_types.h"
 
 #include "hittable/hittable.h"
+#include "hittable/hittable_list.h"
 #include "hittable/sphere.h"
 
+#include "shared.h"
 
-#define ASPECT_RATIO (16.0 / 9.0)
-
-#define WIDTH 400
-#define HEIGHT ((int)(WIDTH / ASPECT_RATIO))
-
-#define VIEWPORT_HEIGHT 2.0
-#define VIEWPORT_WIDTH (VIEWPORT_HEIGHT * (double)WIDTH / HEIGHT)
-
-#define FOCAL_LEN 1.0
-
-Color ray_color(Ray r) {
-  Hittable *sphere = sphere_create((Vec3){0, 0, -1}, 0.5);
-  HitRecord rec = hitrecord_zero();
-  HitRecord *rec_ptr;
-  if (sphere->hit(sphere, r, 0, 10000, rec_ptr)) {
-    sphere->destroy(sphere);
-    return vec3_scale(vec3_adds(rec_ptr->normal, 1), 0.5);
+Color ray_color(Ray r, DynArray *hittable_world) {
+  HitRecord rec;
+  if (hittables_hit(hittable_world, r, 0, INFINITY, &rec)) {
+    return vec3_scale(vec3_adds(rec.normal, 1), 0.5);
   }
-  sphere->destroy(sphere);
   Vec3 unit_direction = vec3_normalized(r.direction);
   double a = (unit_direction.y + 1) * 0.5;
   return vec3_add((Vec3){1.0 - a, 1.0 - a, 1.0 - a},
@@ -48,6 +38,13 @@ int main(int argc, char **argv) {
     perror("Failed to open input file");
     return EXIT_FAILURE;
   }
+
+  DynArray *hittable_world =
+      dynarray_create(2, (GPrintFn)hittable_print, (GDestroyFn)hittable_destroy);
+  Hittable *sphere1 = sphere_create((Vec3){0, 0, -1}, 0.5);
+  Hittable *sphere2 = sphere_create((Vec3){0, -100.5, -1}, 100);
+  dynarray_push(hittable_world, sphere1);
+  dynarray_push(hittable_world, sphere2);
 
   Vec3 camera_center = vec3_zero();
 
@@ -72,10 +69,11 @@ int main(int argc, char **argv) {
           vec3_add(pixel00_loc, vec3_add(vec3_scale(pixel_delta_u, i),
                                          vec3_scale(pixel_delta_v, j)));
       Ray r = (Ray){camera_center, vec3_sub(pixel_pos, camera_center)};
-      // Color pixel = (Color){(double)i / (WIDTH-1), (double)j / (HEIGHT-1),
-      // 0};
-      write_color(out_file, ray_color(r));
+      Color pixel_color = ray_color(r, hittable_world);
+      write_color(out_file, pixel_color);
     }
   }
+
+  dynarray_destroy(hittable_world);
   fclose(out_file);
 }
