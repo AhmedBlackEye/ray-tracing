@@ -1,7 +1,8 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
 #include <assert.h>
 #include <math.h>
-#include <stdbool.h>
-#include <stdlib.h>
 
 #include "hittable.h"
 
@@ -39,7 +40,9 @@ static bool sphere_hit(const Hittable *self, Ray ray, double ray_tmin,
 
   rec->t = root;
   rec->p = ray_at(ray, rec->t);
-  rec->normal = vec3_divs(vec3_sub(rec->p, sphere->center), sphere->radius);
+  Vec3 outward_normal =
+      vec3_divs(vec3_sub(rec->p, sphere->center), sphere->radius);
+  hitrec_set_face_normal(rec, ray, outward_normal);
 
   return true;
 }
@@ -66,8 +69,18 @@ Hittable *sphere_create(Vec3 center, double radius) {
 
   hittable->type = HITTABLE_SPHERE;
   hittable->hit = sphere_hit;
-  hittable->destroy = (DestroyFn)sphere_destroy;
+  hittable->destroy = (HittableDestroyFn)sphere_destroy;
   hittable->data = sphere_data;
 
   return hittable;
+}
+
+void sphere_print(const Sphere *sphere) {
+  if (sphere == NULL) {
+    printf("Sphere: NULL\n");
+    return;
+  }
+
+  printf("Sphere { center: (%.3f, %.3f, %.3f), radius: %.3f }\n",
+         sphere->center.x, sphere->center.y, sphere->center.z, sphere->radius);
 }
