@@ -69,13 +69,11 @@ GVal dynarray_pop(DynArray *arr) {
   return arr->data[arr->size];
 }
 
-GVal dynarray_pop_and_free(DynArray *arr) {
+void dynarray_remove_last(DynArray *arr) {
   assert(arr != NULL);
   assert(arr->size > 0);
   arr->size--;
-  GVal temp = arr->data[arr->size];
   arr->delem(arr->data[arr->size]);
-  return temp;
 }
 
 void dynarray_clear(DynArray *arr) {
@@ -84,9 +82,11 @@ void dynarray_clear(DynArray *arr) {
     arr->delem(arr->data[i]);
   }
   arr->size = 0;
-  arr->capacity = MIN_CAPACITY;
-  arr->data = realloc(arr->data, arr->capacity * sizeof(GVal));
-  assert(arr->data);
+  if (arr->capacity > MIN_CAPACITY) {
+    arr->capacity = MIN_CAPACITY;
+    arr->data = realloc(arr->data, arr->capacity * sizeof(GVal));
+    assert(arr->data);
+  }
 }
 
 GVal dynarray_get(const DynArray *arr, int index) {
