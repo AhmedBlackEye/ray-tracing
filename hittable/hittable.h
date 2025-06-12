@@ -29,7 +29,7 @@ typedef bool (*HitFn)(const Hittable *self, Ray r, Interval t_bounds, HitRecord 
 typedef void (*HittableDestroyFn)(Hittable *self);
 typedef void (*HittablePrintFn)(Hittable *self);
 
-typedef enum { HITTABLE_SPHERE } HittableType;
+typedef enum { HITTABLE_SPHERE, HITTABLE_PLANE } HittableType;
 typedef struct Hittable {
   HittableType type;
   HitFn hit;

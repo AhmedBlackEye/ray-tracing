@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <math.h>
-
+#include "sphere.h"
 #include "core/interval.h"
 
 #include "hittable.h"
@@ -76,12 +76,12 @@ Hittable *sphere_create(Vec3 center, double radius) {
   return hittable;
 }
 
-void sphere_print(const Sphere *sphere) {
-  if (sphere == NULL) {
-    printf("Sphere: NULL\n");
-    return;
-  }
-
-  printf("Sphere { center: (%.3f, %.3f, %.3f), radius: %.3f }\n",
-         sphere->center.x, sphere->center.y, sphere->center.z, sphere->radius);
+void sphere_print(const Hittable *hittable) {
+    if (hittable == NULL || hittable->type != HITTABLE_SPHERE) {
+        printf("Sphere: Invalid or NULL\n");
+        return;
+    }
+    const Sphere *sphere = (const Sphere *)hittable->data;
+    printf("Sphere { center: (%.3f, %.3f, %.3f), radius: %.3f }\n",
+           sphere->center.x, sphere->center.y, sphere->center.z, sphere->radius);
 }

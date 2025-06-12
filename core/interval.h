@@ -10,12 +10,12 @@ typedef struct Interval {
 } Interval;
 
 // Returns an empty interval
-static inline Interval interval_empty() {
+static inline Interval interval_empty(void) {
   return (Interval){+INFINITY, -INFINITY};
 }
 
 // Returns a full interval
-static inline Interval interval_universe() {
+static inline Interval interval_universe(void) {
   return (Interval){-INFINITY, +INFINITY};
 }
 
