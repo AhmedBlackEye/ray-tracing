@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <math.h>
 
+#include "core/interval.h"
+
 #include "hittable.h"
 
 typedef struct Sphere {
@@ -11,8 +13,7 @@ typedef struct Sphere {
   double radius;
 } Sphere;
 
-static bool sphere_hit(const Hittable *self, Ray ray, double ray_tmin,
-                       double ray_tmax, HitRecord *rec) {
+static bool sphere_hit(const Hittable *self, Ray ray, Interval t_bounds, HitRecord *rec) {
   assert(self != NULL);
   assert(rec != NULL);
 
@@ -32,9 +33,9 @@ static bool sphere_hit(const Hittable *self, Ray ray, double ray_tmin,
 
   // Find the nearest root that lies in the acceptable range
   double root = (h - disc_sqrtd) / a;
-  if (root <= ray_tmin || ray_tmax <= root) {
+  if (!interval_surrounds(t_bounds, root)) {
     root = (h + disc_sqrtd) / a;
-    if (root <= ray_tmin || ray_tmax <= root)
+    if (!interval_surrounds(t_bounds, root))
       return false;
   }
 

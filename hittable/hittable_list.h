@@ -3,9 +3,9 @@
 
 #include "core/dyn_array.h"
 #include "core/ray.h"
+#include "core/interval.h"
 #include "hittable.h"
 
-bool hittables_hit(DynArray *hittables, Ray ray, double ray_tmin,
-                   double ray_tmax, HitRecord *rec);
+bool hittables_hit(DynArray *hittables, Ray ray, Interval t_bounds, HitRecord *rec);
 
 #endif

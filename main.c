@@ -18,7 +18,7 @@
 
 Color ray_color(Ray r, DynArray *hittable_world) {
   HitRecord rec;
-  if (hittables_hit(hittable_world, r, 0, INFINITY, &rec)) {
+  if (hittables_hit(hittable_world, r, interval_make(0, INFINITY), &rec)) {
     return vec3_scale(vec3_adds(rec.normal, 1), 0.5);
   }
   Vec3 unit_direction = vec3_normalized(r.direction);
@@ -43,8 +43,8 @@ int main(int argc, char **argv) {
       dynarray_create(2, (GPrintFn)hittable_print, (GDestroyFn)hittable_destroy);
   Hittable *sphere1 = sphere_create((Vec3){0, 0, -1}, 0.5);
   Hittable *sphere2 = sphere_create((Vec3){0, -100.5, -1}, 100);
-  dynarray_push(hittable_world, sphere1);
   dynarray_push(hittable_world, sphere2);
+  dynarray_push(hittable_world, sphere1);
 
   Vec3 camera_center = vec3_zero();
 
