@@ -15,6 +15,7 @@
 #include "hittable/hittable_list.h"
 #include "hittable/sphere.h"
 #include "hittable/triangle.h"
+#include "hittable/quad.h"
 
 #include "shared.h"
 #include "camera.h"
