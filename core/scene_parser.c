@@ -16,11 +16,11 @@ static int tokenize(char *line, char *tokens[]) {
     char *token = strtok_r(line, " \t\n", &saveptr);
     
     while (token && count < MAX_TOKENS) {
-        tokens[count++] = token;
+        tokens[num_toks++] = token;
         token = strtok_r(NULL, " \t\n", &saveptr);
     }
     
-    return count;
+    return num_toks;
 }
 
 void parse_scene(const char *filename, DynArray *hittable_world) {
@@ -45,6 +45,18 @@ void parse_scene(const char *filename, DynArray *hittable_world) {
         }
 
         int num_toks = tokenize(line, tokens);
+        if (count == 0) continue;
+
+        if (state == STATE_TOPLEVEL) {
+            if (strcmp(tokens[0], "camera") == 0) {
+                state = CAMERA_STATE;
+            }
+            else if (strcmp(tokens[0], "sphere") == 0) {
+                state = SPHERE_STATE;
+            }
+            else if (strcmp(tokens[0], "plane") == 0) {
+                state = PLANE_STATE;
+            }
     }
 
     ParserState state = STATE_TOPLEVEL;
