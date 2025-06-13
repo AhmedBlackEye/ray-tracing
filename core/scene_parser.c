@@ -7,7 +7,7 @@ typedef enum {
     TOPLEVEL_STATE,
     CAMERA_STATE,
     SPHERE_STATE,
-    PLANE_STATE,
+    PLANE_STATE
 } ParserState;
 
 static int tokenize(char *line, char *tokens[]) {
@@ -23,7 +23,7 @@ static int tokenize(char *line, char *tokens[]) {
     return num_toks;
 }
 
-void parse_scene(const char *filename, DynArray *hittable_world) {
+void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file) {
     FILE *file = fopen(filename, "r");
     assert(file != NULL);
 
@@ -35,7 +35,13 @@ void parse_scene(const char *filename, DynArray *hittable_world) {
     Vec3 center;
     double radius;
 
-    Vec3
+    Vec3 normal;
+    Vec3 point;
+
+    double aspect_ratio_width;
+    double aspect_ratio_height;
+    double aspect_ratio;
+    int width;
 
     while (fgets(line, MAX_LINE, file)) {
         if (line[0] == '\n') {
@@ -50,13 +56,17 @@ void parse_scene(const char *filename, DynArray *hittable_world) {
                 case PLANE_STATE:
                     dynarray_push(world, plane_create(point, normal));
                     break;
+                case CAMERA_STATE:
+                    Camera cam = camera_make(WIDTH, ASPECT_RATIO);
+                    camera_render(&cam, hittable_world, out_file);
+                    break;
             }
             state = TOPLEVEL_STATE;
             continue;
         }
 
         int num_toks = tokenize(line, tokens);
-        if (count == 0) continue;
+        if (num_toks == 0) continue;
 
         if (state == STATE_TOPLEVEL) {
             if (strcmp(tokens[0], "camera") == 0) {
@@ -80,7 +90,26 @@ void parse_scene(const char *filename, DynArray *hittable_world) {
                     else if (strcmp(tokens[0], "radius") == 0 && num_toks == 2) {
                         radius = atof(tokens[1]);
                     }
-                    break
+                    break;
+                case STATE_PLANE:
+                    if (strcmp(tokens[0], "point") == 0 && count == 4) {
+                        point.x = atof(tokens[1]);
+                        point.y = atof(tokens[2]);
+                        point.z = atof(tokens[3]);
+                    }
+                    else if (strcmp(tokens[0], "normal") == 0 && count == 4) {
+                        normal.x = atof(tokens[1]);
+                        normal.y = atof(tokens[2]);
+                        normal.z = atof(tokens[3]);
+                    }
+                    break;
+                case CAMERA_STATE:
+                    if (strcmp(tokens[0], "aspect_ratio") == 0 && count == 3) {
+                        aspect_ratio_width = atof(tokens[1]);
+                        aspect_ratio_height = atof(tokens[2]);
+                        aspect_ratio = aspect_ratio_width / aspect_ratio_height;
+                    }
+                    
             }
 
         }
