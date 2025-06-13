@@ -11,45 +11,41 @@
 
 typedef struct Quad {
     Vec3 Q;   
-    Vec3 u
+    Vec3 u;
     Vec3 v;
     Vec3 normal;
     Vec3 w;  
     double D;
 } Quad;
 
-static bool sphere_hit(const Hittable *self, Ray ray, Interval t_bounds, HitRecord *rec) {
+static bool quad_hit(const Hittable *self, Ray ray, Interval t_bounds, HitRecord *rec) {
   assert(self != NULL);
   assert(rec != NULL);
 
-  const Sphere *sphere = (const Sphere *)self->data;
+  const Quad *quad = (const Quad *)self->data;
 
-  Vec3 oc = vec3_sub(sphere->center, ray.origin);
-  double a = vec3_length_squared(ray.direction);
-  double h = vec3_dot(ray.direction, oc);
-  double c = vec3_length_squared(oc) - sphere->radius * sphere->radius;
-
-  double discriminant = h * h - a * c;
-
-  if (discriminant < 0) {
+  double denom = vec3_dot(q->normal, ray.direction);
+   if (fabs(denominator) < DBL_EPSILON) {
     return false;
   }
-  double disc_sqrtd = sqrt(discriminant);
 
-  // Find the nearest root that lies in the acceptable range
-  double root = (h - disc_sqrtd) / a;
-  if (!interval_surrounds(t_bounds, root)) {
-    root = (h + disc_sqrtd) / a;
-    if (!interval_surrounds(t_bounds, root))
-      return false;
+  double t = (q->D - vec3_dot(q->normal, ray.origin)) / denom;
+  if (!interval_surrounds(t_bounds, t)) {
+        return false; 
   }
 
-  rec->t = root;
-  rec->p = ray_at(ray, rec->t);
-  Vec3 outward_normal =
-      vec3_divs(vec3_sub(rec->p, sphere->center), sphere->radius);
-  hitrec_set_face_normal(rec, ray, outward_normal);
+  Vec3 intersection = ray_at(ray, t);
 
+  Vec3 pvec = vec3_sub(intersection, q->Q);
+  double alpha = vec3_dot(q->w, vec3_cross(pvec, q->v));
+  double beta  = vec3_dot(q->w, vec3_cross(q->u, pvec));
+
+  if (alpha < 0.0 || alpha > 1.0 || beta < 0.0 || beta > 1.0)
+        return false;
+  
+  rec->t = t;
+  rec->p = intersection;
+  hitrec_set_face_normal(rec, ray, q->normal);
   return true;
 }
 
@@ -66,7 +62,7 @@ Hittable *quad_create(Vec3 Q, Vec3 u, Vec3 v) {
   Hittable *hittable = malloc(sizeof(struct Hittable));
   assert(hittable != NULL);
 
-  Quad *squad_data = malloc(sizeof(struct Quad));
+  Quad *quad_data = malloc(sizeof(struct Quad));
   assert(quad_data != NULL);
 
   quad_data->Q = Q;
@@ -75,8 +71,10 @@ Hittable *quad_create(Vec3 Q, Vec3 u, Vec3 v) {
 
   Vec3 n = vec3_cross(u, v);
   quad_data->normal = vec3_unit(n);
+  quad_data->D = vec3_dot(quad_data->normal, Q);
+  quad_data->w = vec3_divs(n, vec3_dot(n, n));
 
-  hittable->type = QUAD_SPHERE;
+  hittable->type = HITTABLE_QUAD;
   hittable->hit = quad_hit;
   hittable->destroy = (HittableDestroyFn)quad_destroy;
   hittable->data = quad_data;
