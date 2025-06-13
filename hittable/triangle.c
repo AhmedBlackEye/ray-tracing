@@ -1,11 +1,12 @@
-#include "core/interval.h"
-#include "core/ray.h"
-#include "core/vec3.h"
-#include "hittable.h"
-
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "core/interval.h"
+#include "core/ray.h"
+#include "core/vec3.h"
+#include "hit_record.h"
+#include "hittable.h"
 
 typedef struct Triangle {
   Vec3 v0, v1, v2;   // vertices
@@ -42,14 +43,19 @@ bool triangle_hit(Triangle *tri, Ray r, Interval t_bounds, HitRecord *rec) {
 
   double t = f * vec3_dot(tri->edge2, q);
 
-  if (!interval_contains(t_bounds, t)) {
-    return false;
+  if (interval_surrounds(t_bounds, t)) {
+    rec->t = t;
+    rec->p = ray_at(r, t);
+
+    // Ensure normal faces outward from ray
+    bool front_face = vec3_dot(r.direction, tri->normal) < 0;
+    rec->normal = front_face ? tri->normal : vec3_scale(tri->normal, -1);
+    rec->front_face = front_face;
+
+    return true;
   }
 
-  rec->t = t;
-  rec->p = ray_at(r, t);
-  hitrec_set_face_normal(rec, r, tri->normal);
-  return true;
+  return false;
 }
 
 static void triangle_destroy(void *self) {
