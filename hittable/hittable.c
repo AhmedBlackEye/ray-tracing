@@ -9,6 +9,7 @@
 #include "plane.h"
 #include "sphere.h"
 #include "triangle.h"
+#include "quad.h"
 
 void hitrec_set_face_normal(HitRecord *rec, Ray r, Vec3 outward_normal) {
   assert(rec != NULL);

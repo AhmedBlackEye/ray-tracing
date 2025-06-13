@@ -21,6 +21,7 @@ add_library(hittable
   hittable/plane.c
   hittable/triangle.c
   hittable/triangle_mesh.c
+  hittable/quad.c
 )
 target_include_directories(hittable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

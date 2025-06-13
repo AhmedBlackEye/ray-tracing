@@ -15,6 +15,7 @@
 #include "hittable/hittable_list.h"
 #include "hittable/sphere.h"
 #include "hittable/triangle.h"
+#include "hittable/quad.h"
 
 #include "shared.h"
 #include "camera.h"
@@ -36,6 +37,11 @@ int main(int argc, char **argv) {
 
   DynArray *hittable_world =
       dynarray_create(2, (GPrintFn)hittable_print, (GDestroyFn)hittable_destroy);
+
+  Vec3 Q = { -5.0, 0.0, -1.5 };
+    Vec3 u = { 10.0, 0.0,  0.0 };
+    Vec3 v = {  0.0, 10.0, 0.0 };
+    dynarray_push(hittable_world, quad_create(Q, u, v));
 
   parse_scene(argv[1], hittable_world, out_file);    
 

@@ -22,10 +22,10 @@ static bool quad_hit(const Hittable *self, Ray ray, Interval t_bounds, HitRecord
   assert(self != NULL);
   assert(rec != NULL);
 
-  const Quad *quad = (const Quad *)self->data;
+  const Quad *q = (const Quad *)self->data;
 
   double denom = vec3_dot(q->normal, ray.direction);
-   if (fabs(denominator) < DBL_EPSILON) {
+   if (fabs(denom) < DBL_EPSILON) {
     return false;
   }
 
@@ -70,7 +70,7 @@ Hittable *quad_create(Vec3 Q, Vec3 u, Vec3 v) {
   quad_data->v = v;
 
   Vec3 n = vec3_cross(u, v);
-  quad_data->normal = vec3_unit(n);
+  quad_data->normal = vec3_normalized(n);
   quad_data->D = vec3_dot(quad_data->normal, Q);
   quad_data->w = vec3_divs(n, vec3_dot(n, n));
 
