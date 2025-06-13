@@ -50,7 +50,7 @@ static Color ray_color(Ray r, int depth, DynArray *hittable_world) {
   if (depth <= 0)
     return vec3_zero();
   HitRecord rec;
-  if (hittables_hit(hittable_world, r, interval_make(0, INFINITY), &rec)) {
+  if (hittables_hit(hittable_world, r, interval_make(0.001, INFINITY), &rec)) {
     Vec3 direction = vec3_random_on_hemisphere(rec.normal);
     Ray ray2 = {.origin = rec.p, .direction = direction};
     return vec3_scale(ray_color(ray2, depth - 1, hittable_world), 0.5);
