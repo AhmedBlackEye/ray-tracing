@@ -82,18 +82,18 @@ static inline int vec3_equal(Vec3 v1, Vec3 v2) {
 
 // Returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit
 // square.
-static inline Vec3 vec3_sample_square() {
+static inline Vec3 vec3_sample_square(void) {
   return (Vec3){random_double() - 0.5, random_double() - 0.5, 0};
 }
 
 
-static inline Vec3 vec3_random() {
+static inline Vec3 vec3_random(void) {
   return (Vec3){random_double(), random_double(), random_double()};
 }
 
 static inline Vec3 vec3_random_bounded(double min, double max) {
-  return (Vec3){random_double(min, max), random_double(min, max),
-                random_double(min, max)};
+  return (Vec3){random_double_range(min, max), random_double_range(min, max),
+                random_double_range(min, max)};
 }
 
 static inline Vec3 vec3_random_unit_vector(void) {
