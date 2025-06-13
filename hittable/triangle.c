@@ -45,8 +45,8 @@ bool triangle_hit(Triangle *tri, Ray r, Interval t_bounds, HitRecord *rec) {
     rec->p = ray_at(r, t);
 
     // Ensure normal faces outward from ray
-    bool front_face = vec3_dot(r.direction, rec->normal) < 0;
-    rec->normal = front_face ? tri->normal : vec3_scale(rec->normal, -1);
+    bool front_face = vec3_dot(r.direction, tri->normal) < 0;
+    rec->normal = front_face ? tri->normal: vec3_scale(tri->normal, -1);
     rec->front_face = front_face;
 
     return true;
