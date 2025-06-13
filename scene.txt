@@ -3,12 +3,8 @@ camera  {
   width 400
 }
 
-sphere {
-  center 0  0 -1
-  radius 0.5
-}
-
-sphere {
-  center 0    -100.5 -1
-  radius 100
+triangle {
+  v0 -0.5 0.0 -1.0
+  v1  0.5 5.0 -1.0
+  v2  1.0  -1.0 -1.0
 }

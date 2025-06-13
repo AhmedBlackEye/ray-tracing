@@ -1,8 +1,8 @@
 #ifndef VEC3_H
 #define VEC3_H
 
-#include <stdbool.h>
 #include <math.h>
+#include <stdbool.h>
 
 #include "shared.h"
 
@@ -85,7 +85,6 @@ static inline int vec3_equal(Vec3 v1, Vec3 v2) {
 static inline Vec3 vec3_sample_square(void) {
   return (Vec3){random_double() - 0.5, random_double() - 0.5, 0};
 }
-
 
 static inline Vec3 vec3_random(void) {
   return (Vec3){random_double(), random_double(), random_double()};
