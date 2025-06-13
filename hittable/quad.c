@@ -4,14 +4,15 @@
 #include <assert.h>
 #include <math.h>
 
-#include "sphere.h"
+#include "quad.h"
 #include "core/interval.h"
 #include "hittable.h"
 #include "hit_record.h"
 
 typedef struct Quad {
     Vec3 Q;   
-    Vec3 u, v;
+    Vec3 u
+    Vec3 v;
     Vec3 normal;
     Vec3 w;  
     double D;
@@ -60,22 +61,25 @@ static void quad_destroy(void *self) {
   free(self);
 }
 
-Hittable *sphere_create(Vec3 center, double radius) {
-  assert(radius > 0);
+Hittable *quad_create(Vec3 Q, Vec3 u, Vec3 v) {
 
   Hittable *hittable = malloc(sizeof(struct Hittable));
   assert(hittable != NULL);
 
-  Sphere *sphere_data = malloc(sizeof(struct Sphere));
-  assert(sphere_data != NULL);
+  Quad *squad_data = malloc(sizeof(struct Quad));
+  assert(quad_data != NULL);
 
-  sphere_data->center = center;
-  sphere_data->radius = radius;
+  quad_data->Q = Q;
+  quad_data->u = u;
+  quad_data->v = v;
 
-  hittable->type = HITTABLE_SPHERE;
-  hittable->hit = sphere_hit;
-  hittable->destroy = (HittableDestroyFn)sphere_destroy;
-  hittable->data = sphere_data;
+  Vec3 n = vec3_cross(u, v);
+  quad_data->normal = vec3_unit(n);
+
+  hittable->type = QUAD_SPHERE;
+  hittable->hit = quad_hit;
+  hittable->destroy = (HittableDestroyFn)quad_destroy;
+  hittable->data = quad_data;
 
   return hittable;
 }
