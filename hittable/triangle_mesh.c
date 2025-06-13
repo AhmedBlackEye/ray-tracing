@@ -153,3 +153,12 @@ Hittable *triangle_mesh_create(void) {
 
   return hittable;
 }
+
+/**
+ * What to do:
+ * Triangle_mesh currently holds individual hittable triangle objects (meaning
+ * they all have their own destry function and hit function which are the same)
+ * We want to abstract these functions out so that we only store the Triangle
+ * object and not a Triangle Hittable object. When we want to destroy or check
+ * if hit, we just call those functions to that triangle.
+ */
