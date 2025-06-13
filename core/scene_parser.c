@@ -83,6 +83,8 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
                 case CAMERA_STATE:
                     make_camera = true;
                     break;
+                case TOPLEVEL_STATE:
+                    break;
             }
             state = TOPLEVEL_STATE;
             continue;
@@ -155,6 +157,9 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
                     else if (strcmp(tokens[0], "width") == 0 && num_toks == 2) {
                         width = atoi(tokens[1]);
                     }
+                    break;
+                case TOPLEVEL_STATE:
+                    break;
             }
 
         }
