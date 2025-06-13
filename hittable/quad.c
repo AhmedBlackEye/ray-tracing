@@ -80,12 +80,16 @@ Hittable *sphere_create(Vec3 center, double radius) {
   return hittable;
 }
 
-void sphere_print(const Hittable *hittable) {
-    if (hittable == NULL || hittable->type != HITTABLE_SPHERE) {
-        printf("Sphere: Invalid or NULL\n");
+void quad_print(const Hittable *hittable) {
+    if (hittable == NULL || hittable->type != HITTABLE_QUAD) {
+        printf("Quad: Invalid or NULL\n");
         return;
     }
-    const Sphere *sphere = (const Sphere *)hittable->data;
-    printf("Sphere { center: (%.3f, %.3f, %.3f), radius: %.3f }\n",
-           sphere->center.x, sphere->center.y, sphere->center.z, sphere->radius);
+    const Quad *quad = (const Quad *)hittable->data;
+    printf(
+        "Quad { Q: (%.3f, %.3f, %.3f), u: (%.3f, %.3f, %.3f), v: (%.3f, %.3f, %.3f) }\n",
+        quad->Q.x, quad->Q.y, quad->Q.z,
+        quad->u.x, quad->u.y, quad->u.z,
+        quad->v.x, quad->v.y, quad->v.z
+    );
 }

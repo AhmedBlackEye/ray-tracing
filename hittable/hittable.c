@@ -30,6 +30,9 @@ void hittable_print(const Hittable *self) {
   case HITTABLE_TRIANGLE:
     triangle_print(self->data);
     break;
+  case HITTABLE_QUAD:
+    quad_print(self->data);
+    break;
   default:
     assert(false);
   }
