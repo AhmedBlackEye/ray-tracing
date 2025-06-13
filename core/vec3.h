@@ -110,4 +110,8 @@ static inline Vec3 vec3_random_on_hemisphere(Vec3 normal) {
   return on_same_hemisphere ? on_unit_sphere : vec3_scale(on_unit_sphere, -1);
 }
 
+static inline void vec3_print(Vec3 v) {
+  printf("Vec3<%f, %f, %f>", v.x, v.y, v.z);
+}
+
 #endif // VEC3_H
