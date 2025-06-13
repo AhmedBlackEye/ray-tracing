@@ -27,8 +27,15 @@ void parse_scene(const char *filename, DynArray *hittable_world) {
     FILE *file = fopen(filename, "r");
     assert(file != NULL);
 
+    ParserState state = TOPLEVEL_STATE;
+
     char line[MAX_LINE];
     char *tokens[MAX_TOKENS];
+
+    Vec3 center;
+    double radius;
+
+    Vec3
 
     while (fgets(line, MAX_LINE, file)) {
         if (line[0] == '\n') {
@@ -38,10 +45,14 @@ void parse_scene(const char *filename, DynArray *hittable_world) {
         if (strchr(line, '}')) {
             switch (state) {
                 case SPHERE_STATE:
-                    dynarray_add(hittable_world, sphere_create(center, radius));
+                    dynarray_push(hittable_world, sphere_create(center, radius));
                     break;
                 case PLANE_STATE:
+                    dynarray_push(world, plane_create(point, normal));
+                    break;
             }
+            state = TOPLEVEL_STATE;
+            continue;
         }
 
         int num_toks = tokenize(line, tokens);
@@ -57,6 +68,23 @@ void parse_scene(const char *filename, DynArray *hittable_world) {
             else if (strcmp(tokens[0], "plane") == 0) {
                 state = PLANE_STATE;
             }
+        }
+        else {
+            switch (state) {
+                case SPHERE_STATE:
+                    if (strcmp(tokens[0], "center") == 0 && num_toks == 4) {
+                        position.x = atof(tokens[1]);
+                        position.y = atof(tokens[2]);
+                        position.z = atof(tokens[3]);
+                    }
+                    else if (strcmp(tokens[0], "radius") == 0 && num_toks == 2) {
+                        radius = atof(tokens[1]);
+                    }
+                    break
+            }
+
+        }
+        fclose(file);
     }
 
     ParserState state = STATE_TOPLEVEL;
