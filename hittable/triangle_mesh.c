@@ -1,12 +1,13 @@
-#include "triangle_mesh.h"
-#include "core/dyn_array.h"
-#include "core/vec3.h"
-#include "triangle.h"
-
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "triangle_mesh.h"
+#include "core/dyn_array.h"
+#include "core/vec3.h"
+#include "triangle.h"
+#include "hit_record.h"
 
 static bool ray_box_intersect(Ray ray, BoundingBox box, Interval t_bounds) {
   for (int axis = 0; axis < 3; axis++) {

@@ -3,8 +3,10 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <math.h>
+
 #include "plane.h"
 #include "hittable.h"
+#include "hit_record.h"
 
 typedef struct Plane {
   Vec3 point;
