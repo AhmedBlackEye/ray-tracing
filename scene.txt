@@ -1,29 +1,14 @@
-quad {
-  Q -0.5 -0.5 -1.0
-  u  1.0  0.0  0.0
-  v  0.0  1.0  0.0
-}
-
-quad {
-  Q -0.5  0.0 -1.5
-  u  1.0  0.0  0.0
-  v  0.0  0.5  0.0
-}
-
-quad {
-  Q  0.0 -0.5 -2.0
-  u  0.5  0.0  0.0
-  v  0.0  0.5  0.0
-}
-
-quad {
-  Q  0.5 -0.5 -1.2
-  u  0.5  0.0  0.0
-  v  0.0  0.5  0.0
-}
-
-camera {
+camera  {
   aspect_ratio 16 9
-  width        400
+  width 400
 }
 
+sphere {
+  center 0  0 -1
+  radius 0.5
+}
+
+sphere {
+  center 0    -100.5 -1
+  radius 100
+}
