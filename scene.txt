@@ -1,3 +1,8 @@
+camera  {
+  aspect_ratio 16 9
+  width 400
+}
+
 sphere {
   center 0  0 -1
   radius 0.5
@@ -6,9 +11,4 @@ sphere {
 sphere {
   center 0    -100.5 -1
   radius 100
-}
-
-camera  {
-  aspect_ratio 16 9
-  width 400
 }
