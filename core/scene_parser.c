@@ -3,12 +3,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <stdbool.h>
 
 #include "core/vec3.h"
 #include "core/dyn_array.h"
 #include "core/generic_types.h"
 #include "hittable/sphere.h"
 #include "hittable/plane.h"
+#include "hittable/triangle.h"
 #include "camera.h"
 #include "scene_parser.h"
 
@@ -19,7 +21,8 @@ typedef enum {
     TOPLEVEL_STATE,
     CAMERA_STATE,
     SPHERE_STATE,
-    PLANE_STATE
+    PLANE_STATE,
+    TRIANGLE_STATE
 } ParserState;
 
 static int tokenize(char *line, char *tokens[]) {
@@ -55,6 +58,12 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
     double aspect_ratio;
     int width;
 
+    Vec3 v0;
+    Vec3 v1;
+    Vec3 v2;
+
+    bool make_camera = false;
+
     while (fgets(line, MAX_LINE_LENGTH, file)) {
         if (line[0] == '\n') {
             continue;
@@ -68,9 +77,13 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
                 case PLANE_STATE:
                     dynarray_push(hittable_world, plane_create(point, normal));
                     break;
+                case TRIANGLE_STATE:
+                    dynarray_push(hittable_world, triangle_create(v0, v1, v2));
+                    break;
                 case CAMERA_STATE:
-                    Camera cam = camera_make(width, aspect_ratio);
-                    camera_render(&cam, hittable_world, out_file);
+                    make_camera = true;
+                    break;
+                case TOPLEVEL_STATE:
                     break;
             }
             state = TOPLEVEL_STATE;
@@ -89,6 +102,9 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
             }
             else if (strcmp(tokens[0], "plane") == 0) {
                 state = PLANE_STATE;
+            }
+            else if (strcmp(tokens[0],"triangle")==0) {
+                state = TRIANGLE_STATE;
             }
         }
         else {
@@ -115,6 +131,23 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
                         normal.z = atof(tokens[3]);
                     }
                     break;
+                case TRIANGLE_STATE:
+                if (strcmp(tokens[0],"v0")==0 && num_toks==4) {
+                    v0.x=atof(tokens[1]);
+                    v0.y=atof(tokens[2]);
+                    v0.z=atof(tokens[3]);
+                }
+                else if (strcmp(tokens[0],"v1")==0 && num_toks==4) {
+                    v1.x=atof(tokens[1]);
+                    v1.y=atof(tokens[2]);
+                    v1.z=atof(tokens[3]);
+                }
+                else if (strcmp(tokens[0],"v2")==0 && num_toks==4) {
+                    v2.x=atof(tokens[1]);
+                    v2.y=atof(tokens[2]);
+                    v2.z=atof(tokens[3]);
+                }
+                break;
                 case CAMERA_STATE:
                     if (strcmp(tokens[0], "aspect_ratio") == 0 && num_toks == 3) {
                         aspect_ratio_width = atof(tokens[1]);
@@ -124,9 +157,17 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
                     else if (strcmp(tokens[0], "width") == 0 && num_toks == 2) {
                         width = atoi(tokens[1]);
                     }
+                    break;
+                case TOPLEVEL_STATE:
+                    break;
             }
 
         }
     }
     fclose(file);
+
+    if (make_camera) {
+        Camera cam = camera_make(width, aspect_ratio);
+        camera_render(&cam, hittable_world, out_file);
+    }
 }
