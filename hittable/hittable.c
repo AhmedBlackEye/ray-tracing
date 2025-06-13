@@ -2,11 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "hittable.h" 
-#include "sphere.h"
-#include "plane.h"
 #include "core/generic_types.h"
 #include "core/vec3.h"
+#include "hittable.h"
+#include "plane.h"
+#include "sphere.h"
+#include "triangle.h"
 
 void hitrec_set_face_normal(HitRecord *rec, Ray r, Vec3 outward_normal) {
   assert(rec != NULL);
@@ -24,6 +25,9 @@ void hittable_print(const Hittable *self) {
     break;
   case HITTABLE_PLANE:
     plane_print(self->data);
+    break;
+  case HITTABLE_TRIANGLE:
+    triangle_print(self->data);
     break;
   default:
     assert(false);

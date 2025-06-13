@@ -9,8 +9,10 @@
 typedef struct Camera {
   int image_width;
   int image_height;
+  int samples_per_pixel;
   double aspect_ratio;
 
+  double pixel_samples_scale;
   Vec3 center;
   Vec3 pixel00_loc;
   Vec3 pixel_delta_u;

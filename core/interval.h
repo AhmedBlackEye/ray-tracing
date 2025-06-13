@@ -37,4 +37,12 @@ static inline bool interval_surrounds(Interval i, double x) {
   return i.min < x && x < i.max;
 }
 
+static inline double interval_clamp(Interval i, double x) {
+  if (x < i.min)
+    return i.min;
+  if (x > i.max)
+    return i.max;
+  return x;
+}
+
 #endif // INTERVAL_H
