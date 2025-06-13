@@ -2,6 +2,7 @@
 #include "core/ray.h"
 #include "core/interval.h"
 #include "hittable.h"
+#include "hit_record.h"
 
 bool hittables_hit(DynArray *hittables, Ray ray, Interval t_bounds, HitRecord *rec) {
   HitRecord temp_rec;

@@ -3,10 +3,11 @@
 #include <stdbool.h>
 #include <assert.h>
 #include <math.h>
+
 #include "sphere.h"
 #include "core/interval.h"
-
 #include "hittable.h"
+#include "hit_record.h"
 
 typedef struct Sphere {
   Vec3 center;
