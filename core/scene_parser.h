@@ -3,6 +3,6 @@
 
 #include "dyn_array.h"
 
-void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
+void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file);
 
 #endif
