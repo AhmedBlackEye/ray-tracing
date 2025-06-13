@@ -1,11 +1,12 @@
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "core/interval.h"
 #include "core/ray.h"
 #include "core/vec3.h"
 #include "hittable.h"
-
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include "hit_record.h"
 
 typedef struct Triangle {
   Vec3 v0, v1, v2;   // vertices

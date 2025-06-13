@@ -5,6 +5,7 @@
 #include "core/generic_types.h"
 #include "core/vec3.h"
 #include "hittable.h"
+#include "hit_record.h"
 #include "plane.h"
 #include "sphere.h"
 #include "triangle.h"
