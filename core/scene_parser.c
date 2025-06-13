@@ -1,3 +1,15 @@
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
+#include "core/vec3.h"
+#include "core/dyn_array.h"
+#include "core/generic_types.h"
+#include "hittable/sphere.h"
+#include "hittable/plane.h"
+#include "camera.h"
 #include "scene_parser.h"
 
 #define MAX_LINE_LENGTH 256

@@ -9,7 +9,7 @@
 #include "core/ray.h"
 #include "core/vec3.h"
 #include "core/generic_types.h"
-#include "scene_parser.h"
+#include "core/scene_parser.h"
 
 #include "hittable/hittable.h"
 #include "hittable/hittable_list.h"

@@ -9,6 +9,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wextra -Wshadow -Wpedantic")
 add_library(core
   core/color.c
   core/dyn_array.c
+  core/scene_parser.c
 )
 target_include_directories(core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
