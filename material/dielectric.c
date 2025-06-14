@@ -17,6 +17,9 @@ typedef struct Dielectric {
   double refraction_index;
 } Dielectric;
 
+static double schlick_reflectance_approx(double cosine,
+                                         double refraction_index);
+
 static bool dielectric_scatter(const Material *self, Ray ray_in, HitRecord *rec,
                                Color *attenuation, Ray *scattered) {
   assert(self != NULL);
@@ -35,7 +38,8 @@ static bool dielectric_scatter(const Material *self, Ray ray_in, HitRecord *rec,
   bool cannot_refract = ri * sin_theta > 1.0;
   Vec3 direction;
 
-  if (cannot_refract) {
+  if (cannot_refract ||
+      schlick_reflectance_approx(cos_theta, ri) > random_double()) {
     direction = vec3_reflect(unit_direction, rec->normal);
   } else {
     direction = vec3_refract(unit_direction, rec->normal, ri);
@@ -77,4 +81,12 @@ void dielectric_print(const Material *self) {
   const Dielectric *dielectric = (const Dielectric *)self->data;
   printf("Dielectric { refractive_index: %.3f}\n",
          dielectric->refraction_index);
+}
+
+// Use Schlick's approximation for reflectance.
+static double schlick_reflectance_approx(double cosine,
+                                         double refraction_index) {
+  double r0 = (1 - refraction_index) / (1 + refraction_index);
+  r0 = r0 * r0;
+  return r0 + (1 - r0) * pow((1 - cosine), 5);
 }
