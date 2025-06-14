@@ -28,8 +28,19 @@ static bool dielectric_scatter(const Material *self, Ray ray_in, HitRecord *rec,
   double ri = rec->front_face ? (1 / dielectric->refraction_index)
                               : dielectric->refraction_index;
   Vec3 unit_direction = vec3_normalized(ray_in.direction);
-  Vec3 refracted = vec3_refract(unit_direction, rec->normal, ri);
-  *scattered = (Ray){.origin = rec->p, .direction = refracted};
+  double cos_theta =
+      fmin(vec3_dot(vec3_negate(unit_direction), rec->normal), 1.0);
+  double sin_theta = sqrt(1.0 - cos_theta * cos_theta);
+
+  bool cannot_refract = ri * sin_theta > 1.0;
+  Vec3 direction;
+
+  if (cannot_refract) {
+    direction = vec3_reflect(unit_direction, rec->normal);
+  } else {
+    direction = vec3_refract(unit_direction, rec->normal, ri);
+  }
+  *scattered = (Ray){.origin = rec->p, .direction = direction};
   return true;
 }
 
@@ -64,5 +75,6 @@ void dielectric_print(const Material *self) {
     return;
   }
   const Dielectric *dielectric = (const Dielectric *)self->data;
-  printf("Dielectric { refractive_index: %.3f}\n", dielectric->refraction_index);
+  printf("Dielectric { refractive_index: %.3f}\n",
+         dielectric->refraction_index);
 }
