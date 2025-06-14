@@ -42,25 +42,16 @@ int main(int argc, char **argv) {
   Scene scene = scene_create();
   Camera cam = camera_make(400, 16.0 / 9.0);
 
-  Material *mat_ground = lambertian_create((Color){0.8, 0.8, 0.0});
-  Material *mat_center = lambertian_create((Color){0.1, 0.2, 0.5});
-  Material *mat_left = metal_create((Color){0.8, 0.8, 0.8});
-  Material *mat_right = metal_create((Color){0.8, 0.6, 0.2});
+Material *mat_ground = scene_add_material(&scene, lambertian_create((Color){0.8, 0.8, 0.0}));
+Material *mat_center = scene_add_material(&scene, lambertian_create((Color){0.1, 0.2, 0.5}));
+Material *mat_left   = scene_add_material(&scene, metal_create((Color){0.8, 0.8, 0.8}));
+Material *mat_right  = scene_add_material(&scene, metal_create((Color){0.8, 0.6, 0.2}));
 
-  dynarray_push(scene.materials, mat_ground);
-  dynarray_push(scene.materials, mat_center);
-  dynarray_push(scene.materials, mat_left);
-  dynarray_push(scene.materials, mat_right);
+scene_add_obj(&scene, sphere_create((Vec3){0.0, -100.5, -1}, 100.0, mat_ground));
+scene_add_obj(&scene, sphere_create((Vec3){0.0,  0.0,  -1.2}, 0.5, mat_center));
+scene_add_obj(&scene, sphere_create((Vec3){-1.0, 0.0,  -1.0}, 0.5, mat_left));
+scene_add_obj(&scene, sphere_create((Vec3){1.0,  0.0,  -1.0}, 0.5, mat_right));
 
-  Hittable *sphere1 = sphere_create((Vec3){0.0, -100.5, -1}, 100.0, mat_ground);
-  Hittable *sphere2 = sphere_create((Vec3){0.0, 0.0, -1.2}, 0.5, mat_center);
-  Hittable *sphere3 = sphere_create((Vec3){-1.0, 0.0, -1.0}, 0.5, mat_left);
-  Hittable *sphere4 = sphere_create((Vec3){1.0, 0.0, -1.0}, 0.5, mat_right);
-
-  dynarray_push(scene.objects, sphere1);
-  dynarray_push(scene.objects, sphere2);
-  dynarray_push(scene.objects, sphere3);
-  dynarray_push(scene.objects, sphere4);
 
   camera_render(&cam, scene.objects, out_file);
 

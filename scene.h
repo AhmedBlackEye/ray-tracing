@@ -9,3 +9,6 @@ typedef struct Scene {
 
 extern Scene scene_create();
 extern void scene_destroy(Scene *self);
+
+extern Hittable *scene_add_obj(Scene *self, Hittable *obj);
+extern Material *scene_add_material(Scene *self, Material *mat);
