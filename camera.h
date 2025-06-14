@@ -14,6 +14,8 @@ typedef struct Camera {
   double aspect_ratio;
   // Vertical view angle (field of view)
   double vfov;
+  double defocus_angle;
+  double focus_dist;
   Vec3 lookfrom;
   Vec3 lookat;
   Vec3 vup;
@@ -25,11 +27,14 @@ typedef struct Camera {
   Vec3 pixel_delta_u;
   Vec3 pixel_delta_v;
   Vec3 u, v, w;
+  Vec3 defocus_disk_u;
+  Vec3 defocus_disk_v;
 } Camera;
 
 // Create a new camera instance
 extern Camera camera_make(int image_width, double aspect_ratio, Vec3 lookfrom,
                           Vec3 lookat, Vec3 vup, double vfov,
+                          double defocus_angle, double focus_dist,
                           int samples_per_pixel, int max_depth);
 extern void camera_render(const Camera *cam, DynArray *hittable_world,
                           FILE *out_file);

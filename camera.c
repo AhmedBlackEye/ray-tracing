@@ -11,8 +11,8 @@
 
 // Create a new camera instance
 Camera camera_make(int image_width, double aspect_ratio, Vec3 lookfrom,
-                   Vec3 lookat, Vec3 vup, double vfov, int samples_per_pixel,
-                   int max_depth) {
+                   Vec3 lookat, Vec3 vup, double vfov, double defocus_angle,
+                   double focus_dist, int samples_per_pixel, int max_depth) {
   Camera cam = {0}; // Initialize all fields to zero
 
   // Basic camera parameters
@@ -21,6 +21,8 @@ Camera camera_make(int image_width, double aspect_ratio, Vec3 lookfrom,
   cam.samples_per_pixel = samples_per_pixel;
   cam.max_depth = max_depth;
   cam.vfov = vfov;
+  cam.defocus_angle = defocus_angle;
+  cam.focus_dist = focus_dist;
   cam.lookfrom = lookfrom;
   cam.lookat = lookat;
   cam.vup = vup;
@@ -31,11 +33,12 @@ Camera camera_make(int image_width, double aspect_ratio, Vec3 lookfrom,
   if (cam.image_height < 1)
     cam.image_height = 1;
 
+  cam.pixel_samples_scale = 1.0 / cam.samples_per_pixel;
+
   // Calculate viewport dimensions
-  double focal_length = vec3_length(vec3_sub(cam.lookfrom, cam.lookat));
   double theta = degrees_to_radians(cam.vfov);
   double h = tan(theta / 2.0);
-  double viewport_height = 2.0 * h * focal_length;
+  double viewport_height = 2.0 * h * cam.focus_dist;
   double viewport_width =
       viewport_height * (double)cam.image_width / cam.image_height;
 
@@ -53,7 +56,7 @@ Camera camera_make(int image_width, double aspect_ratio, Vec3 lookfrom,
 
   // Calculate viewport upper-left corner and first pixel location
   Vec3 viewport_upper_left =
-      vec3_sub(cam.center, vec3_scale(cam.w, focal_length));
+      vec3_sub(cam.center, vec3_scale(cam.w, cam.focus_dist));
   viewport_upper_left =
       vec3_sub(viewport_upper_left, vec3_divs(viewport_u, 2.0));
   viewport_upper_left =
@@ -63,7 +66,11 @@ Camera camera_make(int image_width, double aspect_ratio, Vec3 lookfrom,
       vec3_add(viewport_upper_left,
                vec3_scale(vec3_add(cam.pixel_delta_u, cam.pixel_delta_v), 0.5));
 
-  cam.pixel_samples_scale = 1.0 / cam.samples_per_pixel;
+  // Calculate camera defocus
+  double defocus_radius =
+      cam.focus_dist * tan(degrees_to_radians(defocus_angle / 2));
+  cam.defocus_disk_u = vec3_scale(cam.u, defocus_radius);
+  cam.defocus_disk_v = vec3_scale(cam.v, defocus_radius);
 
   return cam;
 }
@@ -87,16 +94,25 @@ static Color ray_color(Ray r, int depth, DynArray *hittable_world) {
                   (Vec3){0.5 * a, 0.7 * a, 1.0 * a});
 }
 
-// Construct a camera ray originating from the origin and directed at randomly
-// sampled point around the pixel location i, j.
+// Construct a camera ray originating from the defocus disk and directed at a
+// randomly sampled point around the pixel location i, j.
 static Ray get_ray(const Camera *cam, int i, int j) {
   Vec3 offset = vec3_sample_square();
-  Vec3 pixel_sample = vec3_add(
-      cam->pixel00_loc, vec3_add(vec3_scale(cam->pixel_delta_u, i + offset.x),
-                                 vec3_scale(cam->pixel_delta_v, j + offset.y)));
+  Vec3 pixel_sample =
+      vec3_add(cam->pixel00_loc, vec3_scale(cam->pixel_delta_u, i + offset.x));
+  pixel_sample =
+      vec3_add(pixel_sample, vec3_scale(cam->pixel_delta_v, j + offset.y));
 
-  return (Ray){.origin = cam->center,
-               .direction = vec3_sub(pixel_sample, cam->center)};
+  Vec3 ray_origin;
+  if (cam->defocus_angle <= 0) {
+    ray_origin = cam->center;
+  } else {
+    ray_origin = defocus_disk_sample(cam->center, cam->defocus_disk_u,
+                                     cam->defocus_disk_v);
+  }
+
+  return (Ray){.origin = ray_origin,
+               .direction = vec3_sub(pixel_sample, ray_origin)};
 }
 
 void camera_render(const Camera *cam, DynArray *hittable_world,

@@ -113,6 +113,20 @@ static inline Vec3 vec3_random_on_hemisphere(Vec3 normal) {
   return on_same_hemisphere ? on_unit_sphere : vec3_scale(on_unit_sphere, -1);
 }
 
+static inline Vec3 vec3_random_in_unit_disk(void) {
+  while (true) {
+    Vec3 p = {random_double_range(-1, 1), random_double_range(-1, 1), 0};
+    if (vec3_length_squared(p) < 1)
+      return p;
+  }
+}
+
+static inline Vec3 defocus_disk_sample(Vec3 center, Vec3 defocus_disk_u, Vec3 defocus_disk_v) {
+  Vec3 p = vec3_random_in_unit_disk();
+  Vec3 res = vec3_add(center, vec3_scale(defocus_disk_u, p.x));
+  return vec3_add(res, vec3_scale(defocus_disk_v, p.y));
+}
+
 static inline void vec3_print(Vec3 v) {
   printf("Vec3<%f, %f, %f>", v.x, v.y, v.z);
 }
