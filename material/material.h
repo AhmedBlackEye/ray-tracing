@@ -4,6 +4,8 @@
 #include <stdbool.h>
 
 #include "core/color.h"
+#include "core/ray.h"
+#include "hittable/hit_record.h"
 
 typedef struct HitRecord HitRecord;
 typedef struct Material Material;
@@ -20,5 +22,8 @@ typedef struct Material {
   MaterialDestroyFn destroy;
   void *data;
 } Material;
+
+extern void material_destroy(Material *self);
+extern void material_print(const Material *self);
 
 #endif // MATERIAL_H

@@ -19,6 +19,7 @@
 #include "material/lambertian.h"
 #include "material/material.h"
 #include "material/metal.h"
+#include "scene.h"
 
 #include "camera.h"
 #include "shared.h"
@@ -38,34 +39,32 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  DynArray *hittable_world = dynarray_create(2, (GPrintFn)hittable_print,
-                                             (GDestroyFn)hittable_destroy);
+  Scene scene = scene_create();
+  Camera cam = camera_make(400, 16.0 / 9.0);
 
   Material *mat_ground = lambertian_create((Color){0.8, 0.8, 0.0});
   Material *mat_center = lambertian_create((Color){0.1, 0.2, 0.5});
   Material *mat_left = metal_create((Color){0.8, 0.8, 0.8});
   Material *mat_right = metal_create((Color){0.8, 0.6, 0.2});
 
+  dynarray_push(scene.materials, mat_ground);
+  dynarray_push(scene.materials, mat_center);
+  dynarray_push(scene.materials, mat_left);
+  dynarray_push(scene.materials, mat_right);
+
   Hittable *sphere1 = sphere_create((Vec3){0.0, -100.5, -1}, 100.0, mat_ground);
   Hittable *sphere2 = sphere_create((Vec3){0.0, 0.0, -1.2}, 0.5, mat_center);
   Hittable *sphere3 = sphere_create((Vec3){-1.0, 0.0, -1.0}, 0.5, mat_left);
   Hittable *sphere4 = sphere_create((Vec3){1.0, 0.0, -1.0}, 0.5, mat_right);
 
-  dynarray_push(hittable_world, sphere1);
-  dynarray_push(hittable_world, sphere2);
-  dynarray_push(hittable_world, sphere3);
-  dynarray_push(hittable_world, sphere4);
+  dynarray_push(scene.objects, sphere1);
+  dynarray_push(scene.objects, sphere2);
+  dynarray_push(scene.objects, sphere3);
+  dynarray_push(scene.objects, sphere4);
 
-  Camera cam = camera_make(400, 16.0 / 9.0);
-  camera_render(&cam, hittable_world, out_file);
+  camera_render(&cam, scene.objects, out_file);
 
-  // dynarray_print(hittable_world);
-
-  dynarray_destroy(hittable_world);
-  mat_ground->destroy(mat_ground);
-  mat_center->destroy(mat_center);
-  mat_left->destroy(mat_left);
-  mat_right->destroy(mat_right);
+  scene_destroy(&scene);
   fclose(out_file);
   return 0;
 }
