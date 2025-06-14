@@ -4,7 +4,7 @@
 #include "core/color.h"
 #include "material.h"
 
-extern Material *metal_create(Color albedo);
+extern Material *metal_create(Color albedo, double fuzz);
 extern void metal_print(const Material *self);
 
 #endif // METAL_H

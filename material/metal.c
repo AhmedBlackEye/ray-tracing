@@ -12,16 +12,19 @@
 
 typedef struct Metal {
   Color albedo;
+  double fuzz;
 } Metal;
 
 static bool metal_scatter(const Material *self, Ray ray_in, HitRecord *rec,
-                               Color *attenuation, Ray *scattered) {
+                          Color *attenuation, Ray *scattered) {
   assert(self != NULL);
   assert(rec != NULL);
 
   Metal *metal = self->data;
 
   Vec3 reflected = vec3_reflect(ray_in.direction, rec->normal);
+  reflected = vec3_add(vec3_normalized(reflected),
+                       vec3_scale(vec3_random_unit_vector(), metal->fuzz));
   *scattered = (Ray){.origin = rec->p, .direction = reflected};
   *attenuation = metal->albedo;
 
@@ -36,7 +39,7 @@ static void metal_destroy(void *self) {
   free(self);
 }
 
-Material *metal_create(Color albedo) {
+Material *metal_create(Color albedo, double fuzz) {
   Material *mat = malloc(sizeof(struct Material));
   assert(mat != NULL);
 
@@ -44,6 +47,7 @@ Material *metal_create(Color albedo) {
   assert(metal != NULL);
 
   metal->albedo = albedo;
+  metal->fuzz = fuzz;
 
   mat->type = MATERIAL_METAL;
   mat->scatter = (ScatterFn)metal_scatter;
