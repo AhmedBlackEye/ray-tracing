@@ -16,6 +16,7 @@ target_include_directories(core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # Create hittable library
 add_library(hittable
   hittable/hittable.c
+  hittable/hit_record.c
   hittable/hittable_list.c
   hittable/sphere.c
   hittable/plane.c
