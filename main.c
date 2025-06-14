@@ -6,18 +6,19 @@
 
 #include "core/color.h"
 #include "core/dyn_array.h"
-#include "core/ray.h"
-#include "core/vec3.h"
 #include "core/generic_types.h"
+#include "core/ray.h"
 #include "core/scene_parser.h"
+#include "core/vec3.h"
 
 #include "hittable/hittable.h"
 #include "hittable/hittable_list.h"
 #include "hittable/sphere.h"
 #include "hittable/triangle.h"
+#include "hittable/quad.h"
 
-#include "shared.h"
 #include "camera.h"
+#include "shared.h"
 
 #define ASPECT_RATIO (16.0 / 9.0)
 #define WIDTH 400
@@ -34,10 +35,12 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  DynArray *hittable_world =
-      dynarray_create(2, (GPrintFn)hittable_print, (GDestroyFn)hittable_destroy);
+  DynArray *hittable_world = dynarray_create(2, (GPrintFn)hittable_print,
+                                             (GDestroyFn)hittable_destroy);
 
-  parse_scene(argv[1], hittable_world, out_file);    
+  parse_scene(argv[1], hittable_world, out_file);
+
+  dynarray_print(hittable_world);
 
   dynarray_destroy(hittable_world);
   fclose(out_file);

@@ -11,6 +11,7 @@
 #include "hittable/sphere.h"
 #include "hittable/plane.h"
 #include "hittable/triangle.h"
+#include "hittable/quad.h"
 #include "camera.h"
 #include "scene_parser.h"
 
@@ -22,7 +23,8 @@ typedef enum {
     CAMERA_STATE,
     SPHERE_STATE,
     PLANE_STATE,
-    TRIANGLE_STATE
+    TRIANGLE_STATE,
+    QUAD_STATE
 } ParserState;
 
 static int tokenize(char *line, char *tokens[]) {
@@ -62,6 +64,10 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
     Vec3 v1;
     Vec3 v2;
 
+    Vec3 Q;
+    Vec3 u;
+    Vec3 v;
+
     bool make_camera = false;
 
     while (fgets(line, MAX_LINE_LENGTH, file)) {
@@ -79,6 +85,9 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
                     break;
                 case TRIANGLE_STATE:
                     dynarray_push(hittable_world, triangle_create(v0, v1, v2));
+                    break;
+                case QUAD_STATE:
+                    dynarray_push(hittable_world, quad_create(Q, u, v));
                     break;
                 case CAMERA_STATE:
                     make_camera = true;
@@ -103,8 +112,11 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
             else if (strcmp(tokens[0], "plane") == 0) {
                 state = PLANE_STATE;
             }
-            else if (strcmp(tokens[0],"triangle")==0) {
+            else if (strcmp(tokens[0],"triangle") == 0) {
                 state = TRIANGLE_STATE;
+            }
+            else if (strcmp(tokens[0],"quad") == 0) {
+                state = QUAD_STATE;
             }
         }
         else {
@@ -148,6 +160,21 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
                     v2.z=atof(tokens[3]);
                 }
                 break;
+                case QUAD_STATE:
+                    if (!strcmp(tokens[0],"Q") && num_toks==4) {
+                        Q.x=atof(tokens[1]);
+                        Q.y=atof(tokens[2]);
+                        Q.z=atof(tokens[3]);
+                    } else if (!strcmp(tokens[0],"u") && num_toks==4) {
+                        u.x=atof(tokens[1]);
+                        u.y=atof(tokens[2]);
+                        u.z=atof(tokens[3]);
+                    } else if (!strcmp(tokens[0],"v") && num_toks==4) {
+                        v.x=atof(tokens[1]);
+                        v.y=atof(tokens[2]);
+                        v.z=atof(tokens[3]);
+                    }
+                    break;
                 case CAMERA_STATE:
                     if (strcmp(tokens[0], "aspect_ratio") == 0 && num_toks == 3) {
                         aspect_ratio_width = atof(tokens[1]);

@@ -9,6 +9,7 @@
 #include "plane.h"
 #include "sphere.h"
 #include "triangle.h"
+#include "quad.h"
 
 void hitrec_set_face_normal(HitRecord *rec, Ray r, Vec3 outward_normal) {
   assert(rec != NULL);
@@ -29,6 +30,9 @@ void hittable_print(const Hittable *self) {
     break;
   case HITTABLE_TRIANGLE:
     triangle_print(self->data);
+    break;
+  case HITTABLE_QUAD:
+    quad_print(self->data);
     break;
   default:
     assert(false);

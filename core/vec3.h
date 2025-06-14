@@ -1,8 +1,8 @@
 #ifndef VEC3_H
 #define VEC3_H
 
-#include <stdbool.h>
 #include <math.h>
+#include <stdbool.h>
 
 #include "shared.h"
 
@@ -86,7 +86,6 @@ static inline Vec3 vec3_sample_square(void) {
   return (Vec3){random_double() - 0.5, random_double() - 0.5, 0};
 }
 
-
 static inline Vec3 vec3_random(void) {
   return (Vec3){random_double(), random_double(), random_double()};
 }
@@ -109,6 +108,10 @@ static inline Vec3 vec3_random_on_hemisphere(Vec3 normal) {
   Vec3 on_unit_sphere = vec3_random_unit_vector();
   bool on_same_hemisphere = vec3_dot(on_unit_sphere, normal) > 0.0;
   return on_same_hemisphere ? on_unit_sphere : vec3_scale(on_unit_sphere, -1);
+}
+
+static inline void vec3_print(Vec3 v) {
+  printf("Vec3<%f, %f, %f>", v.x, v.y, v.z);
 }
 
 #endif // VEC3_H
