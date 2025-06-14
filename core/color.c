@@ -21,3 +21,7 @@ void write_color(FILE *out, Color pixel_color) {
 
   fprintf(out, "%d %d %d\n", rbyte, gbyte, bbyte);
 }
+
+void color_print(Color c) {
+  printf("Color { r: %f, %f, %f}", c.x, c.y, c.z);
+}

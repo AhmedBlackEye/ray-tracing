@@ -46,7 +46,7 @@ Material *metal_create(Color albedo) {
   metal->albedo = albedo;
 
   mat->type = MATERIAL_METAL;
-  mat->scatter = metal_scatter;
+  mat->scatter = (ScatterFn)metal_scatter;
   mat->destroy = (MaterialDestroyFn)metal_destroy;
   mat->data = metal;
 
@@ -59,5 +59,6 @@ void metal_print(const Material *self) {
     return;
   }
   const Metal *metal = (const Metal *)self->data;
-  printf("Metal { albedo: %.3f }\n", metal->albedo);
+  Color albedo = metal->albedo;
+  printf("Metal { albedo: %.3f %.3f %.3f }\n", albedo.x, albedo.y, albedo.z);
 }

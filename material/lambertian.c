@@ -19,6 +19,8 @@ static bool lambertian_scatter(const Material *self, Ray ray_in, HitRecord *rec,
   assert(self != NULL);
   assert(rec != NULL);
 
+  (void)ray_in; // unused
+
   Lambertian *lamb = self->data;
 
   Vec3 scatter_direction = vec3_add(rec->normal, vec3_random_unit_vector());
@@ -49,7 +51,7 @@ Material *lambertian_create(Color albedo) {
   lamb->albedo = albedo;
 
   mat->type = MATERIAL_LAMBERTIAN;
-  mat->scatter = lambertian_scatter;
+  mat->scatter = (ScatterFn)lambertian_scatter;
   mat->destroy = (MaterialDestroyFn)lambertian_destroy;
   mat->data = lamb;
 
@@ -62,5 +64,6 @@ void lambertian_print(const Material *self) {
     return;
   }
   const Lambertian *lamb = (const Lambertian *)self->data;
-  printf("Lambertian { albedo: %.3f }\n", lamb->albedo);
+  Color albedo = lamb->albedo;
+  printf("Lambertian { albedo: %.3f %.3f %.3f}\n", albedo.x, albedo.y, albedo.z);
 }
