@@ -7,6 +7,7 @@
 #include "core/ray.h"
 #include "core/vec3.h"
 #include "hit_record.h"
+#include "material/material.h"
 
 typedef struct Hittable Hittable;
 typedef bool (*HitFn)(const Hittable *self, Ray r, Interval t_bounds,
@@ -26,6 +27,7 @@ typedef struct Hittable {
   HittableType type;
   HitFn hit;
   HittableDestroyFn destroy;
+  Material *mat;
   void *data;
 } Hittable;
 

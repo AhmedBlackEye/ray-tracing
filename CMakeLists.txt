@@ -16,6 +16,7 @@ target_include_directories(core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # Create hittable library
 add_library(hittable
   hittable/hittable.c
+  hittable/hit_record.c
   hittable/hittable_list.c
   hittable/sphere.c
   hittable/plane.c
@@ -25,14 +26,17 @@ add_library(hittable
 )
 target_include_directories(hittable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-# # Create material library
-# add_library(material
-# )
-# target_include_directories(material PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+# Create material library
+add_library(material
+material/material.c
+material/lambertian.c
+material/metal.c
+)
+target_include_directories(material PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 # Create main executable
-add_executable(raytracer main.c camera.c)
+add_executable(raytracer main.c camera.c scene.c)
 
 # Link everything properly
-target_link_libraries(raytracer core hittable m)
+target_link_libraries(raytracer core hittable material m)

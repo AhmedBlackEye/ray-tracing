@@ -13,9 +13,13 @@
 
 #include "hittable/hittable.h"
 #include "hittable/hittable_list.h"
+#include "hittable/quad.h"
 #include "hittable/sphere.h"
 #include "hittable/triangle.h"
-#include "hittable/quad.h"
+#include "material/lambertian.h"
+#include "material/material.h"
+#include "material/metal.h"
+#include "scene.h"
 
 #include "camera.h"
 #include "shared.h"
@@ -35,14 +39,23 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  DynArray *hittable_world = dynarray_create(2, (GPrintFn)hittable_print,
-                                             (GDestroyFn)hittable_destroy);
+  Scene scene = scene_create();
+  Camera cam = camera_make(400, 16.0 / 9.0);
 
-  parse_scene(argv[1], hittable_world, out_file);
+Material *mat_ground = scene_add_material(&scene, lambertian_create((Color){0.8, 0.8, 0.0}));
+Material *mat_center = scene_add_material(&scene, lambertian_create((Color){0.1, 0.2, 0.5}));
+Material *mat_left   = scene_add_material(&scene, metal_create((Color){0.8, 0.8, 0.8}, 0.3));
+Material *mat_right  = scene_add_material(&scene, metal_create((Color){0.8, 0.6, 0.2}, 1.0));
 
-  dynarray_print(hittable_world);
+scene_add_obj(&scene, sphere_create((Vec3){0.0, -100.5, -1}, 100.0, mat_ground));
+scene_add_obj(&scene, sphere_create((Vec3){0.0,  0.0,  -1.2}, 0.5, mat_center));
+scene_add_obj(&scene, sphere_create((Vec3){-1.0, 0.0,  -1.0}, 0.5, mat_left));
+scene_add_obj(&scene, sphere_create((Vec3){1.0,  0.0,  -1.0}, 0.5, mat_right));
 
-  dynarray_destroy(hittable_world);
+
+  camera_render(&cam, scene.objects, out_file);
+
+  scene_destroy(&scene);
   fclose(out_file);
   return 0;
 }

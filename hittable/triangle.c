@@ -5,6 +5,7 @@
 #include "core/interval.h"
 #include "core/ray.h"
 #include "core/vec3.h"
+#include "material/material.h"
 #include "hit_record.h"
 #include "hittable.h"
 
@@ -84,7 +85,7 @@ void triangle_print(const Hittable *hittable) {
          tri->v2.x, tri->v2.y, tri->v2.z);
 }
 
-Hittable *triangle_create(Vec3 v0, Vec3 v1, Vec3 v2) {
+Hittable *triangle_create(Vec3 v0, Vec3 v1, Vec3 v2, Material *mat) {
   Triangle *triangle = malloc(sizeof(Triangle));
   assert(triangle != NULL);
 
@@ -107,6 +108,7 @@ Hittable *triangle_create(Vec3 v0, Vec3 v1, Vec3 v2) {
   hittable->type = HITTABLE_TRIANGLE;
   hittable->data = triangle;
   hittable->destroy = (HittableDestroyFn)triangle_destroy;
+  hittable->mat = mat;
   hittable->hit = (HitFn)triangle_hit;
 
   return hittable;

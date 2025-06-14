@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "shared.h"
 
@@ -113,5 +114,15 @@ static inline Vec3 vec3_random_on_hemisphere(Vec3 normal) {
 static inline void vec3_print(Vec3 v) {
   printf("Vec3<%f, %f, %f>", v.x, v.y, v.z);
 }
+
+// Return true if the vector is close to zero in all dimensions.
+static inline bool vec3_is_near_zero(Vec3 v) {
+  double s = 1e-8;
+  return (fabs(v.x) < s) && (fabs(v.y) < s) && (fabs(v.z) < s);
+}
+
+static inline Vec3 vec3_reflect(Vec3 v, Vec3 n) {
+  return vec3_sub(v, vec3_scale(n, 2*vec3_dot(v, n)));
+} 
 
 #endif // VEC3_H
