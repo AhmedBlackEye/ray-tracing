@@ -49,6 +49,8 @@ static inline double vec3_dot(Vec3 v1, Vec3 v2) {
   return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
+static inline Vec3 vec3_negate(Vec3 v) { return vec3_scale(v, -1.0); }
+
 static inline Vec3 vec3_cross(Vec3 v1, Vec3 v2) {
   return (Vec3){v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z,
                 v1.x * v2.y - v1.y * v2.x};
@@ -122,7 +124,15 @@ static inline bool vec3_is_near_zero(Vec3 v) {
 }
 
 static inline Vec3 vec3_reflect(Vec3 v, Vec3 n) {
-  return vec3_sub(v, vec3_scale(n, 2*vec3_dot(v, n)));
-} 
+  return vec3_sub(v, vec3_scale(n, 2 * vec3_dot(v, n)));
+}
 
+static inline Vec3 vec3_refract(Vec3 uv, Vec3 n, double etai_over_etat) {
+  double cos_theta = fmin(vec3_dot(vec3_negate(uv), n), 1.0);
+  Vec3 r_out_perp =
+      vec3_scale(vec3_add(uv, vec3_scale(n, cos_theta)), etai_over_etat);
+  Vec3 r_out_parallel =
+      vec3_scale(n, -sqrt(fabs(1.0 - vec3_length_squared(r_out_perp))));
+  return vec3_add(r_out_perp, r_out_parallel);
+}
 #endif // VEC3_H

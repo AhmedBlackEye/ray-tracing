@@ -31,6 +31,7 @@ add_library(material
 material/material.c
 material/lambertian.c
 material/metal.c
+material/dielectric.c
 )
 target_include_directories(material PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
