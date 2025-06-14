@@ -25,8 +25,14 @@
 #include "camera.h"
 #include "shared.h"
 
+#define WIDTH 720
 #define ASPECT_RATIO (16.0 / 9.0)
-#define WIDTH 400
+#define SAMPLES_PER_PIXEL 100
+#define MAX_DEPTH 50
+#define VFOV 90
+#define LOOKFROM (vec3_zero())
+#define LOOKAT ((Vec3){0,0,-1})
+#define VUP ((Vec3){0,1,0})
 
 int main(int argc, char **argv) {
   if (argc != 3) {
@@ -41,7 +47,10 @@ int main(int argc, char **argv) {
   }
 
   Scene scene = scene_create();
-  Camera cam = camera_make(700, 16.0 / 9.0);
+  Vec3 lookfrom = {-2, 2, 1};
+  Vec3 lookat = {0, 0, -1};
+  Vec3 vup = {0, 1, 0};
+  Camera cam = camera_make(WIDTH, ASPECT_RATIO, lookfrom, lookat, vup, VFOV, SAMPLES_PER_PIXEL, MAX_DEPTH);
 
 Material *mat_ground = scene_add_material(&scene, lambertian_create((Color){0.8, 0.5, 0.6}));
 Material *mat_center = scene_add_material(&scene, lambertian_create((Color){0.15, 0.45, 0.4}));
