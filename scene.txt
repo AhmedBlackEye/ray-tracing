@@ -4,11 +4,11 @@ camera  {
 }
 
 sphere {
-  center 0 0 -1
+  center 0  0 -1
   radius 0.5
 }
 
 sphere {
-  center 0 -100.5 -1
-  radius 100
+  center 0  0 -1
+  radius 0.5
 }
