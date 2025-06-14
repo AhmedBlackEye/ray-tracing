@@ -10,7 +10,7 @@
 
 #define VIEWPORT_HEIGHT 2.0
 #define FOCAL_LENGTH 1.0
-#define SAMPLES_PER_PIXEL 10
+#define SAMPLES_PER_PIXEL 200
 #define MAX_DEPTH 50
 
 // Create a new camera instance

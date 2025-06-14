@@ -41,16 +41,18 @@ int main(int argc, char **argv) {
   }
 
   Scene scene = scene_create();
-  Camera cam = camera_make(400, 16.0 / 9.0);
+  Camera cam = camera_make(700, 16.0 / 9.0);
 
 Material *mat_ground = scene_add_material(&scene, lambertian_create((Color){0.8, 0.5, 0.6}));
 Material *mat_center = scene_add_material(&scene, lambertian_create((Color){0.15, 0.45, 0.4}));
-Material *mat_left   = scene_add_material(&scene, dielectric_create(1.0 / 1.33));
+Material *mat_left   = scene_add_material(&scene, dielectric_create(1.5));
+Material *mat_bubble   = scene_add_material(&scene, dielectric_create(1/1.5));
 Material *mat_right  = scene_add_material(&scene, metal_create((Color){0.8, 0.6, 0.2}, 1.0));
 
 scene_add_obj(&scene, sphere_create((Vec3){0.0, -100.5, -1}, 100.0, mat_ground));
 scene_add_obj(&scene, sphere_create((Vec3){0.0,  0.0,  -1.2}, 0.5, mat_center));
 scene_add_obj(&scene, sphere_create((Vec3){-1.0, 0.0,  -1.0}, 0.5, mat_left));
+scene_add_obj(&scene, sphere_create((Vec3){-1.0, 0.0,  -1.0}, 0.3, mat_bubble));
 scene_add_obj(&scene, sphere_create((Vec3){1.0,  0.0,  -1.0}, 0.5, mat_right));
 
 
