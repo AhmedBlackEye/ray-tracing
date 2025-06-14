@@ -6,6 +6,7 @@
 
 #include "quad.h"
 #include "core/interval.h"
+#include "material/material.h"
 #include "hittable.h"
 #include "hit_record.h"
 
@@ -57,7 +58,7 @@ static void quad_destroy(void *self) {
   free(self);
 }
 
-Hittable *quad_create(Vec3 Q, Vec3 u, Vec3 v) {
+Hittable *quad_create(Vec3 Q, Vec3 u, Vec3 v, Material *mat) {
 
   Hittable *hittable = malloc(sizeof(struct Hittable));
   assert(hittable != NULL);
@@ -77,6 +78,7 @@ Hittable *quad_create(Vec3 Q, Vec3 u, Vec3 v) {
   hittable->type = HITTABLE_QUAD;
   hittable->hit = quad_hit;
   hittable->destroy = (HittableDestroyFn)quad_destroy;
+  hittable->mat = mat;
   hittable->data = quad_data;
 
   return hittable;

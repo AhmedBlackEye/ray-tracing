@@ -3,13 +3,16 @@
 
 #include <stdbool.h>
 
-typedef struct HitRecord HitRecord; 
-typedef bool (*ScatterFn)(Ray ray_in, HitRecord *rec, Color attenuation,
-                          Ray scattered);
+#include "core/color.h"
+
+typedef struct HitRecord HitRecord;
+typedef struct Material Material;
+typedef bool (*ScatterFn)(Material *mat, Ray ray_in, HitRecord *rec,
+                          Color *attenuation, Ray *scattered);
 typedef void (*MaterialDestroyFn)(Material *self);
 typedef void (*MaterialPrintFn)(Material *self);
 
-typedef enum { MATERIAL_LAMBERTIAN } MaterialType;
+typedef enum { MATERIAL_LAMBERTIAN, MATERIAL_METAL } MaterialType;
 
 typedef struct Material {
   MaterialType type;

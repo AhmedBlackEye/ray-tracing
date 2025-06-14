@@ -6,10 +6,11 @@
 #include "core/vec3.h"
 #include "hittable.h"
 #include "hit_record.h"
+#include "material/material.h"
 
 typedef struct Triangle Triangle;
 
-extern Hittable *triangle_create(Vec3 v0, Vec3 v1, Vec3 v2);
+extern Hittable *triangle_create(Vec3 v0, Vec3 v1, Vec3 v2, Material *mat);
 extern void triangle_print(const Hittable *hittable);
 extern bool triangle_hit(Triangle *tri, Ray r, Interval t_bounds,
                          HitRecord *rec);

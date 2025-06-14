@@ -25,14 +25,16 @@ add_library(hittable
 )
 target_include_directories(hittable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-# # Create material library
-# add_library(material
-# )
-# target_include_directories(material PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+# Create material library
+add_library(material
+material/lambertian.c
+material/metal.c
+)
+target_include_directories(material PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 # Create main executable
 add_executable(raytracer main.c camera.c)
 
 # Link everything properly
-target_link_libraries(raytracer core hittable m)
+target_link_libraries(raytracer core hittable material m)

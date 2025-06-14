@@ -41,160 +41,160 @@ static int tokenize(char *line, char *tokens[]) {
 }
 
 void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file) {
-    FILE *file = fopen(filename, "r");
-    assert(file != NULL);
+    // FILE *file = fopen(filename, "r");
+    // assert(file != NULL);
 
-    ParserState state = TOPLEVEL_STATE;
+    // ParserState state = TOPLEVEL_STATE;
 
-    char line[MAX_LINE_LENGTH];
-    char *tokens[MAX_TOKENS];
+    // char line[MAX_LINE_LENGTH];
+    // char *tokens[MAX_TOKENS];
 
-    Vec3 center;
-    double radius;
+    // Vec3 center;
+    // double radius;
 
-    Vec3 normal;
-    Vec3 point;
+    // Vec3 normal;
+    // Vec3 point;
 
-    double aspect_ratio_width;
-    double aspect_ratio_height;
-    double aspect_ratio;
-    int width;
+    // double aspect_ratio_width;
+    // double aspect_ratio_height;
+    // double aspect_ratio;
+    // int width;
 
-    Vec3 v0;
-    Vec3 v1;
-    Vec3 v2;
+    // Vec3 v0;
+    // Vec3 v1;
+    // Vec3 v2;
 
-    Vec3 Q;
-    Vec3 u;
-    Vec3 v;
+    // Vec3 Q;
+    // Vec3 u;
+    // Vec3 v;
 
-    bool make_camera = false;
+    // bool make_camera = false;
 
-    while (fgets(line, MAX_LINE_LENGTH, file)) {
-        if (line[0] == '\n') {
-            continue;
-        }
+    // while (fgets(line, MAX_LINE_LENGTH, file)) {
+    //     if (line[0] == '\n') {
+    //         continue;
+    //     }
 
-        if (strchr(line, '}')) {
-            switch (state) {
-                case SPHERE_STATE:
-                    dynarray_push(hittable_world, sphere_create(center, radius));
-                    break;
-                case PLANE_STATE:
-                    dynarray_push(hittable_world, plane_create(point, normal));
-                    break;
-                case TRIANGLE_STATE:
-                    dynarray_push(hittable_world, triangle_create(v0, v1, v2));
-                    break;
-                case QUAD_STATE:
-                    dynarray_push(hittable_world, quad_create(Q, u, v));
-                    break;
-                case CAMERA_STATE:
-                    make_camera = true;
-                    break;
-                case TOPLEVEL_STATE:
-                    break;
-            }
-            state = TOPLEVEL_STATE;
-            continue;
-        }
+    //     if (strchr(line, '}')) {
+    //         switch (state) {
+    //             case SPHERE_STATE:
+    //                 dynarray_push(hittable_world, sphere_create(center, radius));
+    //                 break;
+    //             case PLANE_STATE:
+    //                 dynarray_push(hittable_world, plane_create(point, normal));
+    //                 break;
+    //             case TRIANGLE_STATE:
+    //                 dynarray_push(hittable_world, triangle_create(v0, v1, v2));
+    //                 break;
+    //             case QUAD_STATE:
+    //                 dynarray_push(hittable_world, quad_create(Q, u, v));
+    //                 break;
+    //             case CAMERA_STATE:
+    //                 make_camera = true;
+    //                 break;
+    //             case TOPLEVEL_STATE:
+    //                 break;
+    //         }
+    //         state = TOPLEVEL_STATE;
+    //         continue;
+    //     }
 
-        int num_toks = tokenize(line, tokens);
-        if (num_toks == 0) continue;
+    //     int num_toks = tokenize(line, tokens);
+    //     if (num_toks == 0) continue;
 
-        if (state == TOPLEVEL_STATE) {
-            if (strcmp(tokens[0], "camera") == 0) {
-                state = CAMERA_STATE;
-            }
-            else if (strcmp(tokens[0], "sphere") == 0) {
-                state = SPHERE_STATE;
-            }
-            else if (strcmp(tokens[0], "plane") == 0) {
-                state = PLANE_STATE;
-            }
-            else if (strcmp(tokens[0],"triangle") == 0) {
-                state = TRIANGLE_STATE;
-            }
-            else if (strcmp(tokens[0],"quad") == 0) {
-                state = QUAD_STATE;
-            }
-        }
-        else {
-            switch (state) {
-                case SPHERE_STATE:
-                    if (strcmp(tokens[0], "center") == 0 && num_toks == 4) {
-                        center.x = atof(tokens[1]);
-                        center.y = atof(tokens[2]);
-                        center.z = atof(tokens[3]);
-                    }
-                    else if (strcmp(tokens[0], "radius") == 0 && num_toks == 2) {
-                        radius = atof(tokens[1]);
-                    }
-                    break;
-                case PLANE_STATE:
-                    if (strcmp(tokens[0], "point") == 0 && num_toks == 4) {
-                        point.x = atof(tokens[1]);
-                        point.y = atof(tokens[2]);
-                        point.z = atof(tokens[3]);
-                    }
-                    else if (strcmp(tokens[0], "normal") == 0 && num_toks == 4) {
-                        normal.x = atof(tokens[1]);
-                        normal.y = atof(tokens[2]);
-                        normal.z = atof(tokens[3]);
-                    }
-                    break;
-                case TRIANGLE_STATE:
-                if (strcmp(tokens[0],"v0")==0 && num_toks==4) {
-                    v0.x=atof(tokens[1]);
-                    v0.y=atof(tokens[2]);
-                    v0.z=atof(tokens[3]);
-                }
-                else if (strcmp(tokens[0],"v1")==0 && num_toks==4) {
-                    v1.x=atof(tokens[1]);
-                    v1.y=atof(tokens[2]);
-                    v1.z=atof(tokens[3]);
-                }
-                else if (strcmp(tokens[0],"v2")==0 && num_toks==4) {
-                    v2.x=atof(tokens[1]);
-                    v2.y=atof(tokens[2]);
-                    v2.z=atof(tokens[3]);
-                }
-                break;
-                case QUAD_STATE:
-                    if (!strcmp(tokens[0],"Q") && num_toks==4) {
-                        Q.x=atof(tokens[1]);
-                        Q.y=atof(tokens[2]);
-                        Q.z=atof(tokens[3]);
-                    } else if (!strcmp(tokens[0],"u") && num_toks==4) {
-                        u.x=atof(tokens[1]);
-                        u.y=atof(tokens[2]);
-                        u.z=atof(tokens[3]);
-                    } else if (!strcmp(tokens[0],"v") && num_toks==4) {
-                        v.x=atof(tokens[1]);
-                        v.y=atof(tokens[2]);
-                        v.z=atof(tokens[3]);
-                    }
-                    break;
-                case CAMERA_STATE:
-                    if (strcmp(tokens[0], "aspect_ratio") == 0 && num_toks == 3) {
-                        aspect_ratio_width = atof(tokens[1]);
-                        aspect_ratio_height = atof(tokens[2]);
-                        aspect_ratio = aspect_ratio_width / aspect_ratio_height;
-                    }
-                    else if (strcmp(tokens[0], "width") == 0 && num_toks == 2) {
-                        width = atoi(tokens[1]);
-                    }
-                    break;
-                case TOPLEVEL_STATE:
-                    break;
-            }
+    //     if (state == TOPLEVEL_STATE) {
+    //         if (strcmp(tokens[0], "camera") == 0) {
+    //             state = CAMERA_STATE;
+    //         }
+    //         else if (strcmp(tokens[0], "sphere") == 0) {
+    //             state = SPHERE_STATE;
+    //         }
+    //         else if (strcmp(tokens[0], "plane") == 0) {
+    //             state = PLANE_STATE;
+    //         }
+    //         else if (strcmp(tokens[0],"triangle") == 0) {
+    //             state = TRIANGLE_STATE;
+    //         }
+    //         else if (strcmp(tokens[0],"quad") == 0) {
+    //             state = QUAD_STATE;
+    //         }
+    //     }
+    //     else {
+    //         switch (state) {
+    //             case SPHERE_STATE:
+    //                 if (strcmp(tokens[0], "center") == 0 && num_toks == 4) {
+    //                     center.x = atof(tokens[1]);
+    //                     center.y = atof(tokens[2]);
+    //                     center.z = atof(tokens[3]);
+    //                 }
+    //                 else if (strcmp(tokens[0], "radius") == 0 && num_toks == 2) {
+    //                     radius = atof(tokens[1]);
+    //                 }
+    //                 break;
+    //             case PLANE_STATE:
+    //                 if (strcmp(tokens[0], "point") == 0 && num_toks == 4) {
+    //                     point.x = atof(tokens[1]);
+    //                     point.y = atof(tokens[2]);
+    //                     point.z = atof(tokens[3]);
+    //                 }
+    //                 else if (strcmp(tokens[0], "normal") == 0 && num_toks == 4) {
+    //                     normal.x = atof(tokens[1]);
+    //                     normal.y = atof(tokens[2]);
+    //                     normal.z = atof(tokens[3]);
+    //                 }
+    //                 break;
+    //             case TRIANGLE_STATE:
+    //             if (strcmp(tokens[0],"v0")==0 && num_toks==4) {
+    //                 v0.x=atof(tokens[1]);
+    //                 v0.y=atof(tokens[2]);
+    //                 v0.z=atof(tokens[3]);
+    //             }
+    //             else if (strcmp(tokens[0],"v1")==0 && num_toks==4) {
+    //                 v1.x=atof(tokens[1]);
+    //                 v1.y=atof(tokens[2]);
+    //                 v1.z=atof(tokens[3]);
+    //             }
+    //             else if (strcmp(tokens[0],"v2")==0 && num_toks==4) {
+    //                 v2.x=atof(tokens[1]);
+    //                 v2.y=atof(tokens[2]);
+    //                 v2.z=atof(tokens[3]);
+    //             }
+    //             break;
+    //             case QUAD_STATE:
+    //                 if (!strcmp(tokens[0],"Q") && num_toks==4) {
+    //                     Q.x=atof(tokens[1]);
+    //                     Q.y=atof(tokens[2]);
+    //                     Q.z=atof(tokens[3]);
+    //                 } else if (!strcmp(tokens[0],"u") && num_toks==4) {
+    //                     u.x=atof(tokens[1]);
+    //                     u.y=atof(tokens[2]);
+    //                     u.z=atof(tokens[3]);
+    //                 } else if (!strcmp(tokens[0],"v") && num_toks==4) {
+    //                     v.x=atof(tokens[1]);
+    //                     v.y=atof(tokens[2]);
+    //                     v.z=atof(tokens[3]);
+    //                 }
+    //                 break;
+    //             case CAMERA_STATE:
+    //                 if (strcmp(tokens[0], "aspect_ratio") == 0 && num_toks == 3) {
+    //                     aspect_ratio_width = atof(tokens[1]);
+    //                     aspect_ratio_height = atof(tokens[2]);
+    //                     aspect_ratio = aspect_ratio_width / aspect_ratio_height;
+    //                 }
+    //                 else if (strcmp(tokens[0], "width") == 0 && num_toks == 2) {
+    //                     width = atoi(tokens[1]);
+    //                 }
+    //                 break;
+    //             case TOPLEVEL_STATE:
+    //                 break;
+    //         }
 
-        }
-    }
-    fclose(file);
+    //     }
+    // }
+    // fclose(file);
 
-    if (make_camera) {
-        Camera cam = camera_make(width, aspect_ratio);
-        camera_render(&cam, hittable_world, out_file);
-    }
+    // if (make_camera) {
+    //     Camera cam = camera_make(width, aspect_ratio);
+    //     camera_render(&cam, hittable_world, out_file);
+    // }
 }

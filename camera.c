@@ -5,11 +5,12 @@
 #include "core/vec3.h"
 #include "hittable/hittable.h"
 #include "hittable/hittable_list.h"
+#include "material/material.h"
 #include "shared.h"
 
 #define VIEWPORT_HEIGHT 2.0
 #define FOCAL_LENGTH 1.0
-#define SAMPLES_PER_PIXEL 100
+#define SAMPLES_PER_PIXEL 10
 #define MAX_DEPTH 50
 
 // Create a new camera instance
@@ -51,10 +52,12 @@ static Color ray_color(Ray r, int depth, DynArray *hittable_world) {
     return vec3_zero();
   HitRecord rec;
   if (hittables_hit(hittable_world, r, interval_make(1e-4, INFINITY), &rec)) {
-    // True Lambertian Reflection
-    Vec3 direction = vec3_add(rec.normal, vec3_random_unit_vector());
-    Ray ray2 = {.origin = rec.p, .direction = direction};
-    return vec3_scale(ray_color(ray2, depth - 1, hittable_world), 0.5);
+    Ray scatterd;
+    Color attenuation;
+    if(rec.mat->scatter(rec.mat, r, &rec, &attenuation, &scatterd)) {
+      return vec3_mul(ray_color(scatterd, depth - 1, hittable_world), attenuation);
+    }
+    return (Color){0, 0, 0};
   }
   Vec3 unit_direction = vec3_normalized(r.direction);
   double a = (unit_direction.y + 1) * 0.5;

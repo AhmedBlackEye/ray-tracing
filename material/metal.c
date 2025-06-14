@@ -1,0 +1,63 @@
+#include <assert.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "core/color.h"
+#include "core/interval.h"
+#include "core/ray.h"
+#include "hittable/hit_record.h"
+#include "material.h"
+
+typedef struct Metal {
+  Color albedo;
+} Metal;
+
+static bool metal_scatter(const Material *self, Ray ray_in, HitRecord *rec,
+                               Color *attenuation, Ray *scattered) {
+  assert(self != NULL);
+  assert(rec != NULL);
+
+  Metal *metal = self->data;
+
+  Vec3 reflected = vec3_reflect(ray_in.direction, rec->normal);
+  *scattered = (Ray){.origin = rec->p, .direction = reflected};
+  *attenuation = metal->albedo;
+
+  return true;
+}
+
+static void metal_destroy(void *self) {
+  assert(self != NULL);
+  Material *mat = (Material *)self;
+  if (mat->data)
+    free(mat->data);
+  free(self);
+}
+
+Material *metal_create(Color albedo) {
+  Material *mat = malloc(sizeof(struct Material));
+  assert(mat != NULL);
+
+  Metal *metal = malloc(sizeof(struct Metal));
+  assert(metal != NULL);
+
+  metal->albedo = albedo;
+
+  mat->type = MATERIAL_METAL;
+  mat->scatter = metal_scatter;
+  mat->destroy = (MaterialDestroyFn)metal_destroy;
+  mat->data = metal;
+
+  return mat;
+}
+
+void metal_print(const Material *self) {
+  if (self == NULL || self->type != MATERIAL_METAL) {
+    printf("Metal: Invalid or NULL\n");
+    return;
+  }
+  const Metal *metal = (const Metal *)self->data;
+  printf("Metal { albedo: %.3f }\n", metal->albedo);
+}
