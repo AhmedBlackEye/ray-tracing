@@ -7,7 +7,7 @@
 #include "core/vec3.h"
 #include "hit_record.h"
 #include "hittable.h"
-#include "triangle_mesh.h"
+#include "triangle_hittable.h"
 #include "triangle_raw.h"
 
 /**
@@ -19,6 +19,7 @@
  * the 3D object.
  */
 
+#define INIT_CAP = 10
 typedef struct BoundingBox {
   double max;
   double min;
@@ -29,8 +30,14 @@ typedef struct TriangleMesh {
   BoundingBox bounds;
 } TriangleMesh;
 
-void mesh_add_triangle(TriangleMesh *mesh, Vec3 v0, Vec3 v1, Vec3 v2) {
-  dynarray_push(mesh->triangles, tri);
+TriangleMesh mesh_create() {
+  DynArray *mesh = dynarray_create(INIT_CAP, (GPrintFn)triangle_hittable_print,
+                                   (GDestroyFn)triangle_destroy);
+}
+
+static void mesh_add_triangle(TriangleMesh *mesh, Vec3 v0, Vec3 v1, Vec3 v2) {
+  TriangleHittable *new_tri = triangle_hittable_create(v0, v1, v2);
+  dynarray_push(mesh, new_tri);
 }
 
 // Utility function for when creating meshes from objects.
