@@ -15,7 +15,9 @@
 #include "hittable/hittable_list.h"
 #include "hittable/quad.h"
 #include "hittable/sphere.h"
-#include "hittable/triangle.h"
+#include "hittable/triangle_hittable.h"
+#include "hittable/triangle_mesh.h"
+#include "hittable/triangle_raw.h"
 #include "material/dielectric.h"
 #include "material/lambertian.h"
 #include "material/material.h"
@@ -73,12 +75,14 @@ int main(int argc, char **argv) {
         if (choose_mat < 0.8) {
           // diffuse
           Vec3 albedo = vec3_mul(vec3_random(), vec3_random());
-          sphere_material =scene_add_material(&scene, lambertian_create(albedo));
+          sphere_material =
+              scene_add_material(&scene, lambertian_create(albedo));
         } else if (choose_mat < 0.95) {
           // metal
           Vec3 albedo = vec3_random_bounded(0.5, 1.0);
           double fuzz = random_double_range(0, 0.5);
-          sphere_material =scene_add_material(&scene, metal_create(albedo, fuzz));
+          sphere_material =
+              scene_add_material(&scene, metal_create(albedo, fuzz));
         } else {
           // glass
           sphere_material = scene_add_material(&scene, dielectric_create(1.5));
@@ -106,4 +110,3 @@ int main(int argc, char **argv) {
   fclose(out_file);
   return 0;
 }
-

@@ -7,7 +7,7 @@
 #include "core/vec3.h"
 #include "triangle_raw.h"
 
-static void triangle_destroy(void *self) {
+void triangle_destroy(void *self) {
   assert(self != NULL);
   free(self);
 }
@@ -24,7 +24,7 @@ void triangle_raw_print(void *self) {
          tri->v2.x, tri->v2.y, tri->v2.z);
 }
 
-TriangleRaw *triangle_raw_create(Vec3 v0, Vec3 v1, Vec3 v2, Material mat) {
+TriangleRaw *triangle_raw_create(Vec3 v0, Vec3 v1, Vec3 v2) {
   TriangleRaw *triangle = malloc(sizeof(TriangleRaw));
   assert(triangle != NULL);
 
@@ -34,7 +34,6 @@ TriangleRaw *triangle_raw_create(Vec3 v0, Vec3 v1, Vec3 v2, Material mat) {
 
   triangle->edge1 = vec3_sub(v1, v0); // plane a
   triangle->edge2 = vec3_sub(v2, v0); // plane b
-  triangle->material = mat;
 
   // printf("x: %f , y: %f, z: %f \n", triangle->edge1.x, triangle->edge1.y,
   //  triangle->edge1.z);

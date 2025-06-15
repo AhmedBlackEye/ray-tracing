@@ -7,9 +7,9 @@
 #include "hit_record.h"
 #include "hittable.h"
 #include "plane.h"
-#include "sphere.h"
-#include "triangle.h"
 #include "quad.h"
+#include "sphere.h"
+#include "triangle_hittable.h"
 
 extern void hittable_destroy(Hittable *self) { self->destroy(self); }
 
@@ -22,7 +22,7 @@ void hittable_print(const Hittable *self) {
     plane_print(self);
     break;
   case HITTABLE_TRIANGLE:
-    triangle_print(self);
+    triangle_hittable_print(self);
     break;
   case HITTABLE_QUAD:
     quad_print(self);

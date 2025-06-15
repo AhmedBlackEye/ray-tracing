@@ -12,8 +12,7 @@
 #include "triangle_raw.h"
 
 // Möller-Trumbore ray-triangle intersection algorithm
-static bool triangle_hit(Hittable *self, Ray r, Interval t_bounds,
-                         HitRecord *rec) {
+bool triangle_hit(Hittable *self, Ray r, Interval t_bounds, HitRecord *rec) {
   const double EPSILON = 1e-13;
   TriangleRaw *tri = self->data;
   // Calculate determinant
@@ -54,37 +53,36 @@ static bool triangle_hit(Hittable *self, Ray r, Interval t_bounds,
     hitrec_set_face_normal(rec, r, tri->normal);
     // printf("Triangle hit at t=%.2f, p=(%.2f, %.2f, %.2f)\n", t,
     //        rec->p.x, rec->p.y, rec->p.z);
-
+    rec->mat = self->mat;
     return true;
   }
 
   return false;
 }
 
-static void triangle_hittable_print(const Hittable *hittable) {
+void triangle_hittable_print(const Hittable *hittable) {
   if (hittable == NULL || hittable->type != HITTABLE_TRIANGLE) {
     printf("TriangleHittable: Invalid or NULL\n");
     return;
   }
 
   TriangleHittable *tri_hit = (TriangleHittable *)hittable->data;
-  triangle_print_raw(&tri_hit->triangle);
+  triangle_raw_print(&tri_hit->triangle);
 }
 
-Hittable *triangle_hittable_create(Vec3 v0, Vec3 v1, Vec3 v2, Material mat) {
+Hittable *triangle_hittable_create(Vec3 v0, Vec3 v1, Vec3 v2, Material *mat) {
   TriangleHittable *tri_hit_data = malloc(sizeof(TriangleHittable));
   assert(tri_hit_data != NULL);
 
-  tri_hit_data->triangle = triangle_raw_create(v0, v1, v2, mat);
-  tri_hit_data->material = mat;
+  tri_hit_data->triangle = triangle_raw_create(v0, v1, v2);
 
   Hittable *hittable = malloc(sizeof(struct Hittable));
   assert(hittable != NULL);
 
   hittable->type = HITTABLE_TRIANGLE;
   hittable->data = tri_hit_data;
-  hittable->destroy = (HittableDestroyFn)triangle_destroy;
   hittable->mat = mat;
+  hittable->destroy = (HittableDestroyFn)triangle_destroy;
   hittable->hit = (HitFn)triangle_hit;
 
   return hittable;
