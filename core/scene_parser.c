@@ -63,7 +63,153 @@ static Vec3 parse_vec3(char **tokens) {
     };
 }
 
-void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file) {
+static void parse_camera(
+    char   *tokens[], 
+    int     num_toks,  
+    Vec3   *lookfrom,
+    Vec3   *lookat,
+    Vec3   *vup,
+    double *vfov,
+    double *defocus_angle,
+    double *focus_dist,
+    int    *samples_per_pixel,
+    int    *max_depth,
+    double *aspect_ratio,
+    int    *width
+) {
+    if (num_toks == 2 && strcmp(tokens[0], "width") == 0) {
+        *width = atoi(tokens[1]);
+    }
+    else if (num_toks == 3 && strcmp(tokens[0], "aspect_ratio") == 0) {
+        double w = atof(tokens[1]);
+        double h = atof(tokens[2]);
+        *aspect_ratio = w / h;
+    }
+    else if (num_toks == 4 && strcmp(tokens[0], "lookfrom") == 0) {
+        *lookfrom = parse_vec3(tokens);
+    }
+    else if (num_toks == 4 && strcmp(tokens[0], "lookat") == 0) {
+        *lookat = parse_vec3(tokens);
+    }
+    else if (num_toks == 4 && strcmp(tokens[0], "vup") == 0) {
+        *vup = parse_vec3(tokens);
+    }
+    else if (num_toks == 2 && strcmp(tokens[0], "vfov") == 0) {
+        *vfov = atof(tokens[1]);
+    }
+    else if (num_toks == 2 && strcmp(tokens[0], "defocus_angle") == 0) {
+        *defocus_angle = atof(tokens[1]);
+    }
+    else if (num_toks == 2 && strcmp(tokens[0], "focus_distance") == 0) {
+        *focus_dist = atof(tokens[1]);
+    }
+    else if (num_toks == 2 && strcmp(tokens[0], "samples_per_pixel") == 0) {
+        *samples_per_pixel = atoi(tokens[1]);
+    }
+    else if (num_toks == 2 && strcmp(tokens[0], "max_depth") == 0) {
+        *max_depth = atoi(tokens[1]);
+    }
+}
+
+static void parse_material(
+    char  *tokens[],
+    int    num_toks,
+    char  *out_name,
+    char  *out_type,
+    Vec3  *out_color,
+    double *out_fuzz
+) {
+    if (num_toks == 2 && strcmp(tokens[0], "name") == 0) {
+        strcpy(out_name, tokens[1]);
+    }
+    else if (num_toks == 2 && strcmp(tokens[0], "type") == 0) {
+        strcpy(out_type, tokens[1]);
+    }
+    else if (num_toks == 4 && strcmp(tokens[0], "color") == 0) {
+        *out_color = parse_vec3(tokens);
+    }
+    else if (num_toks == 2 && strcmp(tokens[0], "fuzz") == 0) {
+        *out_fuzz = atof(tokens[1]);
+    }
+}
+
+static void add_material(
+    char *mat_names[],
+    Material *mats[],
+    int *num_mats,
+    const char *name,
+    const char *type,
+    Vec3      color,
+    double    fuzz
+) {
+    Material *mat;
+    if (strcmp(type, "lambertian") == 0) {
+        mat = lambertian_create(color);
+    }
+    else if (strcmp(type, "metal") == 0) {
+        mat = metal_create(color, fuzz);
+    }
+    mat_names[*num_mats] = strdup(name);
+    mats[*num_mats] = mat;
+    *num_mats += 1;
+}
+
+static void parse_geometry(
+    ParserState state,
+    char       *tokens[],
+    int         num_toks,
+    Vec3       *center,
+    double     *radius,
+    Vec3       *point,
+    Vec3       *normal,
+    Vec3       *v0,
+    Vec3       *v1,
+    Vec3       *v2,
+    Vec3       *Q,
+    Vec3       *u,
+    Vec3       *v
+) {
+    if (state == SPHERE_STATE) {
+        if (num_toks == 4 && strcmp(tokens[0], "center") == 0) {
+            *center = parse_vec3(tokens);
+        }
+        else if (num_toks == 2 && strcmp(tokens[0], "radius") == 0) {
+            *radius = atof(tokens[1]);
+        }
+    }
+    else if (state == PLANE_STATE) {
+        if (num_toks == 4 && strcmp(tokens[0], "point") == 0) {
+            *point = parse_vec3(tokens);
+        }
+        else if (num_toks == 4 && strcmp(tokens[0], "normal") == 0) {
+            *normal = parse_vec3(tokens);
+        }
+    }
+    else if (state == TRIANGLE_STATE) {
+        if (num_toks == 4 && strcmp(tokens[0], "v0") == 0) {
+            *v0 = parse_vec3(tokens);
+        }
+        else if (num_toks == 4 && strcmp(tokens[0], "v1") == 0) {
+            *v1 = parse_vec3(tokens);
+        }
+        else if (num_toks == 4 && strcmp(tokens[0], "v2") == 0) {
+            *v2 = parse_vec3(tokens);
+        }
+    }
+    else if (state == QUAD_STATE) {
+        if (num_toks == 4 && strcmp(tokens[0], "Q") == 0) {
+            *Q = parse_vec3(tokens);
+        }
+        else if (num_toks == 4 && strcmp(tokens[0], "u") == 0) {
+            *u = parse_vec3(tokens);
+        }
+        else if (num_toks == 4 && strcmp(tokens[0], "v") == 0) {
+            *v = parse_vec3(tokens);
+        }
+    }
+}
+
+void parse_scene(const char *filename, DynArray *hittable_world, Camera *out_cam) {
     FILE *file = fopen(filename, "r");
     assert(file != NULL);
 
@@ -115,15 +261,15 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
         if (strchr(line, '}')) {
             switch (state) {
                 case MATERIAL_STATE:
-                    Material *mat;
-                    if (strcmp(mat_type, "lambertian") == 0) {
-                        mat = lambertian_create(color);
-                    }
-                    else if (strcmp(mat_type, "metal") == 0) {
-                        mat = metal_create(color, fuzz);
-                    }
-                    mat_names[num_mats] = strdup(mat_name);
-                    mats[num_mats++] = mat;
+                    add_material(
+                        mat_names, 
+                        mats, 
+                        &num_mats,
+                        mat_name, 
+                        mat_type, 
+                        color, 
+                        fuzz
+                    );
                     break;
                 case SPHERE_STATE:
                     dynarray_push(hittable_world, sphere_create(center, radius, current_mat));
@@ -168,112 +314,63 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
             }
         }
         else {
-
-            if (num_toks == 2 && strcmp(tokens[0], "material") == 0) {
-                for (int i = 0; i < num_mats; i++) {
-                    if (strcmp(tokens[1], mat_names[i]) == 0) {
-                        current_mat = mats[i];
-                        break;
-                    }
-                }
-                continue; 
+            if (state == CAMERA_STATE) {
+                parse_camera(
+                    tokens, 
+                    num_toks,
+                    &lookfrom, 
+                    &lookat, 
+                    &vup,
+                    &vfov, 
+                    &defocus_angle, 
+                    &focus_dist,
+                    &samples_per_pixel,
+                    &max_depth,
+                    &aspect_ratio, 
+                    &width
+                );
             }
-
-            switch (state) {
-                case SPHERE_STATE:
-                    if (strcmp(tokens[0], "center") == 0 && num_toks == 4) {
-                        center = parse_vec3(tokens);
+            else if (state == MATERIAL_STATE) {
+                parse_material(
+                    tokens, 
+                    num_toks,
+                    mat_name, 
+                    mat_type,
+                    &color, 
+                    &fuzz
+                );
+            }
+            else {
+                if (num_toks == 2 && strcmp(tokens[0], "material") == 0) {
+                    for (int i = 0; i < num_mats; i++) {
+                        if (strcmp(tokens[1], mat_names[i]) == 0) {
+                            current_mat = mats[i];
+                            break;
+                        }
                     }
-                    else if (strcmp(tokens[0], "radius") == 0 && num_toks == 2) {
-                        radius = atof(tokens[1]);
-                    }
-                    break;
-                case PLANE_STATE:
-                    if (strcmp(tokens[0], "point") == 0 && num_toks == 4) {
-                        point = parse_vec3(tokens);
-                    }
-                    else if (strcmp(tokens[0], "normal") == 0 && num_toks == 4) {
-                        normal = parse_vec3(tokens);
-                    }
-                    break;
-                case TRIANGLE_STATE:
-                    if (strcmp(tokens[0], "v0") == 0 && num_toks == 4) {
-                        v0 = parse_vec3(tokens);
-                    }
-                    else if (strcmp(tokens[0], "v1") == 0 && num_toks == 4) {
-                        v1 = parse_vec3(tokens);
-                    }
-                    else if (strcmp(tokens[0], "v2") == 0 && num_toks == 4) {
-                        v2 = parse_vec3(tokens);
-                    }
-                    break;
-                case QUAD_STATE:
-                    if (strcmp(tokens[0], "Q") == 0 && num_toks == 4) {
-                        Q = parse_vec3(tokens);
-                    }
-                    else if (strcmp(tokens[0], "u") == 0 && num_toks == 4) {
-                        u = parse_vec3(tokens);
-                    }
-                    else if (strcmp(tokens[0], "v") == 0 && num_toks == 4) {
-                        v = parse_vec3(tokens);
-                    }
-                    break;
-                case CAMERA_STATE:
-                    if (num_toks == 3 && strcmp(tokens[0], "aspect_ratio") == 0) {
-                        double ar_width = atof(tokens[1]);
-                        double ar_height = atof(tokens[2]);
-                        aspect_ratio = ar_width/ar_height;
-                    } 
-                    else if (num_toks == 2 && strcmp(tokens[0], "width") == 0) {
-                        width = atoi(tokens[1]);
-                    } 
-                    else if (num_toks == 4 && strcmp(tokens[0], "lookfrom") == 0) {
-                        lookfrom = parse_vec3(tokens);
-                    } 
-                    else if (num_toks == 4 && strcmp(tokens[0], "lookat") == 0) {
-                        lookat = parse_vec3(tokens);
-                    } 
-                    else if (num_toks == 4 && strcmp(tokens[0], "vup") == 0) {
-                        vup = parse_vec3(tokens);
-                    } 
-                    else if (num_toks == 2 && strcmp(tokens[0], "vfov") == 0) {
-                        vfov = atof(tokens[1]);
-                    } 
-                    else if (num_toks == 2 && strcmp(tokens[0], "defocus_angle") == 0) {
-                        defocus_angle = atof(tokens[1]);
-                    } 
-                    else if (num_toks == 2 && strcmp(tokens[0], "focus_distance") == 0) {
-                        focus_dist = atof(tokens[1]);
-                    } 
-                    else if (num_toks == 2 && strcmp(tokens[0], "samples_per_pixel") == 0) {
-                        samples_per_pixel = atoi(tokens[1]);
-                    } 
-                    else if (num_toks == 2 && strcmp(tokens[0], "max_depth") == 0) {
-                        max_depth = atoi(tokens[1]);
-                    }
-                    break;
-                case MATERIAL_STATE:
-                    if (strcmp(tokens[0], "name") == 0 && num_toks == 2) {
-                        strcpy(mat_name, tokens[1]);
-                    }
-                    else if (strcmp(tokens[0], "type") == 0 && num_toks == 2) {
-                        strcpy(mat_type, tokens[1]);
-                    }
-                    else if (strcmp(tokens[0], "color") == 0 && num_toks == 4) {
-                        color = parse_vec3(tokens);
-                    }
-                    else if (strcmp(tokens[0], "fuzz") == 0 && num_toks == 2) {
-                        fuzz = atof(tokens[1]);
-                    }
-                    break;
-                case TOPLEVEL_STATE:
-                    break;
+                    continue;
+                }
+                parse_geometry(
+                    state, 
+                    tokens, 
+                    num_toks,
+                    &center, 
+                    &radius,
+                    &point,  
+                    &normal,
+                    &v0, 
+                    &v1, 
+                    &v2,
+                    &Q,  
+                    &u,  
+                    &v
+                );
             }
         }
     }
     fclose(file);
 
-    Camera cam = camera_make(
+    *out_cam = camera_make(
         width,
         aspect_ratio,
         lookfrom,
@@ -285,5 +382,4 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
         samples_per_pixel,
         max_depth
     );
-    camera_render(&cam, hittable_world, out_file);
 }
