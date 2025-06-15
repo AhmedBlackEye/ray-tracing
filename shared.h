@@ -21,4 +21,7 @@ static inline double random_double_range(double min, double max) {
   return min + (max - min) * random_double();
 }
 
+extern void update_progress_bar(int current, int total);
+extern void update_simple_progress_bar(int current, int total);
+
 #endif // SHARED_H
