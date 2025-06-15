@@ -119,6 +119,7 @@ void camera_render(const Camera *cam, DynArray *hittable_world,
                    FILE *out_file) {
   fprintf(out_file, "P3\n%d %d\n255\n", cam->image_width, cam->image_height);
   for (int j = 0; j < cam->image_height; j++) {
+    update_progress_bar(j + 1, cam->image_height);
     for (int i = 0; i < cam->image_width; i++) {
       Vec3 pixel_color = vec3_zero();
       for (int sample = 0; sample < cam->samples_per_pixel; sample++) {

@@ -23,9 +23,9 @@
 #include "scene.h"
 #include "shared.h"
 
-#define WIDTH 720
+#define WIDTH 400
 #define ASPECT_RATIO (16.0 / 9.0)
-#define SAMPLES_PER_PIXEL 200
+#define SAMPLES_PER_PIXEL 10
 #define MAX_DEPTH 50
 #define VFOV 90
 #define DEFOCUS_ANGLE 0

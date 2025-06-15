@@ -37,7 +37,7 @@ target_include_directories(material PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 # Create main executable
-add_executable(raytracer main.c camera.c scene.c)
+add_executable(raytracer main.c camera.c shared.c scene.c)
 
 # Link everything properly
 target_link_libraries(raytracer core hittable material m)
