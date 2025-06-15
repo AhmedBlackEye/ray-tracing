@@ -74,7 +74,7 @@ Hittable *triangle_hittable_create(Vec3 v0, Vec3 v1, Vec3 v2, Material mat) {
   TriangleHittable *tri_hit_data = malloc(sizeof(TriangleHittable));
   assert(tri_hit_data != NULL);
 
-  tri_hit_data->triangle = triangle_create_raw(v0, v1, v2);
+  tri_hit_data->triangle = triangle_raw_create(v0, v1, v2, mat);
   tri_hit_data->material = mat;
 
   Hittable *hittable = malloc(sizeof(struct Hittable));

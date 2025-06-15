@@ -9,17 +9,15 @@
 
 static void triangle_destroy(void *self) {
   assert(self != NULL);
-  TriangleRaw *tri = (TriangleRaw *)self;
-  assert(hittable->data);
-  free(hittable->data);
   free(self);
 }
 
-void triangle_raw_print(const TriangleRaw *tri) {
-  if (tri == NULL) {
+void triangle_raw_print(void *self) {
+  if (self == NULL) {
     printf("Triangle: NULL.\n");
     return;
   }
+  const TriangleRaw *tri = (const TriangleRaw *)self;
   printf("Triangle v0:(%.2f,%.2f,%.2f), v1:(%.2f, %.2f, %.2f), "
          "v2:(%.2f,%.2f,%.2f)\n",
          tri->v0.x, tri->v0.y, tri->v0.z, tri->v1.x, tri->v1.y, tri->v1.z,
