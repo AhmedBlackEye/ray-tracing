@@ -21,6 +21,8 @@
 #define MAX_LINE_LENGTH 256
 #define MAX_TOKENS 20
 #define MAX_MATERIALS 20
+#define ASPECT_RATIO (16.0 / 9.0)
+#define WIDTH 400
 
 typedef enum {
     TOPLEVEL_STATE,
@@ -62,8 +64,8 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
 
     double aspect_ratio_width;
     double aspect_ratio_height;
-    double aspect_ratio;
-    int width;
+    double aspect_ratio = ASPECT_RATIO; 
+    int width = WIDTH;
 
     char *mat_names[MAX_MATERIALS];
     Material *mats[MAX_MATERIALS];
@@ -82,8 +84,6 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
     Vec3 Q;
     Vec3 u;
     Vec3 v;
-
-    bool make_camera = false;
 
     while (fgets(line, MAX_LINE_LENGTH, file)) {
         if (line[0] == '\n') {
@@ -115,10 +115,7 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
                 case QUAD_STATE:
                     dynarray_push(hittable_world, quad_create(Q, u, v, current_mat));
                     break;
-                case CAMERA_STATE:
-                    make_camera = true;
-                    break;
-                case TOPLEVEL_STATE:
+                default:
                     break;
             }
             state = TOPLEVEL_STATE;
@@ -128,15 +125,6 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
         int num_toks = tokenize(line, tokens);
         if (num_toks == 0) continue;
 
-        if (num_toks == 2 && strcmp(tokens[0], "material") == 0) {
-            for (int i = 0; i < num_mats; i++) {
-                if (strcmp(tokens[1], mat_names[i]) == 0) {
-                    current_mat = mats[i];
-                    break;
-                }
-            }
-            continue; 
-        }
         if (state == TOPLEVEL_STATE) {
             if (strcmp(tokens[0], "camera") == 0) {
                 state = CAMERA_STATE;
@@ -158,6 +146,17 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
             }
         }
         else {
+
+            if (num_toks == 2 && strcmp(tokens[0], "material") == 0) {
+                for (int i = 0; i < num_mats; i++) {
+                    if (strcmp(tokens[1], mat_names[i]) == 0) {
+                        current_mat = mats[i];
+                        break;
+                    }
+                }
+                continue; 
+            }
+
             switch (state) {
                 case SPHERE_STATE:
                     if (strcmp(tokens[0], "center") == 0 && num_toks == 4) {
@@ -232,7 +231,7 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
                     else if (strcmp(tokens[0], "type") == 0 && num_toks == 2) {
                         strcpy(mat_type, tokens[1]);
                     }
-                    else if (strcmp(tokens[0], "colour") == 0 && num_toks == 4) {
+                    else if (strcmp(tokens[0], "color") == 0 && num_toks == 4) {
                         color.x = atof(tokens[1]);
                         color.y = atof(tokens[2]);
                         color.z = atof(tokens[3]);
@@ -248,8 +247,6 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
     }
     fclose(file);
 
-    if (make_camera) {
-        Camera cam = camera_make(width, aspect_ratio);
-        camera_render(&cam, hittable_world, out_file);
-    }
+    Camera cam = camera_make(width, aspect_ratio);
+    camera_render(&cam, hittable_world, out_file);
 }

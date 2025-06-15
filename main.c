@@ -24,9 +24,6 @@
 #include "camera.h"
 #include "shared.h"
 
-#define ASPECT_RATIO (16.0 / 9.0)
-#define WIDTH 400
-
 int main(int argc, char **argv) {
   if (argc != 3) {
     fprintf(stderr, "Usage: %s <scene_file> <output_file>\n", argv[0]);
@@ -39,23 +36,12 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  Scene scene = scene_create();
-  Camera cam = camera_make(400, 16.0 / 9.0);
+  DynArray *hittable_world =
+      dynarray_create(32, (GPrintFn)hittable_print, (GDestroyFn)hittable_destroy);
 
-Material *mat_ground = scene_add_material(&scene, lambertian_create((Color){0.8, 0.8, 0.0}));
-Material *mat_center = scene_add_material(&scene, lambertian_create((Color){0.1, 0.2, 0.5}));
-Material *mat_left   = scene_add_material(&scene, metal_create((Color){0.8, 0.8, 0.8}, 0.3));
-Material *mat_right  = scene_add_material(&scene, metal_create((Color){0.8, 0.6, 0.2}, 1.0));
+  parse_scene(argv[1], hittable_world, out_file);    
 
-scene_add_obj(&scene, sphere_create((Vec3){0.0, -100.5, -1}, 100.0, mat_ground));
-scene_add_obj(&scene, sphere_create((Vec3){0.0,  0.0,  -1.2}, 0.5, mat_center));
-scene_add_obj(&scene, sphere_create((Vec3){-1.0, 0.0,  -1.0}, 0.5, mat_left));
-scene_add_obj(&scene, sphere_create((Vec3){1.0,  0.0,  -1.0}, 0.5, mat_right));
-
-
-  camera_render(&cam, scene.objects, out_file);
-
-  scene_destroy(&scene);
+  dynarray_destroy(hittable_world);
   fclose(out_file);
   return 0;
 }
