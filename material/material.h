@@ -14,7 +14,7 @@ typedef bool (*ScatterFn)(Material *mat, Ray ray_in, HitRecord *rec,
 typedef void (*MaterialDestroyFn)(Material *self);
 typedef void (*MaterialPrintFn)(Material *self);
 
-typedef enum { MATERIAL_LAMBERTIAN, MATERIAL_METAL } MaterialType;
+typedef enum { MATERIAL_LAMBERTIAN, MATERIAL_METAL, MATERIAL_DIELECTRIC } MaterialType;
 
 typedef struct Material {
   MaterialType type;
