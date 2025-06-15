@@ -5,8 +5,6 @@
 #include "core/interval.h"
 #include "core/ray.h"
 #include "core/vec3.h"
-#include "hit_record.h"
-#include "hittable.h"
 #include "triangle_raw.h"
 
 // Möller-Trumbore ray-triangle intersection algorithm

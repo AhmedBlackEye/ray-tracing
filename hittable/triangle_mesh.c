@@ -6,8 +6,9 @@
 #include "core/dyn_array.h"
 #include "core/vec3.h"
 #include "hit_record.h"
-#include "triangle.h"
+#include "hittable.h"
 #include "triangle_mesh.h"
+#include "triangle_raw.h"
 
 /**
  * This creates the triangle but only for mesh, instead of creating hittables,
@@ -21,48 +22,50 @@
 typedef struct BoundingBox {
   double max;
   double min;
-};
+} BoundingBox;
 
-typedef struct Mesh {
-  DynArray *Triangle;
+typedef struct TriangleMesh {
+  DynArray *triangles;
   BoundingBox bounds;
-} Mesh;
+} TriangleMesh;
 
-bool mesh_hit
+void mesh_add_triangle(TriangleMesh *mesh, Vec3 v0, Vec3 v1, Vec3 v2) {
+  dynarray_push(mesh->triangles, tri);
+}
 
-    // Utility function for when creating meshes from objects.
-    // BoundingBox compute_mesh_bounds(const TriangleMesh *mesh) {
-    //   if (mesh->triangle_count == 0) {
-    //     return (BoundingBox){{0, 0, 0}, {0, 0, 0}};
-    //   }
+// Utility function for when creating meshes from objects.
+// BoundingBox compute_mesh_bounds(const TriangleMesh *mesh) {
+//   if (mesh->triangle_count == 0) {
+//     return (BoundingBox){{0, 0, 0}, {0, 0, 0}};
+//   }
 
-    //   Triangle *first_tri = (Triangle *)dynarray_get(mesh->triangles, 0);
-    //   BoundingBox bounds = {first_tri->v0, first_tri->v0};
+//   Triangle *first_tri = (Triangle *)dynarray_get(mesh->triangles, 0);
+//   BoundingBox bounds = {first_tri->v0, first_tri->v0};
 
-    //   for (int i = 0; i < mesh->triangle_count; i++) {
-    //     Triangle *tri = (Triangle *)dynarray_get(mesh->triangles, i);
-    //     Vec3 vertices[3] = {tri->v0, tri->v1, tri->v2};
+//   for (int i = 0; i < mesh->triangle_count; i++) {
+//     Triangle *tri = (Triangle *)dynarray_get(mesh->triangles, i);
+//     Vec3 vertices[3] = {tri->v0, tri->v1, tri->v2};
 
-    //     for (int v = 0; v < 3; v++) {
-    //       bounds.min.x = MIN(bounds.min.x, vertices[v].x);
-    //       bounds.min.y = MIN(bounds.min.y, vertices[v].y);
-    //       bounds.min.z = MIN(bounds.min.z, vertices[v].z);
+//     for (int v = 0; v < 3; v++) {
+//       bounds.min.x = MIN(bounds.min.x, vertices[v].x);
+//       bounds.min.y = MIN(bounds.min.y, vertices[v].y);
+//       bounds.min.z = MIN(bounds.min.z, vertices[v].z);
 
-    //       bounds.max.x = MAX(bounds.max.x, vertices[v].x);
-    //       bounds.max.y = MAX(bounds.max.y, vertices[v].y);
-    //       bounds.max.z = MAX(bounds.max.z, vertices[v].z);
-    //     }
-    //   }
+//       bounds.max.x = MAX(bounds.max.x, vertices[v].x);
+//       bounds.max.y = MAX(bounds.max.y, vertices[v].y);
+//       bounds.max.z = MAX(bounds.max.z, vertices[v].z);
+//     }
+//   }
 
-    //   return bounds;
-    // }
+//   return bounds;
+// }
 
-    /**
-     * What to do:
-     * Triangle_mesh currently holds individual hittable triangle objects
-     * (meaning they all have their own destry function and hit function which
-     * are the same) We want to abstract these functions out so that we only
-     * store the Triangle object and not a Triangle Hittable object. When we
-     * want to destroy or check if hit, we just call those functions to that
-     * triangle.
-     */
+/**
+ * What to do:
+ * Triangle_mesh currently holds individual hittable triangle objects
+ * (meaning they all have their own destry function and hit function which
+ * are the same) We want to abstract these functions out so that we only
+ * store the Triangle object and not a Triangle Hittable object. When we
+ * want to destroy or check if hit, we just call those functions to that
+ * triangle.
+ */

@@ -6,7 +6,7 @@
 #include "triangle_raw.h"
 
 typedef struct TriangleHittable {
-  TriangleRaw tri;
+  TriangleRaw *triangle;
 } TriangleHittable;
 
 #endif

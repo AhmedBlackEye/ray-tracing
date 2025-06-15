@@ -10,14 +10,16 @@
 #include "triangle_raw.h"
 
 Hittable *triangle_create_hittable(Vec3 v0, Vec3 v1, Vec3 v2) {
-  TriangleHittable *tri = malloc(sizeof(TriangleHittable));
-  assert(tri != NULL);
+  TriangleHittable *tri_hit_data = malloc(sizeof(TriangleHittable));
+  assert(tri_hit != NULL);
+
+  tri_hit_data->triangle = triangle_create_raw(v0, v1, v2);
 
   Hittable *hittable = malloc(sizeof(struct Hittable));
   assert(hittable != NULL);
 
   hittable->type = HITTABLE_TRIANGLE;
-  hittable->data = triangle_create_raw(v0, v1, v2);
+  hittable->data = tri_hit_data;
   hittable->destroy = (HittableDestroyFn)triangle_destroy;
   hittable->hit = (HitFn)triangle_hit;
 
