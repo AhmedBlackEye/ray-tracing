@@ -68,6 +68,7 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
     char *mat_names[MAX_MATERIALS];
     Material *mats[MAX_MATERIALS];
     int num_mats = 0;
+    Material *current_mat;
 
     char  mat_name[32];
     char  mat_type[32];
@@ -93,26 +94,26 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
             switch (state) {
                 case MATERIAL_STATE:
                     Material *mat;
-                    if (strcmp(mat_type,"lambertian") == 0) {
-                        mat = lambertian_create((Color){col_r,col_g,col_b});
+                    if (strcmp(mat_type, "lambertian") == 0) {
+                        mat = lambertian_create(color);
                     }
-                    else if {
-                        mat = metal_create((Color){col_r,col_g,col_b}, fuzz);
+                    else if (strcmp(mat_type, "metal") == 0) {
+                        mat = metal_create(color, fuzz);
                     }
                     mat_names[num_mats] = strdup(mat_name);
-                    mats[num_mats] = mat;
+                    mats[num_mats++] = mat;
                     break;
                 case SPHERE_STATE:
-                    dynarray_push(hittable_world, sphere_create(center, radius));
+                    dynarray_push(hittable_world, sphere_create(center, radius, current_mat));
                     break;
                 case PLANE_STATE:
-                    dynarray_push(hittable_world, plane_create(point, normal));
+                    dynarray_push(hittable_world, plane_create(point, normal, current_mat));
                     break;
                 case TRIANGLE_STATE:
-                    dynarray_push(hittable_world, triangle_create(v0, v1, v2));
+                    dynarray_push(hittable_world, triangle_create(v0, v1, v2, current_mat));
                     break;
                 case QUAD_STATE:
-                    dynarray_push(hittable_world, quad_create(Q, u, v));
+                    dynarray_push(hittable_world, quad_create(Q, u, v, current_mat));
                     break;
                 case CAMERA_STATE:
                     make_camera = true;
@@ -127,10 +128,10 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
         int num_toks = tokenize(line, tokens);
         if (num_toks == 0) continue;
 
-        if (n == 2 && strcmp(tokens[0], "material") == 0) {
+        if (num_toks == 2 && strcmp(tokens[0], "material") == 0) {
             for (int i = 0; i < num_mats; i++) {
                 if (strcmp(tokens[1], mat_names[i]) == 0) {
-                    curr_mat = mats[i];
+                    current_mat = mats[i];
                     break;
                 }
             }
@@ -225,15 +226,20 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
                     }
                     break;
                 case MATERIAL_STATE:
-                    else if (strcmp(tokens[0], "type") == 0 && num_toks == 2)
+                    if (strcmp(tokens[0], "name") == 0 && num_toks == 2) {
+                        strcpy(mat_name, tokens[1]);
+                    }
+                    else if (strcmp(tokens[0], "type") == 0 && num_toks == 2) {
                         strcpy(mat_type, tokens[1]);
+                    }
                     else if (strcmp(tokens[0], "colour") == 0 && num_toks == 4) {
                         color.x = atof(tokens[1]);
                         color.y = atof(tokens[2]);
                         color.z = atof(tokens[3]);
                     }
-                    else if (strcmp(tokens[0], "fuzz" == 0) && num_toks == 2)
+                    else if (strcmp(tokens[0], "fuzz") == 0 && num_toks == 2) {
                         fuzz = atof(tokens[1]);
+                    }
                     break;
                 case TOPLEVEL_STATE:
                     break;
