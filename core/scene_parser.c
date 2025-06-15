@@ -21,8 +21,16 @@
 #define MAX_LINE_LENGTH 256
 #define MAX_TOKENS 20
 #define MAX_MATERIALS 20
-#define ASPECT_RATIO (16.0 / 9.0)
 #define WIDTH 400
+#define ASPECT_RATIO (16.0 / 9.0)
+#define LOOKFROM ((Vec3){13.0, 2.0, 3.0})
+#define LOOKAT ((Vec3){0.0, 0.0, -1.0})
+#define VUP ((Vec3){0.0, 1.0, 0.0})
+#define VFOV 20.0
+#define DEFOCUS_ANGLE 0.6
+#define FOCUS_DIST 10.0
+#define SAMPLES_PER_PIXEL 10
+#define MAX_DEPTH 50
 
 typedef enum {
     TOPLEVEL_STATE,
@@ -62,9 +70,15 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
     Vec3 normal;
     Vec3 point;
 
-    double aspect_ratio_width;
-    double aspect_ratio_height;
-    double aspect_ratio = ASPECT_RATIO; 
+    Vec3 lookfrom = LOOKFROM;
+    Vec3 lookat = LOOKAT;
+    Vec3 vup = VUP;
+    double vfov = VFOV;
+    double defocus_angle = DEFOCUS_ANGLE;
+    double focus_dist = FOCUS_DIST;
+    int samples_per_pixel = SAMPLES_PER_PIXEL;
+    int max_depth = MAX_DEPTH;
+    double aspect_ratio = ASPECT_RATIO;
     int width = WIDTH;
 
     char *mat_names[MAX_MATERIALS];
@@ -215,13 +229,43 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
                     }
                     break;
                 case CAMERA_STATE:
-                    if (strcmp(tokens[0], "aspect_ratio") == 0 && num_toks == 3) {
-                        aspect_ratio_width = atof(tokens[1]);
-                        aspect_ratio_height = atof(tokens[2]);
-                        aspect_ratio = aspect_ratio_width / aspect_ratio_height;
-                    }
-                    else if (strcmp(tokens[0], "width") == 0 && num_toks == 2) {
+                    if (num_toks == 3 && strcmp(tokens[0], "aspect_ratio") == 0) {
+                        double ar_width = atof(tokens[1]);
+                        double ar_height = atof(tokens[2]);
+                        aspect_ratio = ar_width/ar_height;
+                    } 
+                    else if (num_toks == 2 && strcmp(tokens[0], "width") == 0) {
                         width = atoi(tokens[1]);
+                    } 
+                    else if (num_toks == 4 && strcmp(tokens[0], "lookfrom") == 0) {
+                        lookfrom.x = atof(tokens[1]);
+                        lookfrom.y = atof(tokens[2]);
+                        lookfrom.z = atof(tokens[3]);
+                    } 
+                    else if (num_toks == 4 && strcmp(tokens[0], "lookat") == 0) {
+                        lookat.x = atof(tokens[1]);
+                        lookat.y = atof(tokens[2]);
+                        lookat.z = atof(tokens[3]);
+                    } 
+                    else if (num_toks == 4 && strcmp(tokens[0], "vup") == 0) {
+                        vup.x = atof(tokens[1]);
+                        vup.y = atof(tokens[2]);
+                        vup.z = atof(tokens[3]);
+                    } 
+                    else if (num_toks == 2 && strcmp(tokens[0], "vfov") == 0) {
+                        vfov = atof(tokens[1]);
+                    } 
+                    else if (num_toks == 2 && strcmp(tokens[0], "defocus_angle") == 0) {
+                        defocus_angle = atof(tokens[1]);
+                    } 
+                    else if (num_toks == 2 && strcmp(tokens[0], "focus_distance") == 0) {
+                        focus_dist = atof(tokens[1]);
+                    } 
+                    else if (num_toks == 2 && strcmp(tokens[0], "samples_per_pixel") == 0) {
+                        samples_per_pixel = atoi(tokens[1]);
+                    } 
+                    else if (num_toks == 2 && strcmp(tokens[0], "max_depth") == 0) {
+                        max_depth = atoi(tokens[1]);
                     }
                     break;
                 case MATERIAL_STATE:
@@ -247,6 +291,17 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
     }
     fclose(file);
 
-    Camera cam = camera_make(width, aspect_ratio);
+    Camera cam = camera_make(
+        width,
+        aspect_ratio,
+        lookfrom,
+        lookat,
+        vup,
+        vfov,
+        defocus_angle,
+        focus_dist,
+        samples_per_pixel,
+        max_depth
+    );
     camera_render(&cam, hittable_world, out_file);
 }
