@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "shared.h"
 
@@ -47,6 +48,8 @@ static inline Vec3 vec3_divs(Vec3 v1, double d) {
 static inline double vec3_dot(Vec3 v1, Vec3 v2) {
   return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
+
+static inline Vec3 vec3_negate(Vec3 v) { return vec3_scale(v, -1.0); }
 
 static inline Vec3 vec3_cross(Vec3 v1, Vec3 v2) {
   return (Vec3){v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z,
@@ -110,8 +113,40 @@ static inline Vec3 vec3_random_on_hemisphere(Vec3 normal) {
   return on_same_hemisphere ? on_unit_sphere : vec3_scale(on_unit_sphere, -1);
 }
 
+static inline Vec3 vec3_random_in_unit_disk(void) {
+  while (true) {
+    Vec3 p = {random_double_range(-1, 1), random_double_range(-1, 1), 0};
+    if (vec3_length_squared(p) < 1)
+      return p;
+  }
+}
+
+static inline Vec3 defocus_disk_sample(Vec3 center, Vec3 defocus_disk_u, Vec3 defocus_disk_v) {
+  Vec3 p = vec3_random_in_unit_disk();
+  Vec3 res = vec3_add(center, vec3_scale(defocus_disk_u, p.x));
+  return vec3_add(res, vec3_scale(defocus_disk_v, p.y));
+}
+
 static inline void vec3_print(Vec3 v) {
   printf("Vec3<%f, %f, %f>", v.x, v.y, v.z);
 }
 
+// Return true if the vector is close to zero in all dimensions.
+static inline bool vec3_is_near_zero(Vec3 v) {
+  double s = 1e-8;
+  return (fabs(v.x) < s) && (fabs(v.y) < s) && (fabs(v.z) < s);
+}
+
+static inline Vec3 vec3_reflect(Vec3 v, Vec3 n) {
+  return vec3_sub(v, vec3_scale(n, 2 * vec3_dot(v, n)));
+}
+
+static inline Vec3 vec3_refract(Vec3 uv, Vec3 n, double etai_over_etat) {
+  double cos_theta = fmin(vec3_dot(vec3_negate(uv), n), 1.0);
+  Vec3 r_out_perp =
+      vec3_scale(vec3_add(uv, vec3_scale(n, cos_theta)), etai_over_etat);
+  Vec3 r_out_parallel =
+      vec3_scale(n, -sqrt(fabs(1.0 - vec3_length_squared(r_out_perp))));
+  return vec3_add(r_out_perp, r_out_parallel);
+}
 #endif // VEC3_H

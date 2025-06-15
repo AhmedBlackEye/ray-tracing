@@ -7,6 +7,7 @@
 #include "plane.h"
 #include "hittable.h"
 #include "hit_record.h"
+#include "material/material.h"
 
 typedef struct Plane {
   Vec3 point;
@@ -31,6 +32,7 @@ static bool plane_hit(const Hittable *self, Ray ray, Interval t_bounds, HitRecor
         return false;
   }
 
+  rec->mat = self->mat;
   rec->t = t;
   rec->p = ray_at(ray, rec->t);
   hitrec_set_face_normal(rec, ray, plane->normal);
@@ -46,7 +48,7 @@ static void plane_destroy(void *self) {
   free(self);
 }
 
-Hittable *plane_create(Vec3 point, Vec3 normal) {
+Hittable *plane_create(Vec3 point, Vec3 normal, Material *mat) {
   Hittable *hittable = malloc(sizeof(struct Hittable));
   assert(hittable != NULL);
 
@@ -59,6 +61,7 @@ Hittable *plane_create(Vec3 point, Vec3 normal) {
   hittable->type = HITTABLE_PLANE;
   hittable->hit = plane_hit;
   hittable->destroy = (HittableDestroyFn)plane_destroy;
+  hittable->mat = mat;
   hittable->data = plane_data;
 
   return hittable;

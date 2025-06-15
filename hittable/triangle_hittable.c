@@ -5,6 +5,7 @@
 #include "core/interval.h"
 #include "core/ray.h"
 #include "core/vec3.h"
+#include "hit_record.h"
 #include "hittable.h"
 #include "material/material.h"
 #include "triangle_hittable.h"
@@ -83,6 +84,7 @@ Hittable *triangle_hittable_create(Vec3 v0, Vec3 v1, Vec3 v2, Material mat) {
   hittable->type = HITTABLE_TRIANGLE;
   hittable->data = tri_hit_data;
   hittable->destroy = (HittableDestroyFn)triangle_destroy;
+  hittable->mat = mat;
   hittable->hit = (HitFn)triangle_hit;
 
   return hittable;

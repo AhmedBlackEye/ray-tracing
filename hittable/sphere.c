@@ -6,6 +6,7 @@
 
 #include "sphere.h"
 #include "core/interval.h"
+#include "material/material.h"
 #include "hittable.h"
 #include "hit_record.h"
 
@@ -39,7 +40,8 @@ static bool sphere_hit(const Hittable *self, Ray ray, Interval t_bounds, HitReco
     if (!interval_surrounds(t_bounds, root))
       return false;
   }
-
+  
+  rec->mat = self->mat;
   rec->t = root;
   rec->p = ray_at(ray, rec->t);
   Vec3 outward_normal =
@@ -57,7 +59,7 @@ static void sphere_destroy(void *self) {
   free(self);
 }
 
-Hittable *sphere_create(Vec3 center, double radius) {
+Hittable *sphere_create(Vec3 center, double radius, Material *mat) {
   assert(radius > 0);
 
   Hittable *hittable = malloc(sizeof(struct Hittable));
@@ -72,6 +74,7 @@ Hittable *sphere_create(Vec3 center, double radius) {
   hittable->type = HITTABLE_SPHERE;
   hittable->hit = sphere_hit;
   hittable->destroy = (HittableDestroyFn)sphere_destroy;
+  hittable->mat = mat;
   hittable->data = sphere_data;
 
   return hittable;

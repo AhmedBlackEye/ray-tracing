@@ -1,0 +1,50 @@
+material {
+  name   ground
+  type   lambertian
+  color 0.8 0.8 0.0
+}
+
+material {
+  name   center
+  type   lambertian
+  color 0.1 0.2 0.5
+}
+
+material {
+  name   left
+  type   metal
+  color 0.8 0.8 0.8
+  fuzz   0.3
+}
+
+material {
+  name   right
+  type   metal
+  color 0.8 0.6 0.2
+  fuzz   1.0
+}
+
+sphere {
+  material ground
+  center   0.0  -100.5  -1.0
+  radius   100.0
+}
+
+sphere {
+  material center
+  center   0.0    0.0  -1.2
+  radius   0.5
+}
+
+sphere {
+  material left
+  center  -1.0    0.0  -1.0
+  radius   0.5
+}
+
+sphere {
+  material right
+  center   1.0    0.0  -1.0
+  radius   0.5
+}
+
