@@ -55,6 +55,14 @@ static int tokenize(char *line, char *tokens[]) {
     return num_toks;
 }
 
+static Vec3 parse_vec3(char **tokens) {
+    return (Vec3){
+        .x = atof(tokens[1]),
+        .y = atof(tokens[2]),
+        .z = atof(tokens[3])
+    };
+}
+
 void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file) {
     FILE *file = fopen(filename, "r");
     assert(file != NULL);
@@ -174,9 +182,7 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
             switch (state) {
                 case SPHERE_STATE:
                     if (strcmp(tokens[0], "center") == 0 && num_toks == 4) {
-                        center.x = atof(tokens[1]);
-                        center.y = atof(tokens[2]);
-                        center.z = atof(tokens[3]);
+                        center = parse_vec3(tokens);
                     }
                     else if (strcmp(tokens[0], "radius") == 0 && num_toks == 2) {
                         radius = atof(tokens[1]);
@@ -184,48 +190,32 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
                     break;
                 case PLANE_STATE:
                     if (strcmp(tokens[0], "point") == 0 && num_toks == 4) {
-                        point.x = atof(tokens[1]);
-                        point.y = atof(tokens[2]);
-                        point.z = atof(tokens[3]);
+                        point = parse_vec3(tokens);
                     }
                     else if (strcmp(tokens[0], "normal") == 0 && num_toks == 4) {
-                        normal.x = atof(tokens[1]);
-                        normal.y = atof(tokens[2]);
-                        normal.z = atof(tokens[3]);
+                        normal = parse_vec3(tokens);
                     }
                     break;
                 case TRIANGLE_STATE:
                     if (strcmp(tokens[0], "v0") == 0 && num_toks == 4) {
-                        v0.x = atof(tokens[1]);
-                        v0.y = atof(tokens[2]);
-                        v0.z = atof(tokens[3]);
+                        v0 = parse_vec3(tokens);
                     }
                     else if (strcmp(tokens[0], "v1") == 0 && num_toks == 4) {
-                        v1.x = atof(tokens[1]);
-                        v1.y = atof(tokens[2]);
-                        v1.z = atof(tokens[3]);
+                        v1 = parse_vec3(tokens);
                     }
                     else if (strcmp(tokens[0], "v2") == 0 && num_toks == 4) {
-                        v2.x = atof(tokens[1]);
-                        v2.y = atof(tokens[2]);
-                        v2.z = atof(tokens[3]);
+                        v2 = parse_vec3(tokens);
                     }
                     break;
                 case QUAD_STATE:
                     if (strcmp(tokens[0], "Q") == 0 && num_toks == 4) {
-                        Q.x = atof(tokens[1]);
-                        Q.y = atof(tokens[2]);
-                        Q.z = atof(tokens[3]);
+                        Q = parse_vec3(tokens);
                     }
                     else if (strcmp(tokens[0], "u") == 0 && num_toks == 4) {
-                        u.x = atof(tokens[1]);
-                        u.y = atof(tokens[2]);
-                        u.z = atof(tokens[3]);
+                        u = parse_vec3(tokens);
                     }
                     else if (strcmp(tokens[0], "v") == 0 && num_toks == 4) {
-                        v.x = atof(tokens[1]);
-                        v.y = atof(tokens[2]);
-                        v.z = atof(tokens[3]);
+                        v = parse_vec3(tokens);
                     }
                     break;
                 case CAMERA_STATE:
@@ -238,19 +228,13 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
                         width = atoi(tokens[1]);
                     } 
                     else if (num_toks == 4 && strcmp(tokens[0], "lookfrom") == 0) {
-                        lookfrom.x = atof(tokens[1]);
-                        lookfrom.y = atof(tokens[2]);
-                        lookfrom.z = atof(tokens[3]);
+                        lookfrom = parse_vec3(tokens);
                     } 
                     else if (num_toks == 4 && strcmp(tokens[0], "lookat") == 0) {
-                        lookat.x = atof(tokens[1]);
-                        lookat.y = atof(tokens[2]);
-                        lookat.z = atof(tokens[3]);
+                        lookat = parse_vec3(tokens);
                     } 
                     else if (num_toks == 4 && strcmp(tokens[0], "vup") == 0) {
-                        vup.x = atof(tokens[1]);
-                        vup.y = atof(tokens[2]);
-                        vup.z = atof(tokens[3]);
+                        vup = parse_vec3(tokens);
                     } 
                     else if (num_toks == 2 && strcmp(tokens[0], "vfov") == 0) {
                         vfov = atof(tokens[1]);
@@ -276,9 +260,7 @@ void parse_scene(const char *filename, DynArray *hittable_world, FILE *out_file)
                         strcpy(mat_type, tokens[1]);
                     }
                     else if (strcmp(tokens[0], "color") == 0 && num_toks == 4) {
-                        color.x = atof(tokens[1]);
-                        color.y = atof(tokens[2]);
-                        color.z = atof(tokens[3]);
+                        color = parse_vec3(tokens);
                     }
                     else if (strcmp(tokens[0], "fuzz") == 0 && num_toks == 2) {
                         fuzz = atof(tokens[1]);
