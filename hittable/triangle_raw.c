@@ -7,18 +7,13 @@
 #include "core/vec3.h"
 #include "hit_record.h"
 #include "hittable.h"
-
-typedef struct Triangle {
-  Vec3 v0, v1, v2;   // vertices
-  Vec3 normal;       // pre-computed normal
-  Vec3 edge1, edge2; // pre-computed edges
-} Triangle;
+#include "triangle_raw.h"
 
 // Möller-Trumbore ray-triangle intersection algorithm
 static bool triangle_hit(Hittable *self, Ray r, Interval t_bounds,
                          HitRecord *rec) {
   const double EPSILON = 1e-13;
-  Triangle *tri = self->data;
+  TriangleRaw *tri = self->data;
   // Calculate determinant
   Vec3 h = vec3_cross(r.direction, tri->edge2);
   double det = vec3_dot(tri->edge1, h);
@@ -72,24 +67,20 @@ static void triangle_destroy(void *self) {
   free(self);
 }
 
-void triangle_print(const Hittable *hittable) {
-  if (hittable == NULL) {
+void triangle_raw_print(const TriangleRaw *tri) {
+  if (tri == NULL) {
     printf("Triangle: NULL.\n");
     return;
   }
-  Triangle *tri = (Triangle *)hittable;
   printf("Triangle v0:(%.2f,%.2f,%.2f), v1:(%.2f, %.2f, %.2f), "
          "v2:(%.2f,%.2f,%.2f)\n",
          tri->v0.x, tri->v0.y, tri->v0.z, tri->v1.x, tri->v1.y, tri->v1.z,
          tri->v2.x, tri->v2.y, tri->v2.z);
 }
 
-Hittable *triangle_create(Vec3 v0, Vec3 v1, Vec3 v2) {
-  Triangle *triangle = malloc(sizeof(Triangle));
+TriangleRaw *triangle_raw_create(Vec3 v0, Vec3 v1, Vec3 v2) {
+  TriangleRaw *triangle = malloc(sizeof(Triangle));
   assert(triangle != NULL);
-
-  Hittable *hittable = malloc(sizeof(struct Hittable));
-  assert(hittable != NULL);
 
   triangle->v0 = v0;
   triangle->v1 = v1;
@@ -104,10 +95,5 @@ Hittable *triangle_create(Vec3 v0, Vec3 v1, Vec3 v2) {
   triangle->normal = vec3_normalized(
       vec3_cross(triangle->edge1, triangle->edge2)); // angle of normal line n
 
-  hittable->type = HITTABLE_TRIANGLE;
-  hittable->data = triangle;
-  hittable->destroy = (HittableDestroyFn)triangle_destroy;
-  hittable->hit = (HitFn)triangle_hit;
-
-  return hittable;
+  return triangle;
 }
