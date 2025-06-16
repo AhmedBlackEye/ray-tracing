@@ -5,7 +5,7 @@ camera {
   vfov     20
   defocus_angle 0.6
   focus_distance 10
-  samples_per_pixel 10
+  samples_per_pixel 1000
   max_depth 15
   width 400
   aspect_ratio 16 9
@@ -51,12 +51,19 @@ material {
   fuzz 0.0
 }
 sphere {
+  material left
+  center  -1.0    0.0  -1.0
+  radius   0.5
+}
+
+sphere {
+  material right
+  center   1.0    0.0  -1.0
+  radius   0.5
+}
   center 4 1 0
   radius 1
   material big_metal
 }
-<<<<<<< HEAD
-=======
 
 
->>>>>>> master
