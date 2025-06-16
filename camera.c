@@ -88,7 +88,7 @@ static Color ray_color(Ray r, int depth, DynArray *hittable_world, Color backgro
 
   Ray scatterd;
   Color attenuation;
-  Color color_from_emission = material_emitted(rec.mat, rec.u, rec.v, &rec.p);
+  Color color_from_emission = material_emitted(rec.mat, 0.0, 0.0, &rec.p);
 
   if (!rec.mat->scatter(rec.mat, r, &rec, &attenuation, &scatterd)) {
     return color_from_emission;
