@@ -5,8 +5,7 @@
 #include "core/color.h"
 #include "core/vec3.h"
 
-extern Material* diffuse_light_create_from_texture(Texture *tex);
-extern Material* diffuse_light_create_from_color(Color emit_color);
+Material* diffuse_light_create(Color emit_color);
 
 extern Color diffuse_light_emitted(Material *self, double u, double v, const Vec3 *p);
 
