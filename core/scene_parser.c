@@ -13,6 +13,7 @@
 #include "hittable/quad.h"
 #include "hittable/sphere.h"
 #include "hittable/triangle_hittable.h"
+#include "material/dielectric.h"
 #include "material/lambertian.h"
 #include "material/material.h"
 #include "material/metal.h"
@@ -20,7 +21,6 @@
 
 #define MAX_LINE_LENGTH 256
 #define MAX_TOKENS 20
-#define MAX_MATERIALS 20
 #define WIDTH 400
 #define ASPECT_RATIO (16.0 / 9.0)
 #define LOOKFROM ((Vec3){13.0, 2.0, 3.0})
@@ -91,7 +91,8 @@ static void parse_camera(char *tokens[], int num_toks, Vec3 *lookfrom,
 }
 
 static void parse_material(char *tokens[], int num_toks, char *out_name,
-                           char *out_type, Vec3 *out_color, double *out_fuzz) {
+                           char *out_type, Vec3 *out_color, double *out_fuzz,
+                           double *out_ref_index) {
   if (num_toks == 2 && strcmp(tokens[0], "name") == 0) {
     strcpy(out_name, tokens[1]);
   } else if (num_toks == 2 && strcmp(tokens[0], "type") == 0) {
@@ -100,21 +101,25 @@ static void parse_material(char *tokens[], int num_toks, char *out_name,
     *out_color = parse_vec3(tokens);
   } else if (num_toks == 2 && strcmp(tokens[0], "fuzz") == 0) {
     *out_fuzz = atof(tokens[1]);
+  } else if (num_toks == 2 && strcmp(tokens[0], "ref_idx") == 0) {
+    *out_ref_index = atof(tokens[1]);
   }
 }
 
-static void add_material(char *mat_names[], Material *mats[], int *num_mats,
-                         const char *name, const char *type, Vec3 color,
-                         double fuzz) {
+static void add_material(Scene *scene, DynArray *mat_names, const char *name,
+                         const char *type, Vec3 color, double fuzz,
+                         double ref_index) {
   Material *mat;
   if (strcmp(type, "lambertian") == 0) {
     mat = lambertian_create(color);
   } else if (strcmp(type, "metal") == 0) {
     mat = metal_create(color, fuzz);
+  } else if (strcmp(type, "dielectric") == 0) {
+    mat = dielectric_create(ref_index);
   }
-  mat_names[*num_mats] = strdup(name);
-  mats[*num_mats] = mat;
-  *num_mats += 1;
+  scene_add_material(scene, mat);
+  char *name_dup = strdup(name);
+  dynarray_push(mat_names, name_dup);
 }
 
 static void parse_geometry(ParserState state, char *tokens[], int num_toks,
@@ -152,10 +157,11 @@ static void parse_geometry(ParserState state, char *tokens[], int num_toks,
   }
 }
 
-void parse_scene(const char *filename, DynArray *hittable_world,
-                 Camera *out_cam) {
+void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
   FILE *file = fopen(filename, "r");
   assert(file != NULL);
+
+  DynArray *mat_names = dynarray_create(8, NULL, (GDestroyFn)free);
 
   ParserState state = TOPLEVEL_STATE;
 
@@ -179,15 +185,13 @@ void parse_scene(const char *filename, DynArray *hittable_world,
   double aspect_ratio = ASPECT_RATIO;
   int width = WIDTH;
 
-  char *mat_names[MAX_MATERIALS];
-  Material *mats[MAX_MATERIALS];
-  int num_mats = 0;
   Material *current_mat;
 
   char mat_name[32];
   char mat_type[32];
   Vec3 color;
   double fuzz;
+  double ref_index;
 
   Vec3 v0;
   Vec3 v1;
@@ -205,22 +209,20 @@ void parse_scene(const char *filename, DynArray *hittable_world,
     if (strchr(line, '}')) {
       switch (state) {
       case MATERIAL_STATE:
-        add_material(mat_names, mats, &num_mats, mat_name, mat_type, color,
-                     fuzz);
+        add_material(scene, mat_names, mat_name, mat_type, color, fuzz,
+                     ref_index);
         break;
       case SPHERE_STATE:
-        dynarray_push(hittable_world,
-                      sphere_create(center, radius, current_mat));
+        scene_add_obj(scene, sphere_create(center, radius, current_mat));
         break;
       case PLANE_STATE:
-        dynarray_push(hittable_world, plane_create(point, normal, current_mat));
+        scene_add_obj(scene, plane_create(point, normal, current_mat));
         break;
       case TRIANGLE_STATE:
-        dynarray_push(hittable_world,
-                      triangle_hittable_create(v0, v1, v2, current_mat));
+        scene_add_obj(scene, triangle_create(v0, v1, v2, current_mat));
         break;
       case QUAD_STATE:
-        dynarray_push(hittable_world, quad_create(Q, u, v, current_mat));
+        scene_add_obj(scene, quad_create(Q, u, v, current_mat));
         break;
       default:
         break;
@@ -253,12 +255,15 @@ void parse_scene(const char *filename, DynArray *hittable_world,
                      &defocus_angle, &focus_dist, &samples_per_pixel,
                      &max_depth, &aspect_ratio, &width);
       } else if (state == MATERIAL_STATE) {
-        parse_material(tokens, num_toks, mat_name, mat_type, &color, &fuzz);
+        parse_material(tokens, num_toks, mat_name, mat_type, &color, &fuzz,
+                       &ref_index);
       } else {
         if (num_toks == 2 && strcmp(tokens[0], "material") == 0) {
-          for (int i = 0; i < num_mats; i++) {
-            if (strcmp(tokens[1], mat_names[i]) == 0) {
-              current_mat = mats[i];
+          size_t num_mats = dynarray_size(mat_names);
+          for (size_t i = 0; i < num_mats; i++) {
+            char *p = (char *)dynarray_get(mat_names, i);
+            if (p != NULL && strcmp(tokens[1], p) == 0) {
+              current_mat = (Material *)dynarray_get(scene->materials, i);
               break;
             }
           }
@@ -274,4 +279,6 @@ void parse_scene(const char *filename, DynArray *hittable_world,
   *out_cam =
       camera_make(width, aspect_ratio, lookfrom, lookat, vup, vfov,
                   defocus_angle, focus_dist, samples_per_pixel, max_depth);
+
+  dynarray_destroy(mat_names);
 }
