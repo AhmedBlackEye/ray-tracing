@@ -27,7 +27,7 @@ material {
 material {
   name light_mat
   type diffuse_light
-  color 4 4 4
+  color 1.0 0.0 0.0
 }
 
 sphere {
