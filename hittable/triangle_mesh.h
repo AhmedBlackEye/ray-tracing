@@ -11,16 +11,15 @@
 #include <stdbool.h>
 
 #define INIT_CAP 10
-#define TRIANGLE_MESH_EPSILON 1e-13
 
-// Bounding box structure
+// Bounding box structure (internal use)
 typedef struct BoundingBox {
   Vec3 min;
   Vec3 max;
   bool valid;
 } BoundingBox;
 
-// Triangle mesh structure
+// Internal mesh structure (private - users don't see this)
 typedef struct Mesh {
   DynArray *raw_triangles;
   BoundingBox bounds;
@@ -28,40 +27,18 @@ typedef struct Mesh {
   Material *material;
 } Mesh;
 
-// === MESH DATA FUNCTIONS ===
-// Create mesh data structure
-Mesh *mesh_create_data(Material *mat);
+// === PUBLIC API === (Only these functions are exposed)
 
-// Add triangle to mesh
-void mesh_add_triangle(Mesh *mesh, Vec3 v0, Vec3 v1, Vec3 v2);
+// Create a triangle mesh hittable
+Hittable *mesh_create(Material *mat);
 
-// Destroy mesh data
-void mesh_destroy_data(Mesh *mesh);
+// Add triangle to mesh hittable
+void mesh_add_triangle(Hittable *mesh_hittable, Vec3 v0, Vec3 v1, Vec3 v2);
 
-// Print mesh info
-void mesh_print_data(const Mesh *mesh);
-
-// === HITTABLE WRAPPER FUNCTIONS ===
-// Create hittable wrapper for mesh
-Hittable *mesh_create_hittable(Mesh *mesh, Material *mat);
-
-// Print hittable mesh
+// Print mesh hittable info
 void mesh_print(const Hittable *hittable);
 
-// === BOUNDING BOX FUNCTIONS ===
-// Create empty bounding box
-BoundingBox bounding_box_empty(void);
-
-// Expand bounding box to include point
-void bounding_box_expand(BoundingBox *box, Vec3 point);
-
-// Merge two bounding boxes
-void bounding_box_merge(BoundingBox *dest, const BoundingBox *src);
-
-// Compute bounding box for mesh
-void mesh_compute_bounds(Mesh *mesh);
-
-// === INTERSECTION FUNCTIONS ===
+// === INTERSECTION FUNCTION === (for reuse)
 // Ray-triangle intersection (reusable)
 bool triangle_raw_intersect(const TriangleRaw *tri, Ray r, Interval t_bounds,
                             HitRecord *rec, Material *mat);

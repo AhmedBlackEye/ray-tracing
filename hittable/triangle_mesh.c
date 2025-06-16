@@ -12,15 +12,21 @@
 #include "triangle_mesh.h"
 #include "triangle_raw.h"
 
+#define EPSILON 1e-13
+
 // Forward declarations for static functions
 static bool mesh_hit(const Hittable *self, Ray r, Interval t_bounds,
                      HitRecord *rec);
 static void mesh_destroy(void *self);
 static bool ray_box_intersect(Ray ray, BoundingBox box, Interval *t_bounds);
+static BoundingBox bounding_box_empty(void);
+static void bounding_box_expand(BoundingBox *box, Vec3 point);
+static void mesh_compute_bounds(Mesh *mesh);
 
-// === MESH DATA FUNCTIONS ===
+// === CREATING HITTABLE MESH ===
 
-Mesh *mesh_create_data(Material *mat) { // RENAMED: from mesh_create
+Hittable *mesh_create(Material *mat) {
+  // Create mesh data
   Mesh *mesh = malloc(sizeof(Mesh));
   assert(mesh != NULL);
 
@@ -29,45 +35,9 @@ Mesh *mesh_create_data(Material *mat) { // RENAMED: from mesh_create
   mesh->bounds_dirty = false;
   mesh->bounds = bounding_box_empty();
   mesh->material = mat;
-  return mesh;
-}
 
-void mesh_add_triangle(Mesh *mesh, Vec3 v0, Vec3 v1, Vec3 v2) {
-  TriangleRaw *tri = triangle_raw_create(v0, v1, v2);
-  dynarray_push(mesh->raw_triangles, tri);
-  mesh->bounds_dirty = true;
-}
-
-void mesh_destroy_data(Mesh *mesh) { // NEW: Clean up mesh data
-  assert(mesh != NULL);
-  dynarray_destroy(mesh->raw_triangles);
-  free(mesh);
-}
-
-void mesh_print_data(const Mesh *mesh) { // NEW: Print mesh data directly
-  if (mesh == NULL) {
-    printf("Mesh: NULL\n");
-    return;
-  }
-
-  printf("Mesh {\n");
-  printf("  Triangle count: %d\n", dynarray_size(mesh->raw_triangles));
-
-  if (mesh->bounds.valid) {
-    printf("  Bounding box: (%.3f,%.3f,%.3f) to (%.3f,%.3f,%.3f)\n",
-           mesh->bounds.min.x, mesh->bounds.min.y, mesh->bounds.min.z,
-           mesh->bounds.max.x, mesh->bounds.max.y, mesh->bounds.max.z);
-  } else {
-    printf("  Bounding box: not computed\n");
-  }
-  printf("}\n");
-}
-
-// === HITTABLE WRAPPER FUNCTIONS ===
-
-Hittable *mesh_create_hittable(Mesh *mesh,
-                               Material *mat) { // RENAMED: from mesh_create
-  Hittable *hittable = malloc(sizeof(struct Hittable));
+  // Create hittable wrapper
+  Hittable *hittable = malloc(sizeof(Hittable));
   assert(hittable != NULL);
 
   hittable->type = HITTABLE_TRIANGLE_MESH;
@@ -79,14 +49,24 @@ Hittable *mesh_create_hittable(Mesh *mesh,
   return hittable;
 }
 
+void mesh_add_triangle(Hittable *mesh_hittable, Vec3 v0, Vec3 v1, Vec3 v2) {
+  assert(mesh_hittable != NULL);
+  assert(mesh_hittable->type == HITTABLE_TRIANGLE_MESH);
+
+  Mesh *mesh = (Mesh *)mesh_hittable->data;
+  TriangleRaw *tri = triangle_raw_create(v0, v1, v2);
+  dynarray_push(mesh->raw_triangles, tri);
+  mesh->bounds_dirty = true;
+}
+
 void mesh_print(const Hittable *hittable) {
   if (hittable == NULL || hittable->type != HITTABLE_TRIANGLE_MESH) {
-    printf("MeshHittable: Invalid or NULL\n");
+    printf("TriangleMesh: Invalid or NULL\n");
     return;
   }
 
   const Mesh *mesh = (const Mesh *)hittable->data;
-  printf("MeshHittable {\n");
+  printf("TriangleMesh {\n");
   printf("  Triangle count: %d\n", dynarray_size(mesh->raw_triangles));
 
   if (mesh->bounds.valid) {
@@ -99,69 +79,13 @@ void mesh_print(const Hittable *hittable) {
   printf("}\n");
 }
 
-// === BOUNDING BOX FUNCTIONS ===
-
-BoundingBox bounding_box_empty(void) {
-  return (BoundingBox){.min = {INFINITY, INFINITY, INFINITY},
-                       .max = {-INFINITY, -INFINITY, -INFINITY},
-                       .valid = false};
-}
-
-void bounding_box_expand(BoundingBox *box, Vec3 point) {
-  if (!box->valid) {
-    box->min = point;
-    box->max = point;
-    box->valid = true;
-  } else {
-    box->min.x = fmin(box->min.x, point.x);
-    box->min.y = fmin(box->min.y, point.y);
-    box->min.z = fmin(box->min.z, point.z);
-
-    box->max.x = fmax(box->max.x, point.x);
-    box->max.y = fmax(box->max.y, point.y);
-    box->max.z = fmax(box->max.z, point.z);
-  }
-}
-
-void bounding_box_merge(BoundingBox *dest, const BoundingBox *src) {
-  if (!src->valid)
-    return;
-
-  if (!dest->valid) {
-    *dest = *src;
-  } else {
-    dest->min.x = fmin(dest->min.x, src->min.x);
-    dest->min.y = fmin(dest->min.y, src->min.y);
-    dest->min.z = fmin(dest->min.z, src->min.z);
-
-    dest->max.x = fmax(dest->max.x, src->max.x);
-    dest->max.y = fmax(dest->max.y, src->max.y);
-    dest->max.z = fmax(dest->max.z, src->max.z);
-  }
-}
-
-void mesh_compute_bounds(Mesh *mesh) {
-  mesh->bounds = bounding_box_empty();
-
-  for (int i = 0; i < dynarray_size(mesh->raw_triangles); i++) {
-    TriangleRaw *tri = (TriangleRaw *)dynarray_get(mesh->raw_triangles, i);
-    bounding_box_expand(&mesh->bounds, tri->v0);
-    bounding_box_expand(&mesh->bounds, tri->v1);
-    bounding_box_expand(&mesh->bounds, tri->v2);
-  }
-
-  mesh->bounds_dirty = false;
-}
-
-// === INTERSECTION FUNCTIONS ===
-
 bool triangle_raw_intersect(const TriangleRaw *tri, Ray r, Interval t_bounds,
                             HitRecord *rec, Material *mat) {
   // YOUR EXACT Möller-Trumbore code
   Vec3 h = vec3_cross(r.direction, tri->edge2);
   double det = vec3_dot(tri->edge1, h);
 
-  if (fabs(det) < TRIANGLE_MESH_EPSILON) {
+  if (fabs(det) < EPSILON) {
     return false; // Ray is parallel to triangle
   }
 
@@ -197,7 +121,42 @@ bool triangle_raw_intersect(const TriangleRaw *tri, Ray r, Interval t_bounds,
   return false;
 }
 
-// === STATIC HELPER FUNCTIONS ===
+// === HELPER FUNCTIONS ===
+
+static BoundingBox bounding_box_empty(void) {
+  return (BoundingBox){.min = {INFINITY, INFINITY, INFINITY},
+                       .max = {-INFINITY, -INFINITY, -INFINITY},
+                       .valid = false};
+}
+
+static void bounding_box_expand(BoundingBox *box, Vec3 point) {
+  if (!box->valid) {
+    box->min = point;
+    box->max = point;
+    box->valid = true;
+  } else {
+    box->min.x = fmin(box->min.x, point.x);
+    box->min.y = fmin(box->min.y, point.y);
+    box->min.z = fmin(box->min.z, point.z);
+
+    box->max.x = fmax(box->max.x, point.x);
+    box->max.y = fmax(box->max.y, point.y);
+    box->max.z = fmax(box->max.z, point.z);
+  }
+}
+
+static void mesh_compute_bounds(Mesh *mesh) {
+  mesh->bounds = bounding_box_empty();
+
+  for (int i = 0; i < dynarray_size(mesh->raw_triangles); i++) {
+    TriangleRaw *tri = (TriangleRaw *)dynarray_get(mesh->raw_triangles, i);
+    bounding_box_expand(&mesh->bounds, tri->v0);
+    bounding_box_expand(&mesh->bounds, tri->v1);
+    bounding_box_expand(&mesh->bounds, tri->v2);
+  }
+
+  mesh->bounds_dirty = false;
+}
 
 static bool ray_box_intersect(Ray ray, BoundingBox box, Interval *t_bounds) {
   for (int axis = 0; axis < 3; axis++) {
@@ -220,7 +179,7 @@ static bool ray_box_intersect(Ray ray, BoundingBox box, Interval *t_bounds) {
       box_max = box.max.z;
     }
 
-    if (fabs(ray_dir) < TRIANGLE_MESH_EPSILON) {
+    if (fabs(ray_dir) < EPSILON) {
       if (ray_origin < box_min || ray_origin > box_max)
         return false;
       continue;
@@ -250,6 +209,16 @@ static bool ray_box_intersect(Ray ray, BoundingBox box, Interval *t_bounds) {
 
 static void mesh_destroy(void *self) {
   assert(self != NULL);
+  Hittable *hittable = (Hittable *)self;
+  Mesh *mesh = (Mesh *)hittable->data;
+
+  // Clean up mesh data
+  if (mesh) {
+    dynarray_destroy(mesh->raw_triangles);
+    free(mesh);
+  }
+
+  // Free the hittable
   free(self);
 }
 

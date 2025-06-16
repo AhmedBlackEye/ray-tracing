@@ -20,6 +20,4 @@ extern bool triangle_raw_hit(const TriangleRaw *tri, Ray r, Interval t_bounds,
 extern bool triangle_hit(Hittable *hittable, Ray r, Interval t_bounds,
                          HitRecord *rec);
 
-// NO HIT FUNCTION - triangle_hittable handles ray intersection
-
 #endif // TRIANGLE_RAW_H

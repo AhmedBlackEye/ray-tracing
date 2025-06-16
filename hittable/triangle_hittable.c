@@ -11,52 +11,6 @@
 #include "triangle_hittable.h"
 #include "triangle_raw.h"
 
-// Möller-Trumbore ray-triangle intersection algorithm
-bool triangle_ray_intersect(const TriangleRaw *tri, Ray r, Interval t_bounds,
-                            HitRecord *rec) {
-  const double EPSILON = 1e-13;
-  // Calculate determinant
-  Vec3 h = vec3_cross(r.direction, tri->edge2);
-  double det = vec3_dot(tri->edge1, h);
-
-  if (fabs(det) < EPSILON) {
-    return false; // Ray is parallel to triangle
-  }
-
-  // Calculate barycentric coordinate u
-  double inv = 1.0 / det;
-  Vec3 s = vec3_sub(r.origin, tri->v0);
-  double u = inv * vec3_dot(s, h);
-
-  if (u < 0.0 || u > 1.0) {
-    return false;
-  }
-
-  // Calculate barycentric coordinate v
-  Vec3 q = vec3_cross(s, tri->edge1);
-  double v = inv * vec3_dot(r.direction, q);
-
-  if (v < 0.0 || u + v > 1.0) {
-    return false;
-  }
-  // Calculate t parameter
-  double t = inv * vec3_dot(tri->edge2, q);
-
-  if (interval_surrounds(t_bounds, t)) {
-    rec->t = t;
-    rec->p = ray_at(r, t);
-
-    // Ensure normal faces outward from ray
-    hitrec_set_face_normal(rec, r, tri->normal);
-    // printf("Triangle hit at t=%.2f, p=(%.2f, %.2f, %.2f)\n", t,
-    //        rec->p.x, rec->p.y, rec->p.z);
-    rec->mat = self->mat;
-    return true;
-  }
-
-  return false;
-}
-
 void triangle_hittable_print(const Hittable *hittable) {
   if (hittable == NULL || hittable->type != HITTABLE_TRIANGLE) {
     printf("TriangleHittable: Invalid or NULL\n");

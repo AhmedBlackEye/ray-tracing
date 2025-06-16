@@ -29,7 +29,7 @@ void hittable_print(const Hittable *self) {
     quad_print(self);
     break;
   case HITTABLE_TRIANGLE_MESH:
-    triangle_mesh_hittable_print(self);
+    mesh_print(self);
     break;
   default:
     assert(false);
