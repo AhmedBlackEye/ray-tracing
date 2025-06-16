@@ -29,7 +29,7 @@ void material_print(const Material *self) {
 
 Color material_emitted(Material *mat, double u, double v, const Vec3 *p) {
     if (!mat || !mat->emitted) {
-        return vec3_zero();  // Default: no emission
+        return vec3_zero(); 
     }
     return mat->emitted(mat, u, v, p);
 }

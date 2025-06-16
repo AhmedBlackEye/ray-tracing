@@ -1,3 +1,45 @@
+camera {
+  lookfrom 26 3 6
+  lookat   0 2 0
+  vup      0 1 0
+  vfov     20
+  defocus_angle 0
+  focus_distance 10
+  samples_per_pixel 100
+  max_depth 50
+  width 400
+  aspect_ratio 16 9
+  background 0 0 0
+}
 
+material {
+  name ground
+  type lambertian
+  color 0.5 0.5 0.5
+}
+
+material {
+  name sphere_mat
+  type lambertian
+  color 0.7 0.3 0.3
+}
+
+material {
+  name light_mat
+  type diffuse_light
+  color 4 4 4
+}
+
+sphere {
+  material ground
+  center 0 -1000 0
+  radius 1000
+}
+
+sphere {
+  material light_mat
+  center 0 1 0
+  radius 1
+}
 
 
