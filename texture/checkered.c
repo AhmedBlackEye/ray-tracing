@@ -5,7 +5,7 @@
 #include "checkered.h"
 #include "solid_color.h"
 
-Color checkered_value(TEXTURE* self, double u, double v, const Vec3* p) {
+Color checkered_value(Texture* self, double u, double v, const Vec3* p) {
     Checkered* checkered = (Checkered*)self;
 
     int x_int = floor(checkered->inv_scale * p->x);
@@ -18,7 +18,7 @@ Color checkered_value(TEXTURE* self, double u, double v, const Vec3* p) {
                    : checkered->odd->value(checkered->odd, u, v, p);
 }
 
-Checkered *checkered_create_textures(double scale, TEXTURE *even, TEXTURE *odd) {
+Checkered *checkered_create_textures(double scale, Texture *even, Texture *odd) {
     Checkered *checkered = malloc(sizeof(struct Checkered));
     assert(checkered != NULL);
     checkered->base_tex.value = checkered_value;
@@ -29,9 +29,9 @@ Checkered *checkered_create_textures(double scale, TEXTURE *even, TEXTURE *odd) 
 }
 
 Checkered *checkered_create_colors(double scale, const Color *c1, const Color *c2) {
-    SOLIDCOLOR *even = solid_color_create_albedo(c1);
-    SOLIDCOLOR *odd = solid_color_create_albedo(c2);
-    return checkered_create_textures(scale, (TEXTURE*)even, (TEXTURE*)odd);
+    SolidColor *even = solid_color_create_albedo(c1);
+    SolidColor *odd = solid_color_create_albedo(c2);
+    return checkered_create_textures(scale, (Texture*)even, (Texture*)odd);
 }
 
 void checkered_destroy(Checkered* checkered) {

@@ -9,9 +9,10 @@
 #include "core/ray.h"
 #include "hittable/hit_record.h"
 #include "material.h"
+#include "texture/solid_color.h"
 
 typedef struct Lambertian {
-  Color albedo;
+  Texture *tex;
 } Lambertian;
 
 static bool lambertian_scatter(const Material *self, Ray ray_in, HitRecord *rec,
@@ -28,7 +29,7 @@ static bool lambertian_scatter(const Material *self, Ray ray_in, HitRecord *rec,
   if (vec3_is_near_zero(scatter_direction))
     scatter_direction = rec->normal;
   *scattered = (Ray){.origin = rec->p, .direction = scatter_direction};
-  *attenuation = lamb->albedo;
+  *attenuation = lamb->tex->value(lamb->tex, rec->u, rec->v, &rec->p);
 
   return true;
 }
@@ -41,14 +42,14 @@ static void lambertian_destroy(void *self) {
   free(self);
 }
 
-Material *lambertian_create(Color albedo) {
+Material *lambertian_create_texture(Texture *tex) {
   Material *mat = malloc(sizeof(struct Material));
   assert(mat != NULL);
 
   Lambertian *lamb = malloc(sizeof(struct Lambertian));
   assert(lamb != NULL);
 
-  lamb->albedo = albedo;
+  lamb->tex = tex;
 
   mat->type = MATERIAL_LAMBERTIAN;
   mat->scatter = (ScatterFn)lambertian_scatter;
@@ -59,12 +60,17 @@ Material *lambertian_create(Color albedo) {
   return mat;
 }
 
+Material *lambertian_create(Color albedo) {
+    SolidColor* sol_col = solid_color_create_albedo(&albedo);
+    return lambertian_create_texture((Texture*)sol_col);
+}
+
 void lambertian_print(const Material *self) {
   if (self == NULL || self->type != MATERIAL_LAMBERTIAN) {
     printf("Lambertian: Invalid or NULL\n");
     return;
   }
-  const Lambertian *lamb = (const Lambertian *)self->data;
-  Color albedo = lamb->albedo;
-  printf("Lambertian { albedo: %.3f %.3f %.3f}\n", albedo.x, albedo.y, albedo.z);
+  //const Lambertian *lamb = (const Lambertian *)self->data;
+  //Color albedo = lamb->albedo;
+  //printf("Lambertian { albedo: %.3f %.3f %.3f}\n", albedo.x, albedo.y, albedo.z);
 }

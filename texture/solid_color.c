@@ -4,13 +4,13 @@
 #include "solid_color.h"
 #include "core/color.h"
 
-Color solid_color_value(texture* self, double u, double v, const Vec3* p) {
+Color solid_color_value(Texture *self, double u, double v, const Vec3* p) {
     SolidColor* sol_col = (SolidColor*)self;
     return sol_col->albedo;
 }
 
 SolidColor *solid_color_create_albedo(const Color* albedo) {
-    solid_color* sol_col = malloc(sizeof(struct SolidColor));
+    SolidColor* sol_col = malloc(sizeof(struct SolidColor));
     assert(sol_col != NULL);
     sol_col->base_tex.value = solid_color_value;
     sol_col->albedo = *albedo;
