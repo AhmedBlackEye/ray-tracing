@@ -26,3 +26,10 @@ void material_print(const Material *self) {
     assert(false);
   }
 }
+
+Color material_emitted(Material *mat, double u, double v, const Vec3 *p) {
+    if (!mat || !mat->emitted) {
+        return vec3_zero();  // Default: no emission
+    }
+    return mat->emitted(mat, u, v, p);
+}
