@@ -1,10 +1,11 @@
 #include "diffuse_light.h"
+#include "texture/solid_color.h"    
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
 
 typedef struct DiffuseLight {
-    Color emit_color; 
+    Texture *tex; 
 } DiffuseLight;
 
 static bool diffuse_light_scatter(Material *mat, Ray ray_in, HitRecord *rec,
@@ -25,9 +26,8 @@ void diffuse_light_print(const Material *self) {
     printf("Diffuse Light: Invalid or NULL\n");
     return;
   }
-  const DiffuseLight *diff_l = (const DiffuseLight *)self->data;
-  Color emit_color = diff_l->emit_color;
-  printf("Diffuse Light { emit colour: %.3f %.3f %.3f}\n", emit_color.x, emit_color.y, emit_color.z);
+    const DiffuseLight *diff_l = (const DiffuseLight *)self->data;
+    printf("Diffuse Light { texture: %p }\n", (void*)diff_l->tex);
 }
 
 Color diffuse_light_emitted(Material *self, double u, double v, const Vec3 *p) {
@@ -39,20 +39,25 @@ Color diffuse_light_emitted(Material *self, double u, double v, const Vec3 *p) {
     return data->emit_color;
 }
 
+// New texture-based constructor
+Material *diffuse_light_create_texture(Texture* tex) {
+    Material *mat = malloc(sizeof(struct Material));
+    assert(mat != NULL);
+    
+    DiffuseLight *diff_l = malloc(sizeof(struct DiffuseLight));
+    assert(diff_l != NULL);
+    
+    diff_l->tex = tex; 
+    
+    mat->type = MATERIAL_DIFFUSE_LIGHT;
+    mat->scatter = (ScatterFn)diffuse_light_scatter;
+    mat->destroy = (MaterialDestroyFn)diffuse_light_destroy;
+    mat->emitted = diffuse_light_emitted;
+    mat->data = diff_l;
+    return mat;
+}
+
 Material *diffuse_light_create(Color emit_color) {
-  Material *mat = malloc(sizeof(struct Material));
-  assert(mat != NULL);
-
-  DiffuseLight *diff_l = malloc(sizeof(struct DiffuseLight));
-  assert(diff_l != NULL);
-
-  diff_l->emit_color = emit_color;
-
-  mat->type = MATERIAL_DIFFUSE_LIGHT;
-  mat->scatter = (ScatterFn)diffuse_light_scatter;
-  mat->destroy = (MaterialDestroyFn)diffuse_light_destroy;
-  mat->emitted = diffuse_light_emitted;
-  mat->data = diff_l;
-
-  return mat;
+    SolidColor* solcol = solid_color_create_albedo(&emit_color);
+    return diffuse_light_create_texture((Texture*)sol_col);
 }
