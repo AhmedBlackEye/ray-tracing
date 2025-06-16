@@ -5,6 +5,7 @@
 #include <math.h>
 
 #include "sphere.h"
+#include "core/aabb.h"
 #include "core/interval.h"
 #include "material/material.h"
 #include "hittable.h"
@@ -68,6 +69,11 @@ Hittable *sphere_create(Vec3 center, double radius, Material *mat) {
   Sphere *sphere_data = malloc(sizeof(struct Sphere));
   assert(sphere_data != NULL);
 
+  AABB *box = malloc(sizeof(struct AABB));
+  assert(box != NULL);
+  Vec3 rvec = (Vec3) { radius, radius, radius };
+  box = aabb_from_points( vec3_sub(center, rvec), vec3_add(center, rvec) );
+
   sphere_data->center = center;
   sphere_data->radius = radius;
 
@@ -75,6 +81,7 @@ Hittable *sphere_create(Vec3 center, double radius, Material *mat) {
   hittable->hit = sphere_hit;
   hittable->destroy = (HittableDestroyFn)sphere_destroy;
   hittable->mat = mat;
+  hittable->box = box;
   hittable->data = sphere_data;
 
   return hittable;

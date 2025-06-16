@@ -4,7 +4,13 @@
 #include "hittable.h"
 #include "hit_record.h"
 
-bool hittables_hit(DynArray *hittables, Ray ray, Interval t_bounds, HitRecord *rec) {
+typedef struct HittableList {
+    AABB box;
+    DynArray objects;
+    HitFn hit;
+} HittableList;
+
+bool hittablelist_hit(HittableList *hittables, Ray ray, Interval t_bounds, HitRecord *rec) {
   HitRecord temp_rec;
   bool hit_anything = false;
   double closest_so_far = t_bounds.max;
@@ -20,3 +26,14 @@ bool hittables_hit(DynArray *hittables, Ray ray, Interval t_bounds, HitRecord *r
 
   return hit_anything;
 }
+
+
+ HittableList *hittable_list_empty() {
+    HittableList new = malloc(sizeof(struct HittableList));
+    assert( new != NULL );
+    new->box = aabb_empty();
+    new->objects = dynarray_create(8, (GPrintFn)hittable_print, (GDestroyFn)hittable_destroy);
+    new->hit = hittables_hit;
+    return new;
+}
+

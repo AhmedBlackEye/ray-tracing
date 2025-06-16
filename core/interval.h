@@ -24,6 +24,12 @@ static inline Interval interval_make(double min, double max) {
   return (Interval){min, max};
 }
 
+static inline Interval interval_enclose(Interval a, Interval b) {
+    double min = a.min <= b.min ? a.min : b.min;
+    double max = a.max >= b.max ? a.max : b.max;
+    return (Interval) { min, max };
+}
+
 // Returns the size of the interval
 static inline double interval_size(Interval i) { return i.max - i.min; }
 
