@@ -1,20 +1,7 @@
-camera {
-  lookfrom 13 2 3
-  lookat   0 0 -1
-  vup      0 1 0
-  vfov     20
-  defocus_angle 0.6
-  focus_distance 10
-  samples_per_pixel 250
-  max_depth 50
-  width 720
-  aspect_ratio 16 9
-}
-
 material {
   name ground
   type lambertian
-  color 0.5 0.5 0.5
+  color 0.5 0.5 1.0
 }
 sphere {
   center 0 -1000 0
@@ -22,49 +9,15 @@ sphere {
   material ground
 }
 
-material {
-  name big_glass
-  type dielectric
-  ref_idx 1.5
+camera {
+  lookfrom 3 2.5 0
+  lookat   0 0 -4
+  vup      0 1 0
+  vfov     65
+  defocus_angle 0.0
+  focus_distance 10
+  samples_per_pixel 300
+  max_depth 30
+  width 1080
+  aspect_ratio 16 9
 }
-sphere {
-  center 0 1 0
-  radius 1
-  material big_glass
-}
-
-material {
-  name big_lambert
-  type lambertian
-  color 0.4 0.2 0.1
-}
-sphere {
-  center -4 1 0
-  radius 1
-  material big_lambert
-}
-
-material {
-  name big_metal
-  type metal
-  color 0.7 0.6 0.5
-  fuzz 0.0
-}
-sphere {
-  material left
-  center  -1.0    0.0  -1.0
-  radius   0.5
-}
-
-sphere {
-  material right
-  center   1.0    0.0  -1.0
-  radius   0.5
-}
-sphere {
-  center 4 1 0
-  radius 1
-  material big_metal
-}
-
-
