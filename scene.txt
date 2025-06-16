@@ -44,5 +44,3 @@ sphere {
   radius 1
   material big_metal
 }
-
-
