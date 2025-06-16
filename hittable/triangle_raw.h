@@ -4,6 +4,8 @@
 #include "core/vec3.h"
 #include "material/material.h"
 
+#define INITIAL_CAPACITY 10
+
 typedef struct TriangleRaw {
   Vec3 v0, v1, v2;   // Vertices
   Vec3 normal;       // Pre-computed normal
@@ -11,7 +13,7 @@ typedef struct TriangleRaw {
 } TriangleRaw;
 
 // Pure data functions only
-extern TriangleRaw *triangle_raw_create(Vec3 v0, Vec3 v1, Vec3 v2);
+extern TriangleRaw triangle_raw_create(Vec3 v0, Vec3 v1, Vec3 v2);
 extern void triangle_destroy(void *self);   // For dynarray
 extern void triangle_raw_print(void *self); // For dynarray
 extern bool triangle_raw_hit(const TriangleRaw *tri, Ray r, Interval t_bounds,

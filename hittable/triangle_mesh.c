@@ -22,6 +22,11 @@ static bool ray_box_intersect(Ray ray, BoundingBox box, Interval *t_bounds);
 static BoundingBox bounding_box_empty(void);
 static void bounding_box_expand(BoundingBox *box, Vec3 point);
 static void mesh_compute_bounds(Mesh *mesh);
+static TriangleArr *triarray_create(int initial_capacity);
+static void triarray_push(TriangleArr *arr, TriangleRaw tri);
+static void triarray_destroy(TriangleArr *arr);
+static TriangleRaw *triarray_get(TriangleArr *arr, int index);
+static void triarray_print(TriangleArr *arr);
 
 // === CREATING HITTABLE MESH ===
 
@@ -30,8 +35,8 @@ Hittable *mesh_create(Material *mat) {
   Mesh *mesh = malloc(sizeof(Mesh));
   assert(mesh != NULL);
 
-  mesh->raw_triangles = dynarray_create(INIT_CAP, (GPrintFn)triangle_raw_print,
-                                        (GDestroyFn)triangle_destroy);
+  mesh->triangles = triarray_create(INITIAL_CAPACITY);
+
   mesh->bounds_dirty = false;
   mesh->bounds = bounding_box_empty();
   mesh->material = mat;
@@ -42,8 +47,8 @@ Hittable *mesh_create(Material *mat) {
 
   hittable->type = HITTABLE_TRIANGLE_MESH;
   hittable->data = mesh;
-  hittable->destroy = mesh_destroy;
-  hittable->hit = mesh_hit;
+  hittable->destroy = (HittableDestroyFn)mesh_destroy;
+  hittable->hit = (HitFn)mesh_hit;
   hittable->mat = mat;
 
   return hittable;
@@ -54,8 +59,9 @@ void mesh_add_triangle(Hittable *mesh_hittable, Vec3 v0, Vec3 v1, Vec3 v2) {
   assert(mesh_hittable->type == HITTABLE_TRIANGLE_MESH);
 
   Mesh *mesh = (Mesh *)mesh_hittable->data;
-  TriangleRaw *tri = triangle_raw_create(v0, v1, v2);
-  dynarray_push(mesh->raw_triangles, tri);
+  TriangleRaw tri = triangle_raw_create(v0, v1, v2);
+
+  triarray_push(mesh->triangles, tri);
   mesh->bounds_dirty = true;
 }
 
@@ -67,7 +73,7 @@ void mesh_print(const Hittable *hittable) {
 
   const Mesh *mesh = (const Mesh *)hittable->data;
   printf("TriangleMesh {\n");
-  printf("  Triangle count: %d\n", dynarray_size(mesh->raw_triangles));
+  printf("  Triangle count: %d\n", mesh->triangles->size);
 
   if (mesh->bounds.valid) {
     printf("  Bounding box: (%.3f,%.3f,%.3f) to (%.3f,%.3f,%.3f)\n",
@@ -148,8 +154,8 @@ static void bounding_box_expand(BoundingBox *box, Vec3 point) {
 static void mesh_compute_bounds(Mesh *mesh) {
   mesh->bounds = bounding_box_empty();
 
-  for (int i = 0; i < dynarray_size(mesh->raw_triangles); i++) {
-    TriangleRaw *tri = (TriangleRaw *)dynarray_get(mesh->raw_triangles, i);
+  for (int i = 0; i < mesh->triangles->size; i++) {
+    TriangleRaw *tri = triarray_get(mesh->triangles, i);
     bounding_box_expand(&mesh->bounds, tri->v0);
     bounding_box_expand(&mesh->bounds, tri->v1);
     bounding_box_expand(&mesh->bounds, tri->v2);
@@ -214,7 +220,7 @@ static void mesh_destroy(void *self) {
 
   // Clean up mesh data
   if (mesh) {
-    dynarray_destroy(mesh->raw_triangles);
+    triarray_destroy(mesh->triangles);
     free(mesh);
   }
 
@@ -242,8 +248,8 @@ static bool mesh_hit(const Hittable *self, Ray r, Interval t_bounds,
   HitRecord temp_rec;
   double closest_so_far = t_bounds.max;
 
-  for (int i = 0; i < dynarray_size(mesh->raw_triangles); i++) {
-    TriangleRaw *tri = (TriangleRaw *)dynarray_get(mesh->raw_triangles, i);
+  for (int i = 0; i < mesh->triangles->size; i++) {
+    TriangleRaw *tri = triarray_get(mesh->triangles, i);
     Interval tri_bounds = {t_bounds.min, closest_so_far};
 
     if (triangle_raw_intersect(tri, r, tri_bounds, &temp_rec, mesh->material)) {
@@ -254,4 +260,57 @@ static bool mesh_hit(const Hittable *self, Ray r, Interval t_bounds,
   }
 
   return hit_anything;
+}
+
+// === TRIANGLE ARRAY FUNCTIONS ===
+
+TriangleArr *triarray_create(int initial_capacity) {
+  assert(initial_capacity > 0);
+  TriangleArr *new = malloc(sizeof(TriangleArr));
+  assert(new);
+  new->capacity = initial_capacity;
+  new->data = malloc(sizeof(TriangleRaw) * initial_capacity);
+  new->size = 0;
+  return new;
+}
+
+void triarray_push(TriangleArr *arr, TriangleRaw tri) {
+  assert(arr != NULL);
+  if (arr->size >= arr->capacity) {
+    arr->capacity = arr->capacity * 2;
+    arr->data = realloc(arr->data, arr->capacity * sizeof(struct TriangleRaw));
+    assert(arr->data);
+  }
+  arr->data[arr->size++] = tri;
+}
+
+void triarray_destroy(TriangleArr *arr) {
+  assert(arr != NULL);
+  free(arr->data);
+  free(arr);
+}
+
+TriangleRaw *triarray_get(TriangleArr *arr, int index) {
+  assert(arr != NULL);
+  assert(index >= 0 && index < arr->size);
+  return &arr->data[index];
+}
+
+void triarray_print(TriangleArr *arr) {
+  if (arr == NULL) {
+    printf("Triangle Array: NULL.\n");
+    return;
+  }
+  if (arr->size == 0) {
+    puts("[]");
+    return;
+  }
+  putchar('[');
+  for (int i = 0; i < arr->size; i++) {
+    triangle_raw_print(&arr->data[i]);
+    if (i < arr->size - 1) {
+      printf(", ");
+    }
+  }
+  puts("]");
 }

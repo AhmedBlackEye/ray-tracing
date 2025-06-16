@@ -6,7 +6,7 @@
 #include "triangle_raw.h"
 
 typedef struct TriangleHittable {
-  TriangleRaw *triangle;
+  TriangleRaw triangle;
 } TriangleHittable;
 
 extern bool triangle_hit(Hittable *hittable, Ray r, Interval t_bounds,

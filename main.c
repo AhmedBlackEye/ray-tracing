@@ -42,8 +42,8 @@ int main(int argc, char **argv) {
   parse_scene(argv[1], &scene, &cam);
 
   // Add small spheres in a grid with random materials
-  for (int a = -5; a < 5; a++) {
-    for (int b = -5; b < 5; b++) {
+  for (int a = -11; a < 11; a++) {
+    for (int b = -11; b < 11; b++) {
       double choose_mat = random_double();
       Vec3 center = {a + 0.9 * random_double(), 0.2, b + 0.9 * random_double()};
       Vec3 diff = vec3_sub(center, (Vec3){4, 0.2, 0});

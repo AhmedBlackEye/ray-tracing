@@ -11,8 +11,6 @@
 // Möller-Trumbore ray-triangle intersection algorithm
 bool triangle_raw_hit(const TriangleRaw *tri, Ray r, Interval t_bounds,
                       HitRecord *rec, Material *mat) {
-
-  TriangleRaw *tri = hittable->data;
   const double EPSILON = 1e-13;
   // Calculate determinant
   Vec3 h = vec3_cross(r.direction, tri->edge2);
@@ -41,19 +39,17 @@ bool triangle_raw_hit(const TriangleRaw *tri, Ray r, Interval t_bounds,
   // Calculate t parameter
   double t = inv * vec3_dot(tri->edge2, q);
 
-  if (interval_surrounds(t))
+  if (interval_surrounds(t_bounds, t)) {
+    rec->t = t;
+    rec->p = ray_at(r, t);
 
-    if (interval_surrounds(t_bounds, t)) {
-      rec->t = t;
-      rec->p = ray_at(r, t);
-
-      // Ensure normal faces outward from ray
-      hitrec_set_face_normal(rec, r, tri->normal);
-      // printf("Triangle hit at t=%.2f, p=(%.2f, %.2f, %.2f)\n", t,
-      //        rec->p.x, rec->p.y, rec->p.z);
-      rec->mat = mat;
-      return true;
-    }
+    // Ensure normal faces outward from ray
+    hitrec_set_face_normal(rec, r, tri->normal);
+    // printf("Triangle hit at t=%.2f, p=(%.2f, %.2f, %.2f)\n", t,
+    //        rec->p.x, rec->p.y, rec->p.z);
+    rec->mat = mat;
+    return true;
+  }
 
   return false;
 }
@@ -96,5 +92,5 @@ TriangleRaw triangle_raw_create(Vec3 v0, Vec3 v1, Vec3 v2) {
 bool triangle_hit(Hittable *hittable, Ray r, Interval t_bounds,
                   HitRecord *rec) {
   TriangleRaw *tri = (TriangleRaw *)hittable->data;
-  return triangle_raw_hit(tri, r, t_bounds, rec, hittable->material);
+  return triangle_raw_hit(tri, r, t_bounds, rec, hittable->mat);
 }

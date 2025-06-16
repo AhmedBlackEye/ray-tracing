@@ -10,8 +10,6 @@
 #include "material/material.h"
 #include <stdbool.h>
 
-#define INIT_CAP 10
-
 // Bounding box structure (internal use)
 typedef struct BoundingBox {
   Vec3 min;
@@ -19,9 +17,15 @@ typedef struct BoundingBox {
   bool valid;
 } BoundingBox;
 
+typedef struct TriangleArr {
+  TriangleRaw *data;
+  int size;
+  int capacity;
+} TriangleArr;
+
 // Internal mesh structure (private - users don't see this)
 typedef struct Mesh {
-  DynArray *raw_triangles;
+  TriangleArr *triangles;
   BoundingBox bounds;
   bool bounds_dirty;
   Material *material;

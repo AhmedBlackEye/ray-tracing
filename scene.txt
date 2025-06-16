@@ -5,9 +5,9 @@ camera {
   vfov     20
   defocus_angle 0.6
   focus_distance 10
-  samples_per_pixel 1000
-  max_depth 15
-  width 400
+  samples_per_pixel 250
+  max_depth 50
+  width 720
   aspect_ratio 16 9
 }
 
@@ -61,6 +61,7 @@ sphere {
   center   1.0    0.0  -1.0
   radius   0.5
 }
+sphere {
   center 4 1 0
   radius 1
   material big_metal

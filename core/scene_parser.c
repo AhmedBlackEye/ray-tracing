@@ -219,7 +219,7 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
         scene_add_obj(scene, plane_create(point, normal, current_mat));
         break;
       case TRIANGLE_STATE:
-        scene_add_obj(scene, triangle_create(v0, v1, v2, current_mat));
+        scene_add_obj(scene, triangle_hittable_create(v0, v1, v2, current_mat));
         break;
       case QUAD_STATE:
         scene_add_obj(scene, quad_create(Q, u, v, current_mat));
