@@ -2,7 +2,8 @@
 #define SCENE_PARSER_H
 
 #include "dyn_array.h"
+#include "scene.h"
 
-void parse_scene(const char *filename, DynArray *hittable_world, Camera *out_cam);
+void parse_scene(const char *filename, Scene *scene, Camera *out_cam);
 
 #endif
