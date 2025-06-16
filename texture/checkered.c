@@ -8,9 +8,9 @@
 Color checkered_value(Texture* self, double u, double v, const Vec3* p) {
     Checkered* checkered = (Checkered*)self;
 
-    int x_int = floor(checkered->inv_scale * p->x);
-    int y_int = floor(checkered->inv_scale * p->y);
-    int z_int = floor(checkered->inv_scale * p->z);
+    int x_int = (int)floor(checkered->inv_scale * p->x);
+    int y_int = (int)floor(checkered->inv_scale * p->y);
+    int z_int = (int)floor(checkered->inv_scale * p->z);
 
     bool is_even = (x_int + y_int + z_int) % 2 == 0;
 

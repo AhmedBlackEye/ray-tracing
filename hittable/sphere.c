@@ -15,6 +15,14 @@ typedef struct Sphere {
   double radius;
 } Sphere;
 
+static void get_sphere_uv(const Vec3* p, double* u, double* v) {
+  double theta = acos(-p->y);
+  double phi = atan2(-p->z, p->x) + M_PI;
+    
+  *u = phi / (2 * M_PI);
+  *v = theta / M_PI;
+}
+
 static bool sphere_hit(const Hittable *self, Ray ray, Interval t_bounds, HitRecord *rec) {
   assert(self != NULL);
   assert(rec != NULL);
@@ -47,6 +55,8 @@ static bool sphere_hit(const Hittable *self, Ray ray, Interval t_bounds, HitReco
   Vec3 outward_normal =
       vec3_divs(vec3_sub(rec->p, sphere->center), sphere->radius);
   hitrec_set_face_normal(rec, ray, outward_normal);
+
+  get_sphere_uv(&outward_normal, &rec->u, &rec->v);
 
   return true;
 }

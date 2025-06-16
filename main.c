@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
     
     Checkered* checker_bw = checkered_create_colors(0.32, &white, &black);
     Checkered* checker_rb = checkered_create_colors(0.5, &red, &blue);
-    Checkered* checker_gw = checkered_create_colors(0.8, &green, &white);
+    Checkered* checker_gw = checkered_create_colors(0.5, &green, &white);
     
     Material* checker_mat1 = lambertian_create_texture((Texture*)checker_bw);
     Material* checker_mat2 = lambertian_create_texture((Texture*)checker_rb);
