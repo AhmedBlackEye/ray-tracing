@@ -68,6 +68,7 @@ Material *dielectric_create(double refractive_index) {
   mat->type = MATERIAL_DIELECTRIC;
   mat->scatter = (ScatterFn)dielectric_scatter;
   mat->destroy = (MaterialDestroyFn)dielectric_destroy;
+  mat->emitted = NULL;
   mat->data = dielectric;
 
   return mat;
