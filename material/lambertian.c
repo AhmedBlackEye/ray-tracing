@@ -53,6 +53,7 @@ Material *lambertian_create(Color albedo) {
   mat->type = MATERIAL_LAMBERTIAN;
   mat->scatter = (ScatterFn)lambertian_scatter;
   mat->destroy = (MaterialDestroyFn)lambertian_destroy;
+  mat->emitted = NULL;
   mat->data = lamb;
 
   return mat;
