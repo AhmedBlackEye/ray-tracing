@@ -25,9 +25,7 @@ void triangle_raw_print(void *self) {
 }
 
 TriangleRaw *triangle_raw_create(Vec3 v0, Vec3 v1, Vec3 v2) {
-  TriangleRaw *triangle = malloc(sizeof(TriangleRaw));
-  assert(triangle != NULL);
-
+  TriangleRaw triangle;
   triangle->v0 = v0;
   triangle->v1 = v1;
   triangle->v2 = v2;

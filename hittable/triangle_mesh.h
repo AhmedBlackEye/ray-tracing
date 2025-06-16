@@ -5,6 +5,7 @@
 #include "core/vec3.h"
 
 #define INIT_CAP 10
+#define EPSILON 1e-8
 
 typedef struct BoundingBox {
   Vec3 max;
