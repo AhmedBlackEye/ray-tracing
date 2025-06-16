@@ -36,7 +36,7 @@ Color diffuse_light_emitted(Material *self, double u, double v, const Vec3 *p) {
     }
     
     DiffuseLight *data = (DiffuseLight*)self->data;
-    return data->emit_color;
+    return data->tex->value(data->tex, u, v, p);
 }
 
 // New texture-based constructor
@@ -58,6 +58,6 @@ Material *diffuse_light_create_texture(Texture* tex) {
 }
 
 Material *diffuse_light_create(Color emit_color) {
-    SolidColor* solcol = solid_color_create_albedo(&emit_color);
+    SolidColor* sol_col = solid_color_create_albedo(&emit_color);
     return diffuse_light_create_texture((Texture*)sol_col);
 }
