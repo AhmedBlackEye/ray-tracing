@@ -83,24 +83,23 @@ static void sphere_destroy(void *self) {
 }
 
 Hittable *sphere_create(Vec3 center, double radius, Material *mat) {
-  assert(radius > 0);
-
-  Hittable *hittable = malloc(sizeof(struct Hittable));
-  assert(hittable != NULL);
-
-  Sphere *sphere_data = malloc(sizeof(struct Sphere));
-  assert(sphere_data != NULL);
-
-  sphere_data->center = center;
-  sphere_data->radius = radius;
-
-  hittable->type = HITTABLE_SPHERE;
-  hittable->hit = sphere_hit;
-  hittable->destroy = (HittableDestroyFn)sphere_destroy;
-  hittable->mat = mat;
-  hittable->data = sphere_data;
-
-  return hittable;
+    assert(radius > 0);
+    Hittable *hittable = malloc(sizeof(struct Hittable));
+    assert(hittable != NULL);
+    Sphere *sphere_data = malloc(sizeof(struct Sphere));
+    assert(sphere_data != NULL);
+    
+    sphere_data->center_start = center;  
+    sphere_data->center_end = center;    
+    sphere_data->radius = radius;
+    sphere_data->is_moving = false;    
+    
+    hittable->type = HITTABLE_SPHERE;
+    hittable->hit = sphere_hit;
+    hittable->destroy = (HittableDestroyFn)sphere_destroy;
+    hittable->mat = mat;
+    hittable->data = sphere_data;
+    return hittable;
 }
 
 Hittable *sphere_create_moving(Vec3 center_start, Vec3 center_end, double radius, Material *mat) {
@@ -129,6 +128,14 @@ void sphere_print(const Hittable *hittable) {
         return;
     }
     const Sphere *sphere = (const Sphere *)hittable->data;
-    printf("Sphere { center: (%.3f, %.3f, %.3f), radius: %.3f }\n",
-           sphere->center.x, sphere->center.y, sphere->center.z, sphere->radius);
+    if (sphere->is_moving) {
+        printf("Moving Sphere { center_start: (%.3f, %.3f, %.3f), center_end: (%.3f, %.3f, %.3f), radius: %.3f }\n",
+               sphere->center_start.x, sphere->center_start.y, sphere->center_start.z,
+               sphere->center_end.x, sphere->center_end.y, sphere->center_end.z,
+               sphere->radius);
+    } 
+    else {
+        printf("Sphere { center: (%.3f, %.3f, %.3f), radius: %.3f }\n",
+               sphere->center_start.x, sphere->center_start.y, sphere->center_start.z, sphere->radius);
+    }
 }
