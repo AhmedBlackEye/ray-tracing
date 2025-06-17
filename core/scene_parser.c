@@ -541,4 +541,5 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
     );
 
     dynarray_destroy(mat_names);
+    dynarray_destroy(tex_names); 
 }

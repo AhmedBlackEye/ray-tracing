@@ -5,6 +5,9 @@
 
 typedef struct Texture {
     Color (*value)(struct Texture *self, double u, double v, const Vec3 *p);
+    void (*destroy)(struct Texture *self);
 } Texture;
 
-#endif // TEXTURE_Hs
+void texture_destroy(Texture *self);
+
+#endif // TEXTURE_H
