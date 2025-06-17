@@ -16,6 +16,7 @@
 #include "material/lambertian.h"  
 #include "material/metal.h"
 #include "material/dielectric.h"
+#include "material/diffuse_light.h"
 #include "camera.h"
 #include "scene_parser.h"
 
@@ -30,7 +31,8 @@
 #define DEFOCUS_ANGLE 0.6
 #define FOCUS_DIST 10.0
 #define SAMPLES_PER_PIXEL 10
-#define MAX_DEPTH 50
+#define MAX_DEPTH 20
+#define BACKGROUND ((Color){0.70, 0.80, 1.00})  
 
 typedef enum {
     TOPLEVEL_STATE,
@@ -64,18 +66,19 @@ static Vec3 parse_vec3(char **tokens) {
 }
 
 static void parse_camera(
-    char   *tokens[], 
-    int     num_toks,  
-    Vec3   *lookfrom,
-    Vec3   *lookat,
-    Vec3   *vup,
+    char *tokens[], 
+    int num_toks,  
+    Vec3 *lookfrom,
+    Vec3 *lookat,
+    Vec3 *vup,
     double *vfov,
     double *defocus_angle,
     double *focus_dist,
-    int    *samples_per_pixel,
-    int    *max_depth,
+    int *samples_per_pixel,
+    int *max_depth,
     double *aspect_ratio,
-    int    *width
+    int *width,
+    Color *background
 ) {
     if (num_toks == 2 && strcmp(tokens[0], "width") == 0) {
         *width = atoi(tokens[1]);
@@ -108,6 +111,9 @@ static void parse_camera(
     }
     else if (num_toks == 2 && strcmp(tokens[0], "max_depth") == 0) {
         *max_depth = atoi(tokens[1]);
+    }
+    else if (num_toks == 4 && strcmp(tokens[0], "background") == 0) {  // Add these 3 lines
+        *background = parse_vec3(tokens);
     }
 }
 
@@ -155,7 +161,10 @@ static void add_material(
     }
     else if (strcmp(type, "dielectric") == 0) {
         mat = dielectric_create(ref_index);
-     }
+    }
+    else if (strcmp(type, "diffuse_light") == 0) {  // Add this case
+    mat = diffuse_light_create(color);
+    }
     scene_add_material(scene, mat);
     char *name_dup = strdup(name);
     dynarray_push(mat_names, name_dup);
@@ -247,6 +256,7 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
     int max_depth = MAX_DEPTH;
     double aspect_ratio = ASPECT_RATIO;
     int width = WIDTH;
+    Color background = BACKGROUND;
 
     Material *current_mat;
 
@@ -338,7 +348,8 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
                     &samples_per_pixel,
                     &max_depth,
                     &aspect_ratio, 
-                    &width
+                    &width,
+                    &background
                 );
             }
             else if (state == MATERIAL_STATE) {
@@ -394,7 +405,8 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
         defocus_angle,
         focus_dist,
         samples_per_pixel,
-        max_depth
+        max_depth,
+        background
     );
 
     dynarray_destroy(mat_names);

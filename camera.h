@@ -19,6 +19,7 @@ typedef struct Camera {
   Vec3 lookfrom;
   Vec3 lookat;
   Vec3 vup;
+  Color background;
 
   // computed
   double pixel_samples_scale;
@@ -35,7 +36,8 @@ typedef struct Camera {
 extern Camera camera_make(int image_width, double aspect_ratio, Vec3 lookfrom,
                           Vec3 lookat, Vec3 vup, double vfov,
                           double defocus_angle, double focus_dist,
-                          int samples_per_pixel, int max_depth);
+                          int samples_per_pixel, int max_depth,
+                          Color background);
 extern void camera_render(const Camera *cam, Hittable *hittable_world,
                           FILE *out_file);
 

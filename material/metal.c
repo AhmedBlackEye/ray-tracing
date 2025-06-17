@@ -52,6 +52,7 @@ Material *metal_create(Color albedo, double fuzz) {
   mat->type = MATERIAL_METAL;
   mat->scatter = (ScatterFn)metal_scatter;
   mat->destroy = (MaterialDestroyFn)metal_destroy;
+  mat->emitted = NULL;
   mat->data = metal;
 
   return mat;

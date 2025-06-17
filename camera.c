@@ -12,7 +12,8 @@
 // Create a new camera instance
 Camera camera_make(int image_width, double aspect_ratio, Vec3 lookfrom,
                    Vec3 lookat, Vec3 vup, double vfov, double defocus_angle,
-                   double focus_dist, int samples_per_pixel, int max_depth) {
+                   double focus_dist, int samples_per_pixel, int max_depth,
+                   Color background) {
   Camera cam = {0}; // Initialize all fields to zero
 
   // Basic camera parameters
@@ -26,6 +27,7 @@ Camera camera_make(int image_width, double aspect_ratio, Vec3 lookfrom,
   cam.lookfrom = lookfrom;
   cam.lookat = lookat;
   cam.vup = vup;
+  cam.background = background;
   cam.center = lookfrom;
 
   // Calculate image height with proper bounds checking
@@ -75,7 +77,33 @@ Camera camera_make(int image_width, double aspect_ratio, Vec3 lookfrom,
   return cam;
 }
 
-static Color ray_color(Ray r, int depth, Hittable *hittable_world) {
+// static Color ray_color(Ray r, int depth, Hittable *hittable_world,
+//                        Color background) {
+//   if (depth <= 0)
+//     return vec3_zero();
+//   HitRecord rec;
+
+//   if (!hittable_world->hit(hittable_world, r, interval_make(1e-4, INFINITY),
+//                            &rec)) {
+//     return background;
+//   }
+
+//   Ray scatterd;
+//   Color attenuation;
+//   Color color_from_emission = material_emitted(rec.mat, 0.0, 0.0, &rec.p);
+
+//   if (!rec.mat->scatter(rec.mat, r, &rec, &attenuation, &scatterd)) {
+//     return color_from_emission;
+//   }
+//   Color color_from_scatter = vec3_mul(
+//       ray_color(scatterd, depth - 1, hittable_world, background),
+//       attenuation);
+//   return vec3_add(color_from_emission, color_from_scatter);
+// }
+
+// Old ray color
+static Color ray_color(Ray r, int depth, Hittable *hittable_world,
+                       Color background) {
   if (depth <= 0)
     return vec3_zero();
   HitRecord rec;
@@ -84,8 +112,9 @@ static Color ray_color(Ray r, int depth, Hittable *hittable_world) {
     Ray scatterd;
     Color attenuation;
     if (rec.mat->scatter(rec.mat, r, &rec, &attenuation, &scatterd)) {
-      return vec3_mul(ray_color(scatterd, depth - 1, hittable_world),
-                      attenuation);
+      return vec3_mul(
+          ray_color(scatterd, depth - 1, hittable_world, background),
+          attenuation);
     }
     return (Color){0, 0, 0};
   }
@@ -126,7 +155,8 @@ void camera_render(const Camera *cam, Hittable *hittable_world,
       for (int sample = 0; sample < cam->samples_per_pixel; sample++) {
         Ray r = get_ray(cam, i, j);
         pixel_color =
-            vec3_add(pixel_color, ray_color(r, cam->max_depth, hittable_world));
+            vec3_add(pixel_color, ray_color(r, cam->max_depth, hittable_world,
+                                            cam->background));
       }
       write_color(out_file, vec3_divs(pixel_color, cam->samples_per_pixel));
     }

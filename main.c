@@ -40,13 +40,9 @@ int main(int argc, char **argv) {
   Camera cam;
   parse_scene(argv[1], &scene, &cam);
 
-  Material *mat_ground =
-      scene_add_material(&scene, lambertian_create((Vec3){0.5, 0.5, 0.5}));
-  scene_add_obj(&scene, sphere_create((Vec3){0, -1000, 0}, 1000, mat_ground));
-
   // Add small spheres in a grid with random materials
-  for (int a = -11; a < 11; a++) {
-    for (int b = -11; b < 11; b++) {
+  for (int a = -5; a < 5; a++) {
+    for (int b = -5; b < 5; b++) {
       double choose_mat = random_double();
       Vec3 center = {a + 0.9 * random_double(), 0.2, b + 0.9 * random_double()};
       Vec3 diff = vec3_sub(center, (Vec3){4, 0.2, 0});
