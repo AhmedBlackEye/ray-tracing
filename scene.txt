@@ -13,7 +13,7 @@ camera {
 }
 
 texture {
-    name ground_checker
+    name ground_checkered
     type checkered
     scale 0.5
     color1 0.2 0.3 0.1
@@ -42,7 +42,7 @@ material {
 material {
     name ground_material
     type lambertian
-    texture ground_checker
+    texture ground_checkered
 }
 
 sphere {

@@ -97,3 +97,31 @@ void quad_print(const Hittable *hittable) {
         quad->v.x, quad->v.y, quad->v.z
     );
 }
+
+DynArray* box_create(const Vec3 a, const Vec3 b, Material* mat) {
+  DynArray* sides = dynarray_create(sizeof(Hittable*));
+
+  Vec3 min = vec3_create(
+        fmin(a->x, b->x), 
+        fmin(a->y, b->y), 
+        fmin(a->z, b->z)
+  );
+
+  Vec3 max = vec3_create(
+        fmax(a->x, b->x), 
+        fmax(a->y, b->y), 
+        fmax(a->z, b->z)
+  );
+
+  Vec3 dx = vec3_create(max.x - min.x, 0, 0);
+  Vec3 dy = vec3_create(0, max.y - min.y, 0);
+  Vec3 dz = vec3_create(0, 0, max.z - min.z);
+
+  Hittable* front = quad_create(
+        vec3_create(min.x, min.y, max.z), 
+        dx, 
+        dy, 
+        mat
+  );
+  dynarray_push(sides, &front);
+}
