@@ -15,7 +15,7 @@ camera {
 texture {
     name ground_checker
     type checkered
-    scale 10.0
+    scale 0.5
     color1 0.2 0.3 0.1
     color2 0.9 0.9 0.9
 }

@@ -38,6 +38,7 @@ target_include_directories(material PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Create texture library
 add_library(texture
+texture/texture.c
 texture/checkered.c
 texture/solid_color.c
 )
