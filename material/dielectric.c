@@ -44,7 +44,7 @@ static bool dielectric_scatter(const Material *self, Ray ray_in, HitRecord *rec,
   } else {
     direction = vec3_refract(unit_direction, rec->normal, ri);
   }
-  *scattered = (Ray){.origin = rec->p, .direction = direction};
+  *scattered = (Ray){.origin = rec->p, .direction = direction, .time = ray_in.time};
   return true;
 }
 

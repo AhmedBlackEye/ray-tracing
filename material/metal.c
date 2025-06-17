@@ -9,9 +9,11 @@
 #include "core/ray.h"
 #include "hittable/hit_record.h"
 #include "material.h"
+#include "texture/solid_color.h"
+#include "metal.h"
 
 typedef struct Metal {
-  Color albedo;
+  Texture *tex;
   double fuzz;
 } Metal;
 
@@ -25,8 +27,8 @@ static bool metal_scatter(const Material *self, Ray ray_in, HitRecord *rec,
   Vec3 reflected = vec3_reflect(ray_in.direction, rec->normal);
   reflected = vec3_add(vec3_normalized(reflected),
                        vec3_scale(vec3_random_unit_vector(), metal->fuzz));
-  *scattered = (Ray){.origin = rec->p, .direction = reflected};
-  *attenuation = metal->albedo;
+  *scattered = (Ray){.origin = rec->p, .direction = reflected, .time = ray_in.time};
+  *attenuation = metal->tex->value(metal->tex, rec->u, rec->v, &rec->p);
 
   return true;
 }
@@ -39,23 +41,27 @@ static void metal_destroy(void *self) {
   free(self);
 }
 
+Material *metal_create_texture(Texture* tex, double fuzz) {
+    Material *mat = malloc(sizeof(struct Material));
+    assert(mat != NULL);
+    
+    Metal *metal = malloc(sizeof(struct Metal));
+    assert(metal != NULL);
+    
+    metal->tex = tex;
+    metal->fuzz = fuzz;
+    
+    mat->type = MATERIAL_METAL;
+    mat->scatter = (ScatterFn)metal_scatter;
+    mat->destroy = (MaterialDestroyFn)metal_destroy;
+    mat->emitted = NULL;
+    mat->data = metal;
+    return mat;
+}
+
 Material *metal_create(Color albedo, double fuzz) {
-  Material *mat = malloc(sizeof(struct Material));
-  assert(mat != NULL);
-
-  Metal *metal = malloc(sizeof(struct Metal));
-  assert(metal != NULL);
-
-  metal->albedo = albedo;
-  metal->fuzz = fuzz;
-
-  mat->type = MATERIAL_METAL;
-  mat->scatter = (ScatterFn)metal_scatter;
-  mat->destroy = (MaterialDestroyFn)metal_destroy;
-  mat->emitted = NULL;
-  mat->data = metal;
-
-  return mat;
+    SolidColor *sol_col = solid_color_create_albedo(&albedo);
+    return metal_create_texture((Texture*)sol_col, fuzz);
 }
 
 void metal_print(const Material *self) {
@@ -64,6 +70,5 @@ void metal_print(const Material *self) {
     return;
   }
   const Metal *metal = (const Metal *)self->data;
-  Color albedo = metal->albedo;
-  printf("Metal { albedo: %.3f %.3f %.3f }\n", albedo.x, albedo.y, albedo.z);
+  printf("Metal { texture: %p, fuzz: %.3f }\n", (void*)metal->tex, metal->fuzz);
 }

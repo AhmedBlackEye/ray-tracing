@@ -77,46 +77,52 @@ Camera camera_make(int image_width, double aspect_ratio, Vec3 lookfrom,
   return cam;
 }
 
+/*
 static Color ray_color(Ray r, int depth, DynArray *hittable_world, Color background) {
-  if (depth <= 0)
-    return vec3_zero();
-  HitRecord rec;
-
-  if (!hittables_hit(hittable_world, r, interval_make(1e-4, INFINITY), &rec)) {
+    if (depth <= 0)
+        return vec3_zero();
+    
+    HitRecord rec;
+    if (!hittables_hit(hittable_world, r, interval_make(1e-4, INFINITY), &rec)) {
         return background;
-  }
-
-  Ray scatterd;
-  Color attenuation;
-  Color color_from_emission = material_emitted(rec.mat, 0.0, 0.0, &rec.p);
-
-  if (!rec.mat->scatter(rec.mat, r, &rec, &attenuation, &scatterd)) {
-    return color_from_emission;
-  }
-  Color color_from_scatter = vec3_mul(ray_color(scatterd, depth - 1, hittable_world, background),
-                                      attenuation);
-  return vec3_add(color_from_emission, color_from_scatter);
+    }
+    
+    Ray scatterd;
+    Color attenuation;
+    Color color_from_emission = material_emitted(rec.mat, 0.0, 0.0, &rec.p);
+    
+    if (!rec.mat->scatter(rec.mat, r, &rec, &attenuation, &scatterd)) {
+        return color_from_emission;
+    }
+    
+    Color color_from_scatter = vec3_mul(ray_color(scatterd, depth - 1, hittable_world, background),
+                                        attenuation);
+    
+    return vec3_add(color_from_emission, color_from_scatter);
 }
+*/
 
 // Old ray color
-// static Color ray_color(Ray r, int depth, DynArray *hittable_world) {
-//   if (depth <= 0)
-//     return vec3_zero();
-//   HitRecord rec;
-//   if (hittables_hit(hittable_world, r, interval_make(1e-4, INFINITY), &rec)) {
-//     Ray scatterd;
-//     Color attenuation;
-//     if (rec.mat->scatter(rec.mat, r, &rec, &attenuation, &scatterd)) {
-//       return vec3_mul(ray_color(scatterd, depth - 1, hittable_world),
-//                       attenuation);
-//     }
-//     return (Color){0, 0, 0};
-//   }
-//   Vec3 unit_direction = vec3_normalized(r.direction);
-//   double a = (unit_direction.y + 1) * 0.5;
-//   return vec3_add((Vec3){1.0 - a, 1.0 - a, 1.0 - a},
-//                   (Vec3){0.5 * a, 0.7 * a, 1.0 * a});
-// }
+static Color ray_color(Ray r, int depth, DynArray *hittable_world, Color background) {
+    if (depth <= 0)
+        return vec3_zero();
+    
+    HitRecord rec;
+    if (hittables_hit(hittable_world, r, interval_make(1e-4, INFINITY), &rec)) {
+        Ray scattered;
+        Color attenuation;
+        if (rec.mat->scatter(rec.mat, r, &rec, &attenuation, &scattered)) {
+            return vec3_mul(ray_color(scattered, depth - 1, hittable_world, background),
+                           attenuation);
+        }
+        return (Color){0, 0, 0};
+    }
+    
+    Vec3 unit_direction = vec3_normalized(r.direction);
+    double a = (unit_direction.y + 1) * 0.5;
+    return vec3_add((Vec3){1.0 - a, 1.0 - a, 1.0 - a},
+                   (Vec3){0.5 * a, 0.7 * a, 1.0 * a});
+}
 
 // Construct a camera ray originating from the defocus disk and directed at a
 // randomly sampled point around the pixel location i, j.
@@ -136,7 +142,8 @@ static Ray get_ray(const Camera *cam, int i, int j) {
   }
 
   return (Ray){.origin = ray_origin,
-               .direction = vec3_sub(pixel_sample, ray_origin)};
+               .direction = vec3_sub(pixel_sample, ray_origin),
+               .time = random_double_range(0.0, 1.0)};
 }
 
 void camera_render(const Camera *cam, DynArray *hittable_world,

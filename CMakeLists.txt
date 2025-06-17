@@ -36,9 +36,17 @@ material/diffuse_light.c
 )
 target_include_directories(material PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
+# Create texture library
+add_library(texture
+texture/texture.c
+texture/checkered.c
+texture/solid_color.c
+)
+target_include_directories(texture PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
 
 # Create main executable
 add_executable(raytracer main.c camera.c shared.c scene.c)
 
 # Link everything properly
-target_link_libraries(raytracer core hittable material m)
+target_link_libraries(raytracer core hittable material texture m)
