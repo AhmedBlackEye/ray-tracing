@@ -1,4 +1,3 @@
-
 #include <assert.h>
 #include <math.h>
 #include <stdbool.h>
@@ -42,39 +41,27 @@ int main(int argc, char **argv) {
     Camera cam;
     parse_scene(argv[1], &scene, &cam);
     
-    Color white = {0.9, 0.9, 0.9};
-    Color black = {0.1, 0.1, 0.1};
-    Color red = {0.8, 0.2, 0.2};
-    Color blue = {0.2, 0.2, 0.8};
-    Color green = {0.2, 0.8, 0.2};
-    
-    Checkered* checker_bw = checkered_create_colors(0.32, &white, &black);
-    Checkered* checker_rb = checkered_create_colors(0.5, &red, &blue);
-    Checkered* checker_gw = checkered_create_colors(0.5, &green, &white);
-    
-    Material* checker_mat1 = lambertian_create_texture((Texture*)checker_bw);
-    Material* checker_mat2 = lambertian_create_texture((Texture*)checker_rb);
-    Material* checker_mat3 = lambertian_create_texture((Texture*)checker_gw);
-    
-    scene_add_obj(&scene, sphere_create((Vec3){0, 1, 0}, 1.0, 
-                  scene_add_material(&scene, checker_mat1)));
-    scene_add_obj(&scene, sphere_create((Vec3){-4, 1, 0}, 1.0, 
-                  scene_add_material(&scene, checker_mat2))); 
-    scene_add_obj(&scene, sphere_create((Vec3){4, 1, 0}, 1.0, 
-                  scene_add_material(&scene, checker_mat3)));
-
-    Color ground_green = {0.2, 0.3, 0.1};
-    Color ground_white = {0.9, 0.9, 0.9};
-    Checkered* ground_checker = checkered_create_colors(0.32, &ground_green, &ground_white);
-
-    Material* ground_material = lambertian_create_texture((Texture*)ground_checker);
-
+    // Simple gray ground like the book
+    Material* ground_material = lambertian_create((Vec3){0.5, 0.5, 0.5});
     scene_add_obj(&scene, sphere_create((Vec3){0, -1000, 0}, 1000.0, 
                   scene_add_material(&scene, ground_material)));
-    
-    // Add small spheres in a grid with random materials (including checkers!)
-    for (int a = -5; a < 5; a++) {
-        for (int b = -5; b < 5; b++) {
+
+    // Three main spheres
+    Material* center_material = lambertian_create((Vec3){0.1, 0.2, 0.5});
+    scene_add_obj(&scene, sphere_create((Vec3){0, 1, 0}, 1.0, 
+                  scene_add_material(&scene, center_material)));
+
+    Material* left_material = dielectric_create(1.5);
+    scene_add_obj(&scene, sphere_create((Vec3){-4, 1, 0}, 1.0, 
+                  scene_add_material(&scene, left_material)));
+
+    Material* right_material = metal_create((Vec3){0.7, 0.6, 0.5}, 0.0);
+    scene_add_obj(&scene, sphere_create((Vec3){4, 1, 0}, 1.0, 
+                  scene_add_material(&scene, right_material)));
+
+    // Add small spheres in a grid with random materials (some moving!)
+    for (int a = -11; a < 11; a++) {
+        for (int b = -11; b < 11; b++) {
             double choose_mat = random_double();
             Vec3 center = {a + 0.9 * random_double(), 0.2, b + 0.9 * random_double()};
             Vec3 diff = vec3_sub(center, (Vec3){4, 0.2, 0});
@@ -82,29 +69,27 @@ int main(int argc, char **argv) {
             if (vec3_length(diff) > 0.9) {
                 Material *sphere_material = NULL;
                 
-                if (choose_mat < 0.5) {
-                    // diffuse solid color
+                if (choose_mat < 0.8) {
+                    // diffuse - ALL WILL MOVE (like the book)
                     Vec3 albedo = vec3_mul(vec3_random(), vec3_random());
                     sphere_material = scene_add_material(&scene, lambertian_create(albedo));
-                } else if (choose_mat < 0.7) {
-                    // checkered diffuse - add some variety!
-                    Color c1 = vec3_random();
-                    Color c2 = vec3_random(); 
-                    double scale = random_double_range(0.1, 1.0);
-                    Checkered* random_checker = checkered_create_colors(scale, &c1, &c2);
-                    sphere_material = scene_add_material(&scene, 
-                                      lambertian_create_texture((Texture*)random_checker));
-                } else if (choose_mat < 0.85) {
+                    
+                    // Remove the conditional - ALL diffuse spheres move
+                    Vec3 center2 = vec3_add(center, (Vec3){0, random_double_range(0, 0.5), 0});
+                    scene_add_obj(&scene, sphere_create_moving(center, center2, 0.2, sphere_material));
+                }
+                 else if (choose_mat < 0.95) {
                     // metal
                     Vec3 albedo = vec3_random_bounded(0.5, 1.0);
                     double fuzz = random_double_range(0, 0.5);
                     sphere_material = scene_add_material(&scene, metal_create(albedo, fuzz));
+                    scene_add_obj(&scene, sphere_create(center, 0.2, sphere_material));
+                    
                 } else {
                     // glass
                     sphere_material = scene_add_material(&scene, dielectric_create(1.5));
+                    scene_add_obj(&scene, sphere_create(center, 0.2, sphere_material));
                 }
-                
-                scene_add_obj(&scene, sphere_create(center, 0.2, sphere_material));
             }
         }
     }
