@@ -1,9 +1,3 @@
-#include <assert.h>
-#include <math.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "camera.h"
 #include "core/color.h"
 #include "core/dyn_array.h"
@@ -23,6 +17,14 @@
 #include "material/metal.h"
 #include "scene.h"
 #include "shared.h"
+#include "texture/checkered.h"
+#include "texture/solid_color.h"
+#include "texture/texture.h"
+#include <assert.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 int main(int argc, char **argv) {
   if (argc != 3) {
@@ -46,33 +48,43 @@ int main(int argc, char **argv) {
       double choose_mat = random_double();
       Vec3 center = {a + 0.9 * random_double(), 0.2, b + 0.9 * random_double()};
       Vec3 diff = vec3_sub(center, (Vec3){4, 0.2, 0});
+
       if (vec3_length(diff) > 0.9) {
         Material *sphere_material = NULL;
+
         if (choose_mat < 0.8) {
           // diffuse
           Vec3 albedo = vec3_mul(vec3_random(), vec3_random());
           sphere_material =
               scene_add_material(&scene, lambertian_create(albedo));
+
+          // ALL diffuse spheres move
+          Vec3 center2 =
+              vec3_add(center, (Vec3){0, random_double_range(0, 0.5), 0});
+          scene_add_obj(&scene, sphere_create_moving(center, center2, 0.2,
+                                                     sphere_material));
         } else if (choose_mat < 0.95) {
           // metal
           Vec3 albedo = vec3_random_bounded(0.5, 1.0);
           double fuzz = random_double_range(0, 0.5);
           sphere_material =
               scene_add_material(&scene, metal_create(albedo, fuzz));
+          scene_add_obj(&scene, sphere_create(center, 0.2, sphere_material));
+
         } else {
           // glass
           sphere_material = scene_add_material(&scene, dielectric_create(1.5));
+          scene_add_obj(&scene, sphere_create(center, 0.2, sphere_material));
         }
-        scene_add_obj(&scene, sphere_create(center, 0.2, sphere_material));
       }
     }
   }
+
   Hittable *temp_world = hittablelist_empty();
   hittablelist_add(temp_world, bvhnode_create(scene.objects));
   scene.objects = temp_world;
 
   camera_render(&cam, scene.objects, out_file);
-
   scene_destroy(&scene);
   fclose(out_file);
   return 0;
