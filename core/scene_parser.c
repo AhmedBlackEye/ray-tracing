@@ -17,6 +17,7 @@
 #include "material/metal.h"
 #include "material/dielectric.h"
 #include "material/diffuse_light.h"
+#include "../../common/debug.h"
 #include "camera.h"
 #include "scene_parser.h"
 
@@ -112,8 +113,11 @@ static void parse_camera(
     else if (num_toks == 2 && strcmp(tokens[0], "max_depth") == 0) {
         *max_depth = atoi(tokens[1]);
     }
-    else if (num_toks == 4 && strcmp(tokens[0], "background") == 0) {  // Add these 3 lines
+    else if (num_toks == 4 && strcmp(tokens[0], "background") == 0) {  
         *background = parse_vec3(tokens);
+    }
+    else {
+        PANIC("Unknown camera parameter: %s", tokens[0]);
     }
 }
 
@@ -140,7 +144,10 @@ static void parse_material(
     }
     else if (num_toks == 2 && strcmp(tokens[0], "ref_idx") == 0) {
         *out_ref_index = atof(tokens[1]);
-     }
+    }
+    else {
+        PANIC("Unknown material parameter: %s", tokens[0]);
+    }
 }
 
 static void add_material(
@@ -162,9 +169,15 @@ static void add_material(
     else if (strcmp(type, "dielectric") == 0) {
         mat = dielectric_create(ref_index);
     }
-    else if (strcmp(type, "diffuse_light") == 0) {  // Add this case
-    mat = diffuse_light_create(color);
+    else if (strcmp(type, "diffuse_light") == 0) {  
+        mat = diffuse_light_create(color);
     }
+    else {
+        PANIC("Unknown material type: %s", type);
+    }
+
+    PANIC_IF(!mat, "Failed to create material: %s", name);
+
     scene_add_material(scene, mat);
     char *name_dup = strdup(name);
     dynarray_push(mat_names, name_dup);
@@ -191,12 +204,15 @@ static void parse_geometry(
         if (num_toks == 4 && (strcmp(tokens[0], "center") == 0 || strcmp(tokens[0], "center_start") == 0)) {
             *center_start = parse_vec3(tokens);
         }
-        else if (num_toks == 4 && strcmp(tokens[0], "center_end") == 0) {  // NEW: Parse motion blur end position
+        else if (num_toks == 4 && strcmp(tokens[0], "center_end") == 0) {  
             *center_end = parse_vec3(tokens);
             *is_moving = true;
         }
         else if (num_toks == 2 && strcmp(tokens[0], "radius") == 0) {
             *radius = atof(tokens[1]);
+        }
+        else {
+            PANIC("Unknown sphere parameter: %s", tokens[0]);
         }
     }
     else if (state == PLANE_STATE) {
@@ -205,6 +221,9 @@ static void parse_geometry(
         }
         else if (num_toks == 4 && strcmp(tokens[0], "normal") == 0) {
             *normal = parse_vec3(tokens);
+        }
+        else {
+            PANIC("Unknown plane parameter: %s", tokens[0]);
         }
     }
     else if (state == TRIANGLE_STATE) {
@@ -217,6 +236,9 @@ static void parse_geometry(
         else if (num_toks == 4 && strcmp(tokens[0], "v2") == 0) {
             *v2 = parse_vec3(tokens);
         }
+        else {
+            PANIC("Unknown triangle parameter: %s", tokens[0]);
+        }
     }
     else if (state == QUAD_STATE) {
         if (num_toks == 4 && strcmp(tokens[0], "Q") == 0) {
@@ -228,6 +250,12 @@ static void parse_geometry(
         else if (num_toks == 4 && strcmp(tokens[0], "v") == 0) {
             *v = parse_vec3(tokens);
         }
+        else {
+            PANIC("Unknown quad parameter: %s", tokens[0]);
+        }
+    }
+    else {
+        PANIC("Unknown geometry state");
     }
 }
 
@@ -347,6 +375,9 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
             else if (strcmp(tokens[0], "quad") == 0) {
                 state = QUAD_STATE;
             }
+            else {
+                PANIC("Unknown top level type: %s", tokens[0]);
+            }
         }
         else {
             if (state == CAMERA_STATE) {
@@ -387,6 +418,8 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
                             break;
                         }
                     }
+
+                    PANIC_IF(!current_mat, "Material not found: %s", tokens[1]);
                     continue;
                 }
                 parse_geometry(
