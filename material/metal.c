@@ -27,7 +27,7 @@ static bool metal_scatter(const Material *self, Ray ray_in, HitRecord *rec,
   Vec3 reflected = vec3_reflect(ray_in.direction, rec->normal);
   reflected = vec3_add(vec3_normalized(reflected),
                        vec3_scale(vec3_random_unit_vector(), metal->fuzz));
-  *scattered = (Ray){.origin = rec->p, .direction = reflected};
+  *scattered = (Ray){.origin = rec->p, .direction = reflected, .time = ray_in.time};
   *attenuation = metal->tex->value(metal->tex, rec->u, rec->v, &rec->p);
 
   return true;

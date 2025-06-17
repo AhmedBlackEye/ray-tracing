@@ -20,15 +20,13 @@ static bool lambertian_scatter(const Material *self, Ray ray_in, HitRecord *rec,
   assert(self != NULL);
   assert(rec != NULL);
 
-  (void)ray_in; // unused
-
   Lambertian *lamb = self->data;
 
   Vec3 scatter_direction = vec3_add(rec->normal, vec3_random_unit_vector());
   // Catch degenerate scatter direction
   if (vec3_is_near_zero(scatter_direction))
     scatter_direction = rec->normal;
-  *scattered = (Ray){.origin = rec->p, .direction = scatter_direction};
+  *scattered = (Ray){.origin = rec->p, .direction = scatter_direction, .time = ray_in.time};
   *attenuation = lamb->tex->value(lamb->tex, rec->u, rec->v, &rec->p);
 
   return true;
