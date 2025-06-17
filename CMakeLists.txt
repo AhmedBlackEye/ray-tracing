@@ -10,6 +10,7 @@ add_library(core
   core/color.c
   core/dyn_array.c
   core/scene_parser.c
+  core/aabb.c
 )
 target_include_directories(core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -23,8 +24,10 @@ add_library(hittable
   hittable/triangle.c
   hittable/triangle_mesh.c
   hittable/quad.c
+  hittable/bvh_node.c
 )
 target_include_directories(hittable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(hittable PUBLIC core)
 
 # Create material library
 add_library(material

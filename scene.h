@@ -7,7 +7,7 @@
 #include "texture/texture.h"
 
 typedef struct Scene {
-  DynArray *objects;
+  Hittable *objects;
   DynArray *materials;
   DynArray *textures;
 } Scene;

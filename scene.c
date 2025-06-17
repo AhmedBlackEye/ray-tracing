@@ -2,13 +2,13 @@
 #include "core/dyn_array.h"
 #include "core/generic_types.h"
 #include "hittable/hittable.h"
+#include "hittable/hittable_list.h"
 #include "material/material.h"
 #include "texture/texture.h"
 
 Scene scene_create() {
   Scene scene;
-  scene.objects = dynarray_create(8, (GPrintFn)hittable_print,
-                                  (GDestroyFn)hittable_destroy);
+  scene.objects = hittablelist_empty();
   scene.materials = dynarray_create(2, (GPrintFn)material_print,
                                     (GDestroyFn)material_destroy);
   scene.textures = dynarray_create(2, NULL,
@@ -17,13 +17,13 @@ Scene scene_create() {
 }
 
 void scene_destroy(Scene *self) {
-  dynarray_destroy(self->objects);
+  self->objects->destroy(self->objects);
   dynarray_destroy(self->materials);
   dynarray_destroy(self->textures);
 }
 
 Hittable *scene_add_obj(Scene *self, Hittable *obj) {
-  dynarray_push(self->objects, obj);
+  hittablelist_add(self->objects, obj);
   return obj;
 }
 
