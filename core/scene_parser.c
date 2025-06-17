@@ -127,26 +127,26 @@ static void parse_camera(
 static void parse_texture(
     char *tokens[],  
     int num_toks,
-    char *out_name,
-    char *out_type,
-    double *out_scale,
-    Vec3 *out_color,
-    Vec3 *out_color2
+    char *name,
+    char *type,
+    double *scale,
+    Vec3 *color1,
+    Vec3 *color2
 ) {
     if (num_toks == 2 && strcmp(tokens[0], "name") == 0) {
-        strcpy(out_name, tokens[1]);
+        strcpy(name, tokens[1]);
     }
     else if (num_toks == 2 && strcmp(tokens[0], "type") == 0) {
-        strcpy(out_type, tokens[1]);
+        strcpy(type, tokens[1]);
     }
     else if (num_toks == 2 && strcmp(tokens[0], "scale") == 0) {
-        *out_scale = atof(tokens[1]);
+        *scale = atof(tokens[1]);
     }
     else if (num_toks == 4 && (strcmp(tokens[0], "color1") == 0 || strcmp(tokens[0], "color") == 0)) {
-        *out_color = parse_vec3(tokens);
+        *color1 = parse_vec3(tokens);
     }
     else if (num_toks == 4 && strcmp(tokens[0], "color2") == 0) {
-        *out_color2 = parse_vec3(tokens);
+        *color2 = parse_vec3(tokens);
     }
     else {
         PANIC("Unknown texture parameter: %s", tokens[0]);
@@ -183,26 +183,30 @@ static void parse_texture(
 static void parse_material(
     char *tokens[],  
     int num_toks,
-    char *out_name,
-    char *out_type,
-    Vec3 *out_color,
-    double *out_fuzz,
-    double *out_ref_index
+    char *name,
+    char *type,
+    Vec3 *color,
+    double *fuzz,
+    double *ref_index,
+    char *texture_name
 ) {
     if (num_toks == 2 && strcmp(tokens[0], "name") == 0) {
-        strcpy(out_name, tokens[1]);
+        strcpy(name, tokens[1]);
     }
     else if (num_toks == 2 && strcmp(tokens[0], "type") == 0) {
-        strcpy(out_type, tokens[1]);
+        strcpy(type, tokens[1]);
     }
     else if (num_toks == 4 && strcmp(tokens[0], "color") == 0) {
-        *out_color = parse_vec3(tokens);
+        *color = parse_vec3(tokens);
     }
     else if (num_toks == 2 && strcmp(tokens[0], "fuzz") == 0) {
-        *out_fuzz = atof(tokens[1]);
+        *fuzz = atof(tokens[1]);
     }
     else if (num_toks == 2 && strcmp(tokens[0], "ref_idx") == 0) {
-        *out_ref_index = atof(tokens[1]);
+        *ref_index = atof(tokens[1]);
+    }
+    else if (num_toks == 2 && strcmp(tokens[0], "texture") == 0) {
+        strcpy(texture_name, tokens[1]);
     }
     else {
         PANIC("Unknown material parameter: %s", tokens[0]);
@@ -212,15 +216,31 @@ static void parse_material(
 static void add_material(
     Scene *scene,
     DynArray *mat_names,
+    DynArray *tex_names,
     const char *name,
     const char *type,
     Vec3 color,
     double fuzz,
-    double ref_index
+    double ref_index,
+    const char *texture_name
 ) {
     Material *mat;
     if (strcmp(type, "lambertian") == 0) {
-        mat = lambertian_create(color);
+        if (strlen(texture_name) > 0) {
+            Texture *tex
+            size_t num_textures = dynarray_size(tex_names);
+            for (size_t i = 0; i < num_textures; i++) {
+                char *tex_name_str = (char*)dynarray_get(tex_names, i);
+                if (tex_name_str && strcmp(texture_name, tex_name_str) == 0) {
+                    tex = (Texture*)dynarray_get(scene->textures, i);
+                    break;
+                }
+            }
+            PANIC_IF(!tex, "Texture not found: %s", texture_name);
+            mat = lambertian_create_texture(tex);
+        } else {
+            mat = lambertian_create(color);
+        }
     }
     else if (strcmp(type, "metal") == 0) {
         mat = metal_create(color, fuzz);
@@ -327,6 +347,13 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
     NULL,     
     (GDestroyFn)free
     );
+
+    DynArray *tex_names = dynarray_create(8, NULL, (GDestroyFn)free);
+    char tex_name[32];
+    char tex_type[32];
+    double tex_scale;
+    Vec3 tex_color;
+    Vec3 tex_color2;
 
     ParserState state = TOPLEVEL_STATE;
 
