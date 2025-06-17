@@ -17,6 +17,8 @@
 #include "material/metal.h"
 #include "material/dielectric.h"
 #include "material/diffuse_light.h"
+#include "texture/checkered.h"
+#include "texture/solid_color.h"
 #include "../../common/debug.h"
 #include "camera.h"
 #include "scene_parser.h"
@@ -38,6 +40,7 @@
 typedef enum {
     TOPLEVEL_STATE,
     CAMERA_STATE,
+    TEXTURE_STATE,
     MATERIAL_STATE,
     SPHERE_STATE,
     PLANE_STATE,
@@ -119,6 +122,62 @@ static void parse_camera(
     else {
         PANIC("Unknown camera parameter: %s", tokens[0]);
     }
+}
+
+static void parse_texture(
+    char *tokens[],  
+    int num_toks,
+    char *out_name,
+    char *out_type,
+    double *out_scale,
+    Vec3 *out_color,
+    Vec3 *out_color2
+) {
+    if (num_toks == 2 && strcmp(tokens[0], "name") == 0) {
+        strcpy(out_name, tokens[1]);
+    }
+    else if (num_toks == 2 && strcmp(tokens[0], "type") == 0) {
+        strcpy(out_type, tokens[1]);
+    }
+    else if (num_toks == 2 && strcmp(tokens[0], "scale") == 0) {
+        *out_scale = atof(tokens[1]);
+    }
+    else if (num_toks == 4 && (strcmp(tokens[0], "color1") == 0 || strcmp(tokens[0], "color") == 0)) {
+        *out_color = parse_vec3(tokens);
+    }
+    else if (num_toks == 4 && strcmp(tokens[0], "color2") == 0) {
+        *out_color2 = parse_vec3(tokens);
+    }
+    else {
+        PANIC("Unknown texture parameter: %s", tokens[0]);
+    }
+}
+
+ static void add_texture(
+    Scene *scene,
+    DynArray *tex_names,
+    const char *name,
+    const char *type,
+    double scale,
+    Vec3 color1,
+    Vec3 color2
+) {
+    Texture *tex;
+    if (strcmp(type, "checkered") == 0) {
+        tex = (Texture*)checkered_create_colors(scale, &color1, &color2);
+    }
+    else if (strcmp(type, "solid") == 0) {
+        tex = (Texture*)solid_color_create_albedo(&color1);
+    }
+    else {
+        PANIC("Unknown texture type: %s", type);
+    }
+    
+    PANIC_IF(!tex, "Failed to create texture: %s", name);
+    
+    scene_add_texture(scene, tex);
+    char *name_dup = strdup(name);
+    dynarray_push(tex_names, name_dup);
 }
 
 static void parse_material(
@@ -328,6 +387,16 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
                         ref_index
                     );
                     break;
+                case TEXTURE_STATE:
+                    add_texture(
+                        scene, 
+                        tex_names, 
+                        tex_name, 
+                        tex_type, 
+                        tex_scale, 
+                        tex_color1, 
+                        tex_color2);
+                    break;
                 case SPHERE_STATE:
                     if (is_moving) {
                         scene_add_obj(scene, sphere_create_moving(center_start, center_end, radius, current_mat));
@@ -362,6 +431,9 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
             }
             else if (strcmp(tokens[0], "material") == 0) {
                 state = MATERIAL_STATE;
+            }
+            else if (strcmp(tokens[0], "texture") == 0) {
+                state = TEXTURE_STATE;
             }
             else if (strcmp(tokens[0], "sphere") == 0) {
                 state = SPHERE_STATE;
@@ -407,6 +479,16 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
                     &fuzz,
                     &ref_index
                 );
+            }
+            else if (state == TEXTURE_STATE) {
+                parse_texture(
+                    tokens, 
+                    num_toks, 
+                    tex_name, 
+                    tex_type, 
+                    &tex_scale, 
+                    &tex_color1, 
+                    &tex_color2);
             }
             else {
                 if (num_toks == 2 && strcmp(tokens[0], "material") == 0) {
