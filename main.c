@@ -40,24 +40,6 @@ int main(int argc, char **argv) {
     Scene scene = scene_create();
     Camera cam;
     parse_scene(argv[1], &scene, &cam);
-    
-    // Simple gray ground like the book
-    Material* ground_material = lambertian_create((Vec3){0.5, 0.5, 0.5});
-    scene_add_obj(&scene, sphere_create((Vec3){0, -1000, 0}, 1000.0, 
-                  scene_add_material(&scene, ground_material)));
-
-    // Three main spheres
-    Material* center_material = lambertian_create((Vec3){0.1, 0.2, 0.5});
-    scene_add_obj(&scene, sphere_create((Vec3){0, 1, 0}, 1.0, 
-                  scene_add_material(&scene, center_material)));
-
-    Material* left_material = dielectric_create(1.5);
-    scene_add_obj(&scene, sphere_create((Vec3){-4, 1, 0}, 1.0, 
-                  scene_add_material(&scene, left_material)));
-
-    Material* right_material = metal_create((Vec3){0.7, 0.6, 0.5}, 0.0);
-    scene_add_obj(&scene, sphere_create((Vec3){4, 1, 0}, 1.0, 
-                  scene_add_material(&scene, right_material)));
 
     // Add small spheres in a grid with random materials (some moving!)
     for (int a = -11; a < 11; a++) {

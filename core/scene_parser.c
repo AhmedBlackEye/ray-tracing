@@ -176,7 +176,7 @@ static void parse_geometry(
     int num_toks,
     Vec3 *center_start,
     Vec3 *center_end,        
-    bool *is_moving
+    bool *is_moving,
     double *radius,
     Vec3 *point,
     Vec3 *normal,
@@ -191,7 +191,7 @@ static void parse_geometry(
         if (num_toks == 4 && (strcmp(tokens[0], "center") == 0 || strcmp(tokens[0], "center_start") == 0)) {
             *center_start = parse_vec3(tokens);
         }
-        else if (num_toks == 4 && strcmp(tokens[0], "center2") == 0) {  // NEW: Parse motion blur end position
+        else if (num_toks == 4 && strcmp(tokens[0], "center_end") == 0) {  // NEW: Parse motion blur end position
             *center_end = parse_vec3(tokens);
             *is_moving = true;
         }
