@@ -23,6 +23,7 @@ add_library(hittable
   hittable/triangle.c
   hittable/triangle_mesh.c
   hittable/quad.c
+  hittable/bvh_node.c
 )
 target_include_directories(hittable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

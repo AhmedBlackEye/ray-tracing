@@ -1,22 +1,23 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
 #include <assert.h>
 #include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-#include "sphere.h"
 #include "core/aabb.h"
 #include "core/interval.h"
-#include "material/material.h"
-#include "hittable.h"
 #include "hit_record.h"
+#include "hittable.h"
+#include "material/material.h"
+#include "sphere.h"
 
 typedef struct Sphere {
   Vec3 center;
   double radius;
 } Sphere;
 
-static bool sphere_hit(const Hittable *self, Ray ray, Interval t_bounds, HitRecord *rec) {
+static bool sphere_hit(const Hittable *self, Ray ray, Interval t_bounds,
+                       HitRecord *rec) {
   assert(self != NULL);
   assert(rec != NULL);
 
@@ -41,7 +42,7 @@ static bool sphere_hit(const Hittable *self, Ray ray, Interval t_bounds, HitReco
     if (!interval_surrounds(t_bounds, root))
       return false;
   }
-  
+
   rec->mat = self->mat;
   rec->t = root;
   rec->p = ray_at(ray, rec->t);
@@ -69,10 +70,9 @@ Hittable *sphere_create(Vec3 center, double radius, Material *mat) {
   Sphere *sphere_data = malloc(sizeof(struct Sphere));
   assert(sphere_data != NULL);
 
-  AABB *box = malloc(sizeof(struct AABB));
-  assert(box != NULL);
-  Vec3 rvec = (Vec3) { radius, radius, radius };
-  box = aabb_from_points( vec3_sub(center, rvec), vec3_add(center, rvec) );
+  Vec3 rvec = (Vec3){radius, radius, radius};
+  hittable->bbox =
+      aabb_from_points(vec3_sub(center, rvec), vec3_add(center, rvec));
 
   sphere_data->center = center;
   sphere_data->radius = radius;
@@ -81,18 +81,17 @@ Hittable *sphere_create(Vec3 center, double radius, Material *mat) {
   hittable->hit = sphere_hit;
   hittable->destroy = (HittableDestroyFn)sphere_destroy;
   hittable->mat = mat;
-  hittable->box = box;
   hittable->data = sphere_data;
 
   return hittable;
 }
 
 void sphere_print(const Hittable *hittable) {
-    if (hittable == NULL || hittable->type != HITTABLE_SPHERE) {
-        printf("Sphere: Invalid or NULL\n");
-        return;
-    }
-    const Sphere *sphere = (const Sphere *)hittable->data;
-    printf("Sphere { center: (%.3f, %.3f, %.3f), radius: %.3f }\n",
-           sphere->center.x, sphere->center.y, sphere->center.z, sphere->radius);
+  if (hittable == NULL || hittable->type != HITTABLE_SPHERE) {
+    printf("Sphere: Invalid or NULL\n");
+    return;
+  }
+  const Sphere *sphere = (const Sphere *)hittable->data;
+  printf("Sphere { center: (%.3f, %.3f, %.3f), radius: %.3f }\n",
+         sphere->center.x, sphere->center.y, sphere->center.z, sphere->radius);
 }

@@ -1,12 +1,13 @@
 #include <stdbool.h>
 
+#include "aabb.h"
 #include "interval.h"
 #include "vec3.h"
 #include "ray.h"
 
-bool aabb_hit(AABB *box, Ray *r, Interval *ray_t) {
-    Vec3 *ray_origin = &r->origin;
-    Vec3 *ray_direction = &r->direction;
+bool aabb_hit(AABB *box, Ray ray, Interval *ray_t) {
+    Vec3 ray_origin = ray.origin;
+    Vec3 ray_direction = ray.direction;
 
     for (int axis = 0; axis < 3; axis++) {
         Interval *ax = axis_interval(box, axis);

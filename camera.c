@@ -75,11 +75,12 @@ Camera camera_make(int image_width, double aspect_ratio, Vec3 lookfrom,
   return cam;
 }
 
-static Color ray_color(Ray r, int depth, DynArray *hittable_world) {
+static Color ray_color(Ray r, int depth, Hittable *hittable_world) {
   if (depth <= 0)
     return vec3_zero();
   HitRecord rec;
-  if (hittables_hit(hittable_world, r, interval_make(1e-4, INFINITY), &rec)) {
+  if (hittable_world->hit(hittable_world, r, interval_make(1e-4, INFINITY),
+                          &rec)) {
     Ray scatterd;
     Color attenuation;
     if (rec.mat->scatter(rec.mat, r, &rec, &attenuation, &scatterd)) {
@@ -115,7 +116,7 @@ static Ray get_ray(const Camera *cam, int i, int j) {
                .direction = vec3_sub(pixel_sample, ray_origin)};
 }
 
-void camera_render(const Camera *cam, DynArray *hittable_world,
+void camera_render(const Camera *cam, Hittable *hittable_world,
                    FILE *out_file) {
   fprintf(out_file, "P3\n%d %d\n255\n", cam->image_width, cam->image_height);
   for (int j = 0; j < cam->image_height; j++) {

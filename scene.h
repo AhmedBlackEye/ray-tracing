@@ -6,7 +6,7 @@
 #include "material/material.h"
 
 typedef struct Scene {
-  DynArray *objects;
+  Hittable *objects;
   DynArray *materials;
 } Scene;
 

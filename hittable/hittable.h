@@ -21,7 +21,9 @@ typedef enum {
   HITTABLE_SPHERE,
   HITTABLE_PLANE,
   HITTABLE_TRIANGLE,
-  HITTABLE_QUAD
+  HITTABLE_QUAD,
+  HITTABLE_LIST,
+  HITTABLE_BVHNODE
 } HittableType;
 
 typedef struct Hittable {
@@ -29,7 +31,7 @@ typedef struct Hittable {
   HitFn hit;
   HittableDestroyFn destroy;
   Material *mat;
-  AABB *box;
+  AABB bbox;
   void *data;
 } Hittable;
 
