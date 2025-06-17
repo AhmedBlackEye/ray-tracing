@@ -12,6 +12,14 @@ camera {
   background 0 0 0
 }
 
+texture {
+    name ground_checker
+    type checkered
+    scale 10.0
+    color1 0.2 0.3 0.1
+    color2 0.9 0.9 0.9
+}
+
 material {
     name center_material
     type lambertian
@@ -34,26 +42,23 @@ material {
 material {
     name ground_material
     type lambertian
-    color 0.5 0.5 0.5
+    texture ground_checker
 }
 
 sphere {
-    center_start 0 1 0
-    center_end 0 2 0       
+    center 0 1 0
     radius 1
     material center_material
 }
 
 sphere {
-    center_start -4 1 0
-    center_end -4 2 0   
+    center -4 1 0
     radius 1
     material left_material
 }
 
 sphere {
-    center_start 4 1 0
-    center_end 4 2 0     
+    center 4 1 0
     radius 1
     material right_material
 }

@@ -227,7 +227,7 @@ static void add_material(
     Material *mat;
     if (strcmp(type, "lambertian") == 0) {
         if (strlen(texture_name) > 0) {
-            Texture *tex
+            Texture *tex;
             size_t num_textures = dynarray_size(tex_names);
             for (size_t i = 0; i < num_textures; i++) {
                 char *tex_name_str = (char*)dynarray_get(tex_names, i);
@@ -351,8 +351,9 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
     DynArray *tex_names = dynarray_create(8, NULL, (GDestroyFn)free);
     char tex_name[32];
     char tex_type[32];
+    char mat_texture_name[32] = "";
     double tex_scale;
-    Vec3 tex_color;
+    Vec3 tex_color1;
     Vec3 tex_color2;
 
     ParserState state = TOPLEVEL_STATE;
@@ -407,11 +408,13 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
                     add_material(
                         scene,
                         mat_names,
+                        tex_names,
                         mat_name, 
                         mat_type, 
                         color, 
                         fuzz,
-                        ref_index
+                        ref_index,
+                        mat_texture_name
                     );
                     break;
                 case TEXTURE_STATE:
@@ -504,7 +507,8 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
                     mat_type,
                     &color, 
                     &fuzz,
-                    &ref_index
+                    &ref_index,
+                    mat_texture_name
                 );
             }
             else if (state == TEXTURE_STATE) {
