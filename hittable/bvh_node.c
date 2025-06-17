@@ -64,7 +64,14 @@ static Hittable *bvhnode_create_helper(DynArray *objects, size_t start,
   BVHNode *node = malloc(sizeof(struct BVHNode));
   assert(node != NULL);
 
-  int axis = random_int_range(0, 2);
+  hittable->bbox = aabb_empty();
+  for (size_t obj_index = start; obj_index < end; obj_index++) {
+    Hittable *h = dynarray_get(objects, obj_index);
+    hittable->bbox = aabb_surrounding_box(&hittable->bbox, &h->bbox);
+  }
+  int axis = aabb_longest_axis(&hittable->bbox);
+  size_t object_span = end - start;
+
   GCmp comparator;
   if (axis == 0) {
     comparator = (GCmp)box_x_compare;
@@ -74,13 +81,18 @@ static Hittable *bvhnode_create_helper(DynArray *objects, size_t start,
     comparator = (GCmp)box_z_compare;
   }
 
-  size_t object_span = end - start;
-
   if (object_span == 1) {
     node->left = node->right = dynarray_get(objects, start);
   } else if (object_span == 2) {
-    node->left = dynarray_get(objects, start);
-    node->right = dynarray_get(objects, start + 1);
+    Hittable *a = dynarray_get(objects, start);
+    Hittable *b = dynarray_get(objects, start + 1);
+    if (comparator(&a, &b) > 0) {
+      node->left = b;
+      node->right = a;
+    } else {
+      node->left = a;
+      node->right = b;
+    }
   } else {
     dynarray_partial_sort(objects, start, end, (GCmp)comparator);
 
@@ -88,7 +100,6 @@ static Hittable *bvhnode_create_helper(DynArray *objects, size_t start,
     node->left = bvhnode_create_helper(objects, start, mid);
     node->right = bvhnode_create_helper(objects, mid, end);
   }
-  hittable->bbox = aabb_surrounding_box(&node->left->bbox, &node->right->bbox);
 
   hittable->type = HITTABLE_BVHNODE;
   hittable->hit = (HitFn)bvhnode_hit;

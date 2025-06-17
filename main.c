@@ -59,10 +59,9 @@ int main(int argc, char **argv) {
               scene_add_material(&scene, lambertian_create(albedo));
 
           // ALL diffuse spheres move
-          Vec3 center2 =
-              vec3_add(center, (Vec3){0, random_double_range(0, 0.5), 0});
-          scene_add_obj(&scene, sphere_create_moving(center, center2, 0.2,
-                                                     sphere_material));
+          // Vec3 center2 =
+          //     vec3_add(center, (Vec3){0, random_double_range(0, 0.5), 0});
+          scene_add_obj(&scene, sphere_create(center, 0.2, sphere_material));
         } else if (choose_mat < 0.95) {
           // metal
           Vec3 albedo = vec3_random_bounded(0.5, 1.0);
