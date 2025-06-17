@@ -6,6 +6,7 @@
 typedef struct Ray {
   Vec3 origin;
   Vec3 direction;
+  double time;
 } Ray;
 
 static inline Vec3 ray_at(Ray r, double pos) {

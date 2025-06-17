@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 
+#include "core/aabb.h"
 #include "core/interval.h"
 #include "core/ray.h"
 #include "core/vec3.h"
@@ -21,6 +22,8 @@ typedef enum {
   HITTABLE_PLANE,
   HITTABLE_TRIANGLE,
   HITTABLE_QUAD,
+  HITTABLE_LIST,
+  HITTABLE_BVHNODE,
   HITTABLE_TRIANGLE_MESH,
 } HittableType;
 
@@ -29,6 +32,7 @@ typedef struct Hittable {
   HitFn hit;
   HittableDestroyFn destroy;
   Material *mat;
+  AABB bbox;
   void *data;
 } Hittable;
 

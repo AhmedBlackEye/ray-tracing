@@ -121,7 +121,8 @@ static inline Vec3 vec3_random_in_unit_disk(void) {
   }
 }
 
-static inline Vec3 defocus_disk_sample(Vec3 center, Vec3 defocus_disk_u, Vec3 defocus_disk_v) {
+static inline Vec3 defocus_disk_sample(Vec3 center, Vec3 defocus_disk_u,
+                                       Vec3 defocus_disk_v) {
   Vec3 p = vec3_random_in_unit_disk();
   Vec3 res = vec3_add(center, vec3_scale(defocus_disk_u, p.x));
   return vec3_add(res, vec3_scale(defocus_disk_v, p.y));
@@ -148,5 +149,14 @@ static inline Vec3 vec3_refract(Vec3 uv, Vec3 n, double etai_over_etat) {
   Vec3 r_out_parallel =
       vec3_scale(n, -sqrt(fabs(1.0 - vec3_length_squared(r_out_perp))));
   return vec3_add(r_out_perp, r_out_parallel);
+}
+
+static inline double vec3_axis(Vec3 v, int axis) {
+  if (axis == 0) {
+    return v.x;
+  } else if (axis == 1) {
+    return v.y;
+  }
+  return v.z;
 }
 #endif // VEC3_H

@@ -24,6 +24,12 @@ static inline Interval interval_make(double min, double max) {
   return (Interval){min, max};
 }
 
+static inline Interval interval_enclose(Interval a, Interval b) {
+  double min = a.min <= b.min ? a.min : b.min;
+  double max = a.max >= b.max ? a.max : b.max;
+  return (Interval){min, max};
+}
+
 // Returns the size of the interval
 static inline double interval_size(Interval i) { return i.max - i.min; }
 
@@ -43,6 +49,11 @@ static inline double interval_clamp(Interval i, double x) {
   if (x > i.max)
     return i.max;
   return x;
+}
+
+static inline Interval interval_expand(Interval i, double delta) {
+  double padding = delta / 2;
+  return interval_make(i.min - padding, i.max + padding);
 }
 
 #endif // INTERVAL_H

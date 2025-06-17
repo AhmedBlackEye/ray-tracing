@@ -1,9 +1,3 @@
-#include <assert.h>
-#include <math.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "camera.h"
 #include "core/color.h"
 #include "core/dyn_array.h"
@@ -11,6 +5,7 @@
 #include "core/ray.h"
 #include "core/scene_parser.h"
 #include "core/vec3.h"
+#include "hittable/bvh_node.h"
 #include "hittable/hittable.h"
 #include "hittable/hittable_list.h"
 #include "hittable/quad.h"
@@ -24,192 +19,14 @@
 #include "material/metal.h"
 #include "scene.h"
 #include "shared.h"
-
-// Add this function to your main.c (or the test functions from previous
-// artifact)
-
-void create_simple_table(Scene *scene) {
-  // Wood-like brown material
-  Material *wood_material =
-      scene_add_material(scene, lambertian_create((Vec3){0.6, 0.4, 0.2}));
-
-  Hittable *table_mesh = mesh_create(wood_material);
-
-  // Table dimensions
-  double table_width = 3.0;  // X dimension
-  double table_depth = 2.0;  // Z dimension
-  double table_height = 1.5; // Y dimension
-  double table_thickness = 0.1;
-  double leg_thickness = 0.2;
-
-  // Table position (centered at origin, moved back)
-  Vec3 center = {0, 0, -4};
-
-  // === TABLE TOP ===
-  Vec3 top_corners[4] = {
-      {center.x - table_width / 2, center.y + table_height,
-       center.z - table_depth / 2}, // front-left
-      {center.x + table_width / 2, center.y + table_height,
-       center.z - table_depth / 2}, // front-right
-      {center.x + table_width / 2, center.y + table_height,
-       center.z + table_depth / 2}, // back-right
-      {center.x - table_width / 2, center.y + table_height,
-       center.z + table_depth / 2} // back-left
-  };
-
-  Vec3 bottom_corners[4] = {
-      {center.x - table_width / 2, center.y + table_height - table_thickness,
-       center.z - table_depth / 2},
-      {center.x + table_width / 2, center.y + table_height - table_thickness,
-       center.z - table_depth / 2},
-      {center.x + table_width / 2, center.y + table_height - table_thickness,
-       center.z + table_depth / 2},
-      {center.x - table_width / 2, center.y + table_height - table_thickness,
-       center.z + table_depth / 2}};
-
-  // Top surface (2 triangles)
-  mesh_add_triangle(table_mesh, top_corners[0], top_corners[1], top_corners[2]);
-  mesh_add_triangle(table_mesh, top_corners[0], top_corners[2], top_corners[3]);
-
-  // Bottom surface (2 triangles) - facing downward
-  mesh_add_triangle(table_mesh, bottom_corners[0], bottom_corners[2],
-                    bottom_corners[1]);
-  mesh_add_triangle(table_mesh, bottom_corners[0], bottom_corners[3],
-                    bottom_corners[2]);
-
-  // Side edges (8 triangles - 2 per side)
-  for (int i = 0; i < 4; i++) {
-    int next = (i + 1) % 4;
-    // Side face
-    mesh_add_triangle(table_mesh, top_corners[i], top_corners[next],
-                      bottom_corners[next]);
-    mesh_add_triangle(table_mesh, top_corners[i], bottom_corners[next],
-                      bottom_corners[i]);
-  }
-
-  // === TABLE LEGS ===
-  double leg_positions[4][2] = {
-      {-table_width / 2 + leg_thickness,
-       -table_depth / 2 + leg_thickness}, // front-left
-      {table_width / 2 - leg_thickness,
-       -table_depth / 2 + leg_thickness}, // front-right
-      {table_width / 2 - leg_thickness,
-       table_depth / 2 - leg_thickness}, // back-right
-      {-table_width / 2 + leg_thickness,
-       table_depth / 2 - leg_thickness} // back-left
-  };
-
-  for (int leg = 0; leg < 4; leg++) {
-    double x = center.x + leg_positions[leg][0];
-    double z = center.z + leg_positions[leg][1];
-
-    // Leg vertices (rectangular leg)
-    Vec3 leg_top[4] = {
-        {x - leg_thickness / 2, center.y + table_height - table_thickness,
-         z - leg_thickness / 2},
-        {x + leg_thickness / 2, center.y + table_height - table_thickness,
-         z - leg_thickness / 2},
-        {x + leg_thickness / 2, center.y + table_height - table_thickness,
-         z + leg_thickness / 2},
-        {x - leg_thickness / 2, center.y + table_height - table_thickness,
-         z + leg_thickness / 2}};
-
-    Vec3 leg_bottom[4] = {
-        {x - leg_thickness / 2, center.y, z - leg_thickness / 2},
-        {x + leg_thickness / 2, center.y, z - leg_thickness / 2},
-        {x + leg_thickness / 2, center.y, z + leg_thickness / 2},
-        {x - leg_thickness / 2, center.y, z + leg_thickness / 2}};
-
-    // Leg sides (8 triangles per leg)
-    for (int i = 0; i < 4; i++) {
-      int next = (i + 1) % 4;
-      mesh_add_triangle(table_mesh, leg_top[i], leg_bottom[next],
-                        leg_top[next]);
-      mesh_add_triangle(table_mesh, leg_top[i], leg_bottom[i],
-                        leg_bottom[next]);
-    }
-  }
-
-  scene_add_obj(scene, table_mesh);
-  printf("Created simple table\n");
-}
-void create_round_table(Scene *scene) {
-  Material *marble_material =
-      scene_add_material(scene, lambertian_create((Vec3){0.9, 0.9, 0.8}));
-
-  Hittable *table_mesh = mesh_create(marble_material);
-
-  Vec3 center = {0, 0, -3};
-  double radius = 1.5;
-  double height = 1.2;
-  double thickness = 0.08;
-  int segments = 8; // 8-sided "round" table
-
-  // Create octagonal top
-  Vec3 top_verts[8];
-  Vec3 bottom_verts[8];
-
-  for (int i = 0; i < segments; i++) {
-    double angle = 2.0 * PI * i / segments;
-    double x = center.x + radius * cos(angle);
-    double z = center.z + radius * sin(angle);
-
-    top_verts[i] = (Vec3){x, center.y + height, z};
-    bottom_verts[i] = (Vec3){x, center.y + height - thickness, z};
-  }
-
-  // Top surface (triangular fan from center)
-  Vec3 top_center = {center.x, center.y + height, center.z};
-  for (int i = 0; i < segments; i++) {
-    int next = (i + 1) % segments;
-    mesh_add_triangle(table_mesh, top_center, top_verts[next], top_verts[i]);
-  }
-
-  // Bottom surface
-  Vec3 bottom_center = {center.x, center.y + height - thickness, center.z};
-  for (int i = 0; i < segments; i++) {
-    int next = (i + 1) % segments;
-    mesh_add_triangle(table_mesh, bottom_center, bottom_verts[i],
-                      bottom_verts[next]);
-  }
-
-  // Side edges
-  for (int i = 0; i < segments; i++) {
-    int next = (i + 1) % segments;
-    mesh_add_triangle(table_mesh, top_verts[i], top_verts[next],
-                      bottom_verts[next]);
-    mesh_add_triangle(table_mesh, top_verts[i], bottom_verts[next],
-                      bottom_verts[i]);
-  }
-
-  // Single central pedestal leg
-  double leg_radius = 0.3;
-  int leg_segments = 6;
-
-  Vec3 leg_top_verts[6];
-  Vec3 leg_bottom_verts[6];
-
-  for (int i = 0; i < leg_segments; i++) {
-    double angle = 2.0 * PI * i / leg_segments;
-    double x = center.x + leg_radius * cos(angle);
-    double z = center.z + leg_radius * sin(angle);
-
-    leg_top_verts[i] = (Vec3){x, center.y + height - thickness, z};
-    leg_bottom_verts[i] = (Vec3){x, center.y, z};
-  }
-
-  // Leg sides
-  for (int i = 0; i < leg_segments; i++) {
-    int next = (i + 1) % leg_segments;
-    mesh_add_triangle(table_mesh, leg_top_verts[i], leg_bottom_verts[next],
-                      leg_top_verts[next]);
-    mesh_add_triangle(table_mesh, leg_top_verts[i], leg_bottom_verts[i],
-                      leg_bottom_verts[next]);
-  }
-
-  scene_add_obj(scene, table_mesh);
-  printf("Created round table\n");
-}
+#include "texture/checkered.h"
+#include "texture/solid_color.h"
+#include "texture/texture.h"
+#include <assert.h>
+#include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 int main(int argc, char **argv) {
   if (argc != 3) {
@@ -233,9 +50,47 @@ int main(int argc, char **argv) {
   create_round_table(&scene);
   create_simple_table(&scene);
   // Add small spheres in a grid with random materials
+  for (int a = -5; a < 5; a++) {
+    for (int b = -5; b < 5; b++) {
+      double choose_mat = random_double();
+      Vec3 center = {a + 0.9 * random_double(), 0.2, b + 0.9 * random_double()};
+      Vec3 diff = vec3_sub(center, (Vec3){4, 0.2, 0});
+
+      if (vec3_length(diff) > 0.9) {
+        Material *sphere_material = NULL;
+
+        if (choose_mat < 0.8) {
+          // diffuse
+          Vec3 albedo = vec3_mul(vec3_random(), vec3_random());
+          sphere_material =
+              scene_add_material(&scene, lambertian_create(albedo));
+
+          // ALL diffuse spheres move
+          // Vec3 center2 =
+          //     vec3_add(center, (Vec3){0, random_double_range(0, 0.5), 0});
+          scene_add_obj(&scene, sphere_create(center, 0.2, sphere_material));
+        } else if (choose_mat < 0.95) {
+          // metal
+          Vec3 albedo = vec3_random_bounded(0.5, 1.0);
+          double fuzz = random_double_range(0, 0.5);
+          sphere_material =
+              scene_add_material(&scene, metal_create(albedo, fuzz));
+          scene_add_obj(&scene, sphere_create(center, 0.2, sphere_material));
+
+        } else {
+          // glass
+          sphere_material = scene_add_material(&scene, dielectric_create(1.5));
+          scene_add_obj(&scene, sphere_create(center, 0.2, sphere_material));
+        }
+      }
+    }
+  }
+
+  Hittable *temp_world = hittablelist_empty();
+  hittablelist_add(temp_world, bvhnode_create(scene.objects));
+  scene.objects = temp_world;
 
   camera_render(&cam, scene.objects, out_file);
-
   scene_destroy(&scene);
   fclose(out_file);
   return 0;

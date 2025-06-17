@@ -14,6 +14,8 @@ typedef struct HitRecord {
   Vec3 normal;
   Material *mat;
   double t;
+  double u;
+  double v;
   bool front_face;
 } HitRecord;
 
