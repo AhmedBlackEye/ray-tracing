@@ -196,7 +196,7 @@ static void parse_material(
     else if (num_toks == 2 && strcmp(tokens[0], "type") == 0) {
         strcpy(type, tokens[1]);
     }
-    else if (num_toks == 4 && strcmp(tokens[0], "color") == 0) {
+    else if (num_toks == 4 && (strcmp(tokens[0], "color") == 0 || strcmp(tokens[0], "emit_color") == 0 || strcmp(tokens[0], "albedo") == 0)) {
         *color = parse_vec3(tokens);
     }
     else if (num_toks == 2 && strcmp(tokens[0], "fuzz") == 0) {
