@@ -11,6 +11,7 @@
 #include "core/ray.h"
 #include "core/scene_parser.h"
 #include "core/vec3.h"
+#include "hittable/bvh_node.h"
 #include "hittable/hittable.h"
 #include "hittable/hittable_list.h"
 #include "hittable/quad.h"
@@ -70,6 +71,9 @@ int main(int argc, char **argv) {
       }
     }
   }
+  Hittable *temp_world = hittablelist_empty();
+  hittablelist_add(temp_world, bvhnode_create(scene.objects));
+  scene.objects = temp_world;
 
   camera_render(&cam, scene.objects, out_file);
 

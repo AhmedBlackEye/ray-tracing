@@ -45,21 +45,19 @@ static void bvhnode_destroy(void *self) {
   free(self);
 }
 
-inline int box_x_compare(Hittable *a, Hittable *b) {
+static int box_x_compare(Hittable *a, Hittable *b) {
   return a->bbox.x.min < b->bbox.x.min;
 }
 
-inline int box_y_compare(Hittable *a, Hittable *b) {
+static int box_y_compare(Hittable *a, Hittable *b) {
   return a->bbox.y.min < b->bbox.y.min;
 }
-inline int box_z_compare(Hittable *a, Hittable *b) {
+static int box_z_compare(Hittable *a, Hittable *b) {
   return a->bbox.z.min < b->bbox.z.min;
 }
 
-Hittable *bvhnode_create(Hittable *hittable_list, size_t start, size_t end) {
-  assert(hittable_list->type == HITTABLE_LIST);
-  DynArray *objects = hittable_list->data;
-
+static Hittable *bvhnode_create_helper(DynArray *objects, size_t start,
+                                       size_t end) {
   Hittable *hittable = malloc(sizeof(struct Hittable));
   assert(hittable != NULL);
 
@@ -87,8 +85,8 @@ Hittable *bvhnode_create(Hittable *hittable_list, size_t start, size_t end) {
     dynarray_partial_sort(objects, start, end, (GCmp)comparator);
 
     int mid = start + object_span / 2;
-    node->left = bvhnode_create(hittable_list, start, mid);
-    node->right = bvhnode_create(hittable_list, mid, end);
+    node->left = bvhnode_create_helper(objects, start, mid);
+    node->right = bvhnode_create_helper(objects, mid, end);
   }
   hittable->bbox = aabb_surrounding_box(&node->left->bbox, &node->right->bbox);
 
@@ -99,6 +97,12 @@ Hittable *bvhnode_create(Hittable *hittable_list, size_t start, size_t end) {
   hittable->data = node;
 
   return hittable;
+}
+
+Hittable *bvhnode_create(Hittable *hittable_list) {
+  assert(hittable_list->type == HITTABLE_LIST);
+  DynArray *objects = hittable_list->data;
+  return bvhnode_create_helper(objects, 0, dynarray_size(objects));
 }
 
 void bvhnode_print(const Hittable *hittable) {

@@ -43,6 +43,18 @@ static inline Interval axis_interval(AABB *box, int n) {
   return box->x;
 }
 
-bool aabb_hit(AABB *box, Ray ray, Interval *ray_t);
+// Returns the index of the longest axis of the bounding box.
+static inline int aabb_longest_axis(AABB *self) {
+  double x_size = interval_size(self->x);
+  double y_size = interval_size(self->y);
+  double z_size = interval_size(self->z);
+  if (x_size > y_size) {
+    return x_size > z_size ? 0 : 2;
+  } else {
+    return y_size > z_size ? 1 : 2;
+  }
+}
+
+extern bool aabb_hit(AABB *box, Ray ray, Interval *ray_t);
 
 #endif // AABB_H
