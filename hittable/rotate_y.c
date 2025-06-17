@@ -65,3 +65,38 @@ static void rotate_y_destroy(void *self) {
     free(hittable->data);
     free(self);
 }
+
+Hittable *rotate_y_create(Hittable* object, double angle_degrees) {
+    assert(object != NULL);
+    
+    Hittable *hittable = malloc(sizeof(struct Hittable));
+    assert(hittable != NULL);
+    RotateY *rotate_data = malloc(sizeof(struct RotateY));
+    assert(rotate_data != NULL);
+    
+    double radians = angle_degrees * M_PI / 180.0;
+    
+    rotate_data->object = object;
+    rotate_data->sin_theta = sin(radians);
+    rotate_data->cos_theta = cos(radians);
+    
+    hittable->type = HITTABLE_ROTATE_Y;
+    hittable->hit = rotate_y_hit;
+    hittable->destroy = (HittableDestroyFn)rotate_y_destroy;
+    hittable->mat = object->mat;  
+    hittable->data = rotate_data;
+    
+    return hittable;
+}
+
+void rotate_y_print(const Hittable *hittable) {
+    if (hittable == NULL || hittable->type != HITTABLE_ROTATE_Y) {
+        printf("RotateY: Invalid or NULL\n");
+        return;
+    }
+    const RotateY *rotate = (const RotateY *)hittable->data;
+
+    double angle_radians = atan2(rotate->sin_theta, rotate->cos_theta);
+    double angle_degrees = angle_radians * 180.0 / M_PI;
+    printf("RotateY { angle: %.1f degrees }\n", angle_degrees);
+}
