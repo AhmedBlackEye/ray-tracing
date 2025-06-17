@@ -27,6 +27,12 @@ void hittable_print(const Hittable *self) {
   case HITTABLE_QUAD:
     quad_print(self);
     break;
+  case HITTABLE_TRANSLATE:
+    translate_print(self);
+    break;
+  case HITTABLE_ROTATE_Y:
+    rotate_y_print(self);
+    break;
   default:
     assert(false);
   }

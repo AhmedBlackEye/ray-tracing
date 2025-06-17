@@ -20,7 +20,9 @@ typedef enum {
   HITTABLE_SPHERE,
   HITTABLE_PLANE,
   HITTABLE_TRIANGLE,
-  HITTABLE_QUAD
+  HITTABLE_QUAD,
+  HITTABLE_TRANSLATE,
+  HITTABLE_ROTATE_Y
 } HittableType;
 
 typedef struct Hittable {
