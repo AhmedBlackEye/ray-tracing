@@ -118,11 +118,11 @@ static void parse_camera(
 }
 
 static void parse_material(
-    char  *tokens[],  
-    int    num_toks,
-    char  *out_name,
-    char  *out_type,
-    Vec3  *out_color,
+    char *tokens[],  
+    int num_toks,
+    char *out_name,
+    char *out_type,
+    Vec3 *out_color,
     double *out_fuzz,
     double *out_ref_index
 ) {
@@ -172,22 +172,28 @@ static void add_material(
 
 static void parse_geometry(
     ParserState state,
-    char       *tokens[],
-    int         num_toks,
-    Vec3       *center,
-    double     *radius,
-    Vec3       *point,
-    Vec3       *normal,
-    Vec3       *v0,
-    Vec3       *v1,
-    Vec3       *v2,
-    Vec3       *Q,
-    Vec3       *u,
-    Vec3       *v
+    char *tokens[],
+    int num_toks,
+    Vec3 *center_start,
+    Vec3 *center_end,        
+    bool *is_moving
+    double *radius,
+    Vec3 *point,
+    Vec3 *normal,
+    Vec3 *v0,
+    Vec3 *v1,
+    Vec3 *v2,
+    Vec3 *Q,
+    Vec3 *u,
+    Vec3 *v
 ) {
     if (state == SPHERE_STATE) {
-        if (num_toks == 4 && strcmp(tokens[0], "center") == 0) {
-            *center = parse_vec3(tokens);
+        if (num_toks == 4 && (strcmp(tokens[0], "center") == 0 || strcmp(tokens[0], "center_start") == 0)) {
+            *center_start = parse_vec3(tokens);
+        }
+        else if (num_toks == 4 && strcmp(tokens[0], "center2") == 0) {  // NEW: Parse motion blur end position
+            *center_end = parse_vec3(tokens);
+            *is_moving = true;
         }
         else if (num_toks == 2 && strcmp(tokens[0], "radius") == 0) {
             *radius = atof(tokens[1]);
@@ -240,8 +246,10 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
     char line[MAX_LINE_LENGTH];
     char *tokens[MAX_TOKENS];
 
-    Vec3 center;
+    Vec3 center_start;
     double radius;
+    Vec3 center_end;
+    bool is_moving = false; 
 
     Vec3 normal;
     Vec3 point;
@@ -293,7 +301,13 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
                     );
                     break;
                 case SPHERE_STATE:
-                    scene_add_obj(scene, sphere_create(center, radius, current_mat));
+                    if (is_moving) {
+                        scene_add_obj(scene, sphere_create_moving(center_start, center_end, radius, current_mat));
+                    } 
+                    else {
+                        scene_add_obj(scene, sphere_create(center_start, radius, current_mat));
+                    }
+                    is_moving = false;
                     break;
                 case PLANE_STATE:
                     scene_add_obj(scene, plane_create(point, normal, current_mat));
@@ -379,7 +393,9 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
                     state, 
                     tokens, 
                     num_toks,
-                    &center, 
+                    &center_start, 
+                    &center_end,
+                    &is_moving,
                     &radius,
                     &point,  
                     &normal,
