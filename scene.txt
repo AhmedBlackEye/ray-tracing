@@ -10,6 +10,7 @@ camera {
   width 720
   aspect_ratio 16 9
   background 0 0 0
+  lighting off
 }
 
 texture {
@@ -46,25 +47,14 @@ material {
 }
 
 sphere {
-    center 0 1 0
-    radius 1
-    material center_material
-}
-
-sphere {
-    center -4 1 0
-    radius 1
-    material left_material
-}
-
-sphere {
-    center 4 1 0
-    radius 1
-    material right_material
-}
-
-sphere {
     center 0 -1000 0
     radius 1000.0
+    material ground_material
+}
+
+quad {
+    Q 0 0 0
+    u 1 0 0 
+    v 0 1 0
     material ground_material
 }
