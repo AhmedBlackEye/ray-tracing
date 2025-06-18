@@ -380,6 +380,9 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
           PANIC("Material %s not found for OBJ Model: %s", obj_material_name,
                 obj_filename);
         }
+        strcpy(obj_filename, "");
+        strcpy(obj_material_name, "");
+        break;
       }
       default:
         break;
@@ -423,6 +426,8 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
       } else if (state == TEXTURE_STATE) {
         parse_texture(tokens, num_toks, tex_name, tex_type, &tex_scale,
                       &tex_color1, &tex_color2);
+      } else if (state == OBJ_MODEL_STATE) {
+        parse_obj_model(tokens, num_toks, obj_filename, obj_material_name);
       } else {
         if (num_toks == 2 && strcmp(tokens[0], "material") == 0) {
           size_t num_mats = dynarray_size(mat_names);

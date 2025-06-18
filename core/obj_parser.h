@@ -17,7 +17,8 @@ typedef struct ObjParseResult {
 
 // Simple OBJ parsing - just load the model as-is
 extern ObjParseResult obj_parse_file(const char *filename,
-                                     Hittable *mesh_hittable);
+                                     Hittable *mesh_hittable, Vec3 scale,
+                                     Vec3 translation, Vec3 rotation);
 
 // Utility functions for parsing lines
 bool obj_parse_vertex(const char *line, Vec3 *vertex);

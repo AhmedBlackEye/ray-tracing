@@ -10,6 +10,7 @@ add_library(core
   core/color.c
   core/dyn_array.c
   core/scene_parser.c
+  core/obj_parser.c
   core/aabb.c
 )
 target_include_directories(core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

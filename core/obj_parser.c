@@ -98,7 +98,8 @@ bool obj_parse_face(const char *line, int *v1, int *v2, int *v3) {
   return result == 3;
 }
 
-ObjParseResult obj_parse_file(const char *filename, Hittable *mesh_hittable) {
+ObjParseResult obj_parse_file(const char *filename, Hittable *mesh_hittable,
+                              Vec3 scale, Vec3 translation, Vec3 rotation) {
   ObjParseResult result = {0};
 
   // Validate input
@@ -145,6 +146,7 @@ ObjParseResult obj_parse_file(const char *filename, Hittable *mesh_hittable) {
     if (line[0] == 'v' && line[1] == ' ') {
       Vec3 vertex;
       if (obj_parse_vertex(line, &vertex)) {
+        obj_apply_transform(&vertex, scale, translation, rotation);
         vertex_array_push(vertices, vertex);
         result.vertex_count++;
       } else {
@@ -159,7 +161,10 @@ ObjParseResult obj_parse_file(const char *filename, Hittable *mesh_hittable) {
     else if (line[0] == 'f' && line[1] == ' ') {
       int v1, v2, v3;
       if (obj_parse_face(line, &v1, &v2, &v3)) {
-
+        // Convert from 1-based to 0-based indexing as OBJ files use 1
+        v1--;
+        v2--;
+        v3--;
         // Check if indices are valid
         if (v1 < 0 || v1 >= vertices->count || v2 < 0 ||
             v2 >= vertices->count || v3 < 0 || v3 >= vertices->count) {
@@ -180,8 +185,7 @@ ObjParseResult obj_parse_file(const char *filename, Hittable *mesh_hittable) {
         result.face_count++;
       } else {
         result.success = false;
-        snprintf(result.error_message, sizeof(result.error_message),
-                 "Invalid face format at line %d: %s", line_number, line);
+        printf("Invalid face format at line %d: %s", line_number, line);
         fclose(file);
         vertex_array_destroy(vertices);
         return result;
@@ -195,6 +199,7 @@ ObjParseResult obj_parse_file(const char *filename, Hittable *mesh_hittable) {
   printf("Successfully loaded OBJ file!\n");
   printf("  Vertices: %d\n", result.vertex_count);
   printf("  Faces: %d\n", result.face_count);
+  return result;
 }
 void obj_print_statistics(const ObjParseResult *result) {
   if (!result)
@@ -210,4 +215,41 @@ void obj_print_statistics(const ObjParseResult *result) {
     printf("  ✗ Failed to load\n");
     printf("  ✗ Error: %s\n", result->error_message);
   }
+}
+
+static Vec3 rotate_x(Vec3 v, double angle) {
+  double cos_a = cos(angle);
+  double sin_a = sin(angle);
+  return (Vec3){v.x, v.y * cos_a - v.z * sin_a, v.y * sin_a + v.z * cos_a};
+}
+
+static Vec3 rotate_y(Vec3 v, double angle) {
+  double cos_a = cos(angle);
+  double sin_a = sin(angle);
+  return (Vec3){v.x * cos_a + v.z * sin_a, v.y, -v.x * sin_a + v.z * cos_a};
+}
+
+static Vec3 rotate_z(Vec3 v, double angle) {
+  double cos_a = cos(angle);
+  double sin_a = sin(angle);
+  return (Vec3){v.x * cos_a - v.y * sin_a, v.x * sin_a + v.y * cos_a, v.z};
+}
+
+void obj_apply_transform(Vec3 *vertex, Vec3 scale, Vec3 translation,
+                         Vec3 rotation) {
+  // Apply scaling first
+  vertex->x *= scale.x;
+  vertex->y *= scale.y;
+  vertex->z *= scale.z;
+
+  // Apply rotation (X, Y, Z order)
+  if (rotation.x != 0.0)
+    *vertex = rotate_x(*vertex, rotation.x);
+  if (rotation.y != 0.0)
+    *vertex = rotate_y(*vertex, rotation.y);
+  if (rotation.z != 0.0)
+    *vertex = rotate_z(*vertex, rotation.z);
+
+  // Apply translation last
+  *vertex = vec3_add(*vertex, translation);
 }

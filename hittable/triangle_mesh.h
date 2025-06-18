@@ -8,6 +8,7 @@
 #include "hittable/hit_record.h"
 #include "hittable/hittable.h"
 #include "material/material.h"
+#include "triangle_raw.h"
 #include <stdbool.h>
 
 // Bounding box structure (internal use)
