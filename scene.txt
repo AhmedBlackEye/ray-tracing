@@ -1,0 +1,70 @@
+camera {
+  lookfrom 13 2 3
+  lookat   0 0 0
+  vup      0 1 0
+  vfov     20
+  defocus_angle 0.6
+  focus_distance 10
+  samples_per_pixel 100
+  max_depth 25
+  width 720
+  aspect_ratio 16 9
+  background 0 0 0
+}
+
+texture {
+    name ground_checkered
+    type checkered
+    scale 0.5
+    color1 0.2 0.3 0.1
+    color2 0.9 0.9 0.9
+}
+
+material {
+    name center_material
+    type lambertian
+    color 0.1 0.2 0.5
+}
+
+material {
+    name left_material
+    type dielectric
+    ref_idx 1.5
+}
+
+material {
+    name right_material
+    type metal
+    color 0.7 0.6 0.5
+    fuzz 0.0
+}
+
+material {
+    name ground_material
+    type lambertian
+    texture ground_checkered
+}
+
+sphere {
+    center 0 1 0
+    radius 1
+    material center_material
+}
+
+sphere {
+    center -4 1 0
+    radius 1
+    material left_material
+}
+
+sphere {
+    center 4 1 0
+    radius 1
+    material right_material
+}
+
+sphere {
+    center 0 -1000 0
+    radius 1000.0
+    material ground_material
+}
