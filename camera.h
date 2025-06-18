@@ -38,7 +38,7 @@ extern Camera camera_make(int image_width, double aspect_ratio, Vec3 lookfrom,
                           double defocus_angle, double focus_dist,
                           int samples_per_pixel, int max_depth,
                           Color background);
-extern void camera_render(const Camera *cam, DynArray *hittable_world,
+extern void camera_render(const Camera *cam, Hittable *hittable_world,
                           FILE *out_file);
 
 #endif // CAMERA_H

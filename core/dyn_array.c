@@ -97,6 +97,16 @@ GVal dynarray_get(const DynArray *arr, int index) {
   return arr->data[index];
 }
 
+void dynarray_sort(DynArray *arr, GCmp compare) {
+  qsort(arr->data, arr->size, sizeof(GVal), compare);
+}
+
+void dynarray_partial_sort(DynArray *arr, int start, int end, GCmp compare) {
+  assert(arr != NULL);
+  assert(start >= 0 && end <= arr->size && start < end);
+  qsort(arr->data + start, end - start, sizeof(GVal), compare);
+}
+
 void dynarray_print(const DynArray *arr) {
   assert(arr != NULL);
   assert(arr->pelem);
