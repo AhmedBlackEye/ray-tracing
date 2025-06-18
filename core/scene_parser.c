@@ -44,7 +44,6 @@ typedef enum {
   MATERIAL_STATE,
   SPHERE_STATE,
   PLANE_STATE,
-  TRIANGLE_STATE,
   QUAD_STATE
 } ParserState;
 
@@ -211,7 +210,7 @@ static void add_material(Scene *scene, DynArray *mat_names, DynArray *tex_names,
 static void parse_geometry(ParserState state, char *tokens[], int num_toks,
                            Vec3 *center_start, Vec3 *center_end,
                            bool *is_moving, double *radius, Vec3 *point,
-                           Vec3 *normal, Vec3 *v0, Vec3 *v1, Vec3 *v2, Vec3 *Q,
+                           Vec3 *normal, Vec3 *Q,
                            Vec3 *u, Vec3 *v) {
   if (state == SPHERE_STATE) {
     if (num_toks == 4 && (strcmp(tokens[0], "center") == 0 ||
@@ -232,16 +231,6 @@ static void parse_geometry(ParserState state, char *tokens[], int num_toks,
       *normal = parse_vec3(tokens);
     } else {
       PANIC("Unknown plane parameter: %s", tokens[0]);
-    }
-  } else if (state == TRIANGLE_STATE) {
-    if (num_toks == 4 && strcmp(tokens[0], "v0") == 0) {
-      *v0 = parse_vec3(tokens);
-    } else if (num_toks == 4 && strcmp(tokens[0], "v1") == 0) {
-      *v1 = parse_vec3(tokens);
-    } else if (num_toks == 4 && strcmp(tokens[0], "v2") == 0) {
-      *v2 = parse_vec3(tokens);
-    } else {
-      PANIC("Unknown triangle parameter: %s", tokens[0]);
     }
   } else if (state == QUAD_STATE) {
     if (num_toks == 4 && strcmp(tokens[0], "Q") == 0) {
@@ -305,10 +294,6 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
   double fuzz;
   double ref_index;
 
-  Vec3 v0;
-  Vec3 v1;
-  Vec3 v2;
-
   Vec3 Q;
   Vec3 u;
   Vec3 v;
@@ -366,8 +351,6 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
         state = SPHERE_STATE;
       } else if (strcmp(tokens[0], "plane") == 0) {
         state = PLANE_STATE;
-      } else if (strcmp(tokens[0], "triangle") == 0) {
-        state = TRIANGLE_STATE;
       } else if (strcmp(tokens[0], "quad") == 0) {
         state = QUAD_STATE;
       } else {
@@ -399,7 +382,7 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
           continue;
         }
         parse_geometry(state, tokens, num_toks, &center_start, &center_end,
-                       &is_moving, &radius, &point, &normal, &v0, &v1, &v2, &Q,
+                       &is_moving, &radius, &point, &normal, &Q,
                        &u, &v);
       }
     }
