@@ -22,6 +22,7 @@ Checkered *checkered_create_textures(double scale, Texture *even, Texture *odd) 
     Checkered *checkered = malloc(sizeof(struct Checkered));
     assert(checkered != NULL);
     checkered->base_tex.value = checkered_value;
+    checkered->base_tex.destroy = (void(*)(struct Texture*))checkered_destroy;
     checkered->inv_scale = 1.0 / scale;
     checkered->even = even;
     checkered->odd = odd;
@@ -36,5 +37,7 @@ Checkered *checkered_create_colors(double scale, const Color *c1, const Color *c
 
 void checkered_destroy(Checkered* checkered) {
     assert(checkered != NULL);
+    if (checkered->even) texture_destroy(checkered->even);
+    if (checkered->odd) texture_destroy(checkered->odd);
     free(checkered);
 }

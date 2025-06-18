@@ -13,6 +13,7 @@ SolidColor *solid_color_create_albedo(const Color* albedo) {
     SolidColor* sol_col = malloc(sizeof(struct SolidColor));
     assert(sol_col != NULL);
     sol_col->base_tex.value = solid_color_value;
+    sol_col->base_tex.destroy = (void(*)(struct Texture*))solid_color_destroy;
     sol_col->albedo = *albedo;
     return sol_col;
 }

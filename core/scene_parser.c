@@ -44,7 +44,6 @@ typedef enum {
   MATERIAL_STATE,
   SPHERE_STATE,
   PLANE_STATE,
-  TRIANGLE_STATE,
   QUAD_STATE
 } ParserState;
 
@@ -137,24 +136,37 @@ static void add_texture(Scene *scene, DynArray *tex_names, const char *name,
   dynarray_push(tex_names, name_dup);
 }
 
-static void parse_material(char *tokens[], int num_toks, char *name, char *type,
-                           Vec3 *color, double *fuzz, double *ref_index,
-                           char *texture_name) {
-  if (num_toks == 2 && strcmp(tokens[0], "name") == 0) {
-    strcpy(name, tokens[1]);
-  } else if (num_toks == 2 && strcmp(tokens[0], "type") == 0) {
-    strcpy(type, tokens[1]);
-  } else if (num_toks == 4 && strcmp(tokens[0], "color") == 0) {
-    *color = parse_vec3(tokens);
-  } else if (num_toks == 2 && strcmp(tokens[0], "fuzz") == 0) {
-    *fuzz = atof(tokens[1]);
-  } else if (num_toks == 2 && strcmp(tokens[0], "ref_idx") == 0) {
-    *ref_index = atof(tokens[1]);
-  } else if (num_toks == 2 && strcmp(tokens[0], "texture") == 0) {
-    strcpy(texture_name, tokens[1]);
-  } else {
-    PANIC("Unknown material parameter: %s", tokens[0]);
-  }
+static void parse_material(
+    char *tokens[],  
+    int num_toks,
+    char *name,
+    char *type,
+    Vec3 *color,
+    double *fuzz,
+    double *ref_index,
+    char *texture_name
+) {
+    if (num_toks == 2 && strcmp(tokens[0], "name") == 0) {
+        strcpy(name, tokens[1]);
+    }
+    else if (num_toks == 2 && strcmp(tokens[0], "type") == 0) {
+        strcpy(type, tokens[1]);
+    }
+    else if (num_toks == 4 && (strcmp(tokens[0], "color") == 0 || strcmp(tokens[0], "emit_color") == 0 || strcmp(tokens[0], "albedo") == 0)) {
+        *color = parse_vec3(tokens);
+    }
+    else if (num_toks == 2 && strcmp(tokens[0], "fuzz") == 0) {
+        *fuzz = atof(tokens[1]);
+    }
+    else if (num_toks == 2 && strcmp(tokens[0], "ref_idx") == 0) {
+        *ref_index = atof(tokens[1]);
+    }
+    else if (num_toks == 2 && strcmp(tokens[0], "texture") == 0) {
+        strcpy(texture_name, tokens[1]);
+    }
+    else {
+        PANIC("Unknown material parameter: %s", tokens[0]);
+    }
 }
 
 static void add_material(Scene *scene, DynArray *mat_names, DynArray *tex_names,
@@ -198,7 +210,7 @@ static void add_material(Scene *scene, DynArray *mat_names, DynArray *tex_names,
 static void parse_geometry(ParserState state, char *tokens[], int num_toks,
                            Vec3 *center_start, Vec3 *center_end,
                            bool *is_moving, double *radius, Vec3 *point,
-                           Vec3 *normal, Vec3 *v0, Vec3 *v1, Vec3 *v2, Vec3 *Q,
+                           Vec3 *normal, Vec3 *Q,
                            Vec3 *u, Vec3 *v) {
   if (state == SPHERE_STATE) {
     if (num_toks == 4 && (strcmp(tokens[0], "center") == 0 ||
@@ -219,16 +231,6 @@ static void parse_geometry(ParserState state, char *tokens[], int num_toks,
       *normal = parse_vec3(tokens);
     } else {
       PANIC("Unknown plane parameter: %s", tokens[0]);
-    }
-  } else if (state == TRIANGLE_STATE) {
-    if (num_toks == 4 && strcmp(tokens[0], "v0") == 0) {
-      *v0 = parse_vec3(tokens);
-    } else if (num_toks == 4 && strcmp(tokens[0], "v1") == 0) {
-      *v1 = parse_vec3(tokens);
-    } else if (num_toks == 4 && strcmp(tokens[0], "v2") == 0) {
-      *v2 = parse_vec3(tokens);
-    } else {
-      PANIC("Unknown triangle parameter: %s", tokens[0]);
     }
   } else if (state == QUAD_STATE) {
     if (num_toks == 4 && strcmp(tokens[0], "Q") == 0) {
@@ -292,10 +294,6 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
   double fuzz;
   double ref_index;
 
-  Vec3 v0;
-  Vec3 v1;
-  Vec3 v2;
-
   Vec3 Q;
   Vec3 u;
   Vec3 v;
@@ -328,9 +326,6 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
       case PLANE_STATE:
         scene_add_obj(scene, plane_create(point, normal, current_mat));
         break;
-      case TRIANGLE_STATE:
-        scene_add_obj(scene, triangle_create(v0, v1, v2, current_mat));
-        break;
       case QUAD_STATE:
         scene_add_obj(scene, quad_create(Q, u, v, current_mat));
         break;
@@ -356,8 +351,6 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
         state = SPHERE_STATE;
       } else if (strcmp(tokens[0], "plane") == 0) {
         state = PLANE_STATE;
-      } else if (strcmp(tokens[0], "triangle") == 0) {
-        state = TRIANGLE_STATE;
       } else if (strcmp(tokens[0], "quad") == 0) {
         state = QUAD_STATE;
       } else {
@@ -389,7 +382,7 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
           continue;
         }
         parse_geometry(state, tokens, num_toks, &center_start, &center_end,
-                       &is_moving, &radius, &point, &normal, &v0, &v1, &v2, &Q,
+                       &is_moving, &radius, &point, &normal, &Q,
                        &u, &v);
       }
     }

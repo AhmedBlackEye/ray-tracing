@@ -8,6 +8,8 @@
 #include "hittable.h"
 #include "plane.h"
 #include "quad.h"
+#include "rotate_y.h"
+#include "translate.h"
 #include "sphere.h"
 #include "triangle_hittable.h"
 #include "triangle_mesh.h"
@@ -28,6 +30,11 @@ void hittable_print(const Hittable *self) {
   case HITTABLE_QUAD:
     quad_print(self);
     break;
+  case HITTABLE_TRANSLATE:
+    translate_print(self);
+    break;
+  case HITTABLE_ROTATE_Y:
+    rotate_y_print(self);
   case HITTABLE_TRIANGLE_MESH:
     mesh_print(self);
     break;
