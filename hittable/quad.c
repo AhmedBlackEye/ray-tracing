@@ -126,7 +126,7 @@ DynArray* box_create(const Vec3 a, const Vec3 b, Material* mat) {
         dy,
         mat
     );
-    dynarray_push(sides, &front);
+    dynarray_push(sides, front);
     
     Hittable* right = quad_create(
         (Vec3){max.x, min.y, max.z},
@@ -134,7 +134,7 @@ DynArray* box_create(const Vec3 a, const Vec3 b, Material* mat) {
         dy,
         mat
     );
-    dynarray_push(sides, &right);
+    dynarray_push(sides, right);
     
     Hittable* back = quad_create(
         (Vec3){max.x, min.y, min.z},
@@ -142,7 +142,7 @@ DynArray* box_create(const Vec3 a, const Vec3 b, Material* mat) {
         dy,
         mat
     );
-    dynarray_push(sides, &back);
+    dynarray_push(sides, back);
     
     Hittable* left = quad_create(
         (Vec3){min.x, min.y, min.z},
@@ -150,7 +150,7 @@ DynArray* box_create(const Vec3 a, const Vec3 b, Material* mat) {
         dy,
         mat
     );
-    dynarray_push(sides, &left);
+    dynarray_push(sides, left);
     
     Hittable* top = quad_create(
         (Vec3){min.x, max.y, max.z},
@@ -158,7 +158,7 @@ DynArray* box_create(const Vec3 a, const Vec3 b, Material* mat) {
         vec3_negate(dz), 
         mat
     );
-    dynarray_push(sides, &top);
+    dynarray_push(sides, top);
     
     Hittable* bottom = quad_create(
         (Vec3){min.x, min.y, min.z},
@@ -166,7 +166,7 @@ DynArray* box_create(const Vec3 a, const Vec3 b, Material* mat) {
         dz,
         mat
     );
-    dynarray_push(sides, &bottom);
+    dynarray_push(sides, bottom);
     
     return sides;
 }
