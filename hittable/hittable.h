@@ -23,7 +23,8 @@ typedef enum {
   HITTABLE_TRIANGLE,
   HITTABLE_QUAD,
   HITTABLE_LIST,
-  HITTABLE_BVHNODE
+  HITTABLE_BVHNODE,
+  HITTABLE_TRIANGLE_MESH,
 } HittableType;
 
 typedef struct Hittable {
