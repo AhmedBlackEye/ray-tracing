@@ -21,17 +21,17 @@ static bool rotate_y_hit(const Hittable *self, Ray ray, Interval t_bounds, HitRe
 
     const RotateY *r = (const RotateY *)self->data;
 
-    Vec3 origin = vec3_create(
+    Vec3 origin = (Vec3){
         r->cos_theta * ray.origin.x - r->sin_theta * ray.origin.z,
         ray.origin.y,
         r->sin_theta * ray.origin.x + r->cos_theta * ray.origin.z
-    );
+    };
     
-    Vec3 direction = vec3_create(
+    Vec3 direction = (Vec3){
         r->cos_theta * ray.direction.x - r->sin_theta * ray.direction.z,
         ray.direction.y,
         r->sin_theta * ray.direction.x + r->cos_theta * ray.direction.z
-    );
+    };
     
     Ray rotated_ray;
     rotated_ray.origin = origin;
@@ -42,17 +42,17 @@ static bool rotate_y_hit(const Hittable *self, Ray ray, Interval t_bounds, HitRe
         return false;
     }
     
-    rec->p = vec3_create(
+    rec->p = (Vec3){
         r->cos_theta * rec->p.x + r->sin_theta * rec->p.z,
         rec->p.y,
         -r->sin_theta * rec->p.x + r->cos_theta * rec->p.z
-    );
+    };
     
-    rec->normal = vec3_create(
+    rec->normal = (Vec3){
         r->cos_theta * rec->normal.x + r->sin_theta * rec->normal.z,
         rec->normal.y,
         -r->sin_theta * rec->normal.x + r->cos_theta * rec->normal.z
-    );
+    };
     
     return true;
 }

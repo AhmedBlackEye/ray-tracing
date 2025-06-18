@@ -53,6 +53,7 @@ static bool triangle_hit(Hittable *self, Ray r, Interval t_bounds,
   if (interval_surrounds(t_bounds, t)) {
     rec->t = t;
     rec->p = ray_at(r, t);
+    rec->mat = self->mat; 
 
     // Ensure normal faces outward from ray
     hitrec_set_face_normal(rec, r, tri->normal);

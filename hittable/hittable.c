@@ -10,6 +10,8 @@
 #include "sphere.h"
 #include "triangle.h"
 #include "quad.h"
+#include "rotate_y.h"
+#include "translate.h"
 
 extern void hittable_destroy(Hittable *self) { self->destroy(self); }
 

@@ -5,10 +5,12 @@
 #include <math.h>
 
 #include "quad.h"
+#include "core/vec3.h"
 #include "core/interval.h"
 #include "material/material.h"
 #include "hittable.h"
 #include "hit_record.h"
+#include "core/dyn_array.h"
 
 typedef struct Quad {
     Vec3 Q;   
@@ -46,6 +48,7 @@ static bool quad_hit(const Hittable *self, Ray ray, Interval t_bounds, HitRecord
   
   rec->t = t;
   rec->p = intersection;
+  rec->mat = self->mat;
   hitrec_set_face_normal(rec, ray, q->normal);
   return true;
 }
@@ -99,70 +102,71 @@ void quad_print(const Hittable *hittable) {
 }
 
 DynArray* box_create(const Vec3 a, const Vec3 b, Material* mat) {
-  DynArray* sides = dynarray_create(sizeof(Hittable*));
-
-  Vec3 min = vec3_create(
-        fmin(a.x, b.x), 
-        fmin(a.y, b.y), 
+    DynArray* sides = dynarray_create(6, NULL, (GDestroyFn)hittable_destroy);
+    
+    Vec3 min = (Vec3){
+        fmin(a.x, b.x),
+        fmin(a.y, b.y),
         fmin(a.z, b.z)
-  );
-
-  Vec3 max = vec3_create(
-        fmax(a.x, b.x), 
-        fmax(a.y, b.y), 
+    };
+    
+    Vec3 max = (Vec3){
+        fmax(a.x, b.x),
+        fmax(a.y, b.y),
         fmax(a.z, b.z)
-  );
-
-  Vec3 dx = vec3_create(max.x - min.x, 0, 0);
-  Vec3 dy = vec3_create(0, max.y - min.y, 0);
-  Vec3 dz = vec3_create(0, 0, max.z - min.z);
-
-  Hittable* front = quad_create(
-    vec3_create(min.x, min.y, max.z), 
-      dx, 
-      dy, 
-      mat
-  );
-  dynarray_push(sides, &front);
-
-  Hittable* right = quad_create(
-      vec3_create(max.x, min.y, max.z), 
-        vec3_negate(dz), 
-        dy, 
+    };
+    
+    Vec3 dx = (Vec3){max.x - min.x, 0, 0};
+    Vec3 dy = (Vec3){0, max.y - min.y, 0};
+    Vec3 dz = (Vec3){0, 0, max.z - min.z};
+    
+    Hittable* front = quad_create(
+        (Vec3){min.x, min.y, max.z},
+        dx,
+        dy,
         mat
-  );
-  dynarray_push(sides, &right);
-
-  Hittable* back = quad_create(
-    vec3_create(max.x, min.y, min.z), 
-      vec3_negate(dx), 
-      dy, 
-      mat
-  );
-  dynarray_push(sides, &back);
-
-  Hittable* left = quad_create(
-    vec3_create(min.x, min.y, min.z), 
-      dz, 
-      dy, 
-      mat
+    );
+    dynarray_push(sides, &front);
+    
+    Hittable* right = quad_create(
+        (Vec3){max.x, min.y, max.z},
+        vec3_negate(dz),
+        dy,
+        mat
+    );
+    dynarray_push(sides, &right);
+    
+    Hittable* back = quad_create(
+        (Vec3){max.x, min.y, min.z},
+        vec3_negate(dx),
+        dy,
+        mat
+    );
+    dynarray_push(sides, &back);
+    
+    Hittable* left = quad_create(
+        (Vec3){min.x, min.y, min.z},
+        dz,
+        dy,
+        mat
     );
     dynarray_push(sides, &left);
     
-  Hittable* top = quad_create(
-    vec3_create(min.x, max.y, max.z), 
-      dx, 
-      vec3_negate(dz), mat
-  );
-  dynarray_push(sides, &top);
+    Hittable* top = quad_create(
+        (Vec3){min.x, max.y, max.z},
+        dx,
+        vec3_negate(dz), 
+        mat
+    );
+    dynarray_push(sides, &top);
     
-  Hittable* bottom = quad_create(
-    vec3_create(min.x, min.y, min.z), 
-      dx, 
-      dz, 
-      mat
-  );
-  dynarray_push(sides, &bottom);
-
-  return sides;
+    Hittable* bottom = quad_create(
+        (Vec3){min.x, min.y, min.z},
+        dx,
+        dz,
+        mat
+    );
+    dynarray_push(sides, &bottom);
+    
+    return sides;
 }
