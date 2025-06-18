@@ -5,6 +5,7 @@
 #include "core/dyn_array.h"
 #include "core/vec3.h"
 #include "hittable/hittable.h"
+#include <stdbool.h>
 
 typedef struct Camera {
   int image_width;
@@ -37,7 +38,7 @@ extern Camera camera_make(int image_width, double aspect_ratio, Vec3 lookfrom,
                           Vec3 lookat, Vec3 vup, double vfov,
                           double defocus_angle, double focus_dist,
                           int samples_per_pixel, int max_depth,
-                          Color background);
+                          Color background, bool is_lighting);
 extern void camera_render(const Camera *cam, Hittable *hittable_world,
                           FILE *out_file);
 

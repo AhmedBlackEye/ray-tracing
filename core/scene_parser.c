@@ -36,6 +36,7 @@
 #define SAMPLES_PER_PIXEL 10
 #define MAX_DEPTH 20
 #define BACKGROUND ((Color){0.70, 0.80, 1.00})
+#define IS_LIGHTING false
 
 typedef enum {
   TOPLEVEL_STATE,
@@ -69,7 +70,8 @@ static void parse_camera(char *tokens[], int num_toks, Vec3 *lookfrom,
                          Vec3 *lookat, Vec3 *vup, double *vfov,
                          double *defocus_angle, double *focus_dist,
                          int *samples_per_pixel, int *max_depth,
-                         double *aspect_ratio, int *width, Color *background) {
+                         double *aspect_ratio, int *width, Color *background,
+                         bool *is_lighting) {
   if (num_toks == 2 && strcmp(tokens[0], "width") == 0) {
     *width = atoi(tokens[1]);
   } else if (num_toks == 3 && strcmp(tokens[0], "aspect_ratio") == 0) {
@@ -94,7 +96,11 @@ static void parse_camera(char *tokens[], int num_toks, Vec3 *lookfrom,
     *max_depth = atoi(tokens[1]);
   } else if (num_toks == 4 && strcmp(tokens[0], "background") == 0) {
     *background = parse_vec3(tokens);
-  } else {
+  } 
+  else if (num_toks == 2 && strcmp(tokens[0], "lighting") == 0) {
+    *is_lighting = (strcmp(tokens[1], "on") == 0);
+  }
+  else {
     PANIC("Unknown camera parameter: %s", tokens[0]);
   }
 }
@@ -285,6 +291,7 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
   double aspect_ratio = ASPECT_RATIO;
   int width = WIDTH;
   Color background = BACKGROUND;
+  bool is_lighting = IS_LIGHTING;
 
   Material *current_mat;
 
@@ -360,7 +367,7 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
       if (state == CAMERA_STATE) {
         parse_camera(tokens, num_toks, &lookfrom, &lookat, &vup, &vfov,
                      &defocus_angle, &focus_dist, &samples_per_pixel,
-                     &max_depth, &aspect_ratio, &width, &background);
+                     &max_depth, &aspect_ratio, &width, &background, &is_lighting);
       } else if (state == MATERIAL_STATE) {
         parse_material(tokens, num_toks, mat_name, mat_type, &color, &fuzz,
                        &ref_index, mat_texture_name);
@@ -391,7 +398,7 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
 
   *out_cam = camera_make(width, aspect_ratio, lookfrom, lookat, vup, vfov,
                          defocus_angle, focus_dist, samples_per_pixel,
-                         max_depth, background);
+                         max_depth, background, is_lighting);
 
   dynarray_destroy(mat_names);
   dynarray_destroy(tex_names);
