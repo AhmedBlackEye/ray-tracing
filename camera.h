@@ -5,6 +5,7 @@
 #include "core/dyn_array.h"
 #include "core/vec3.h"
 #include "hittable/hittable.h"
+#include <stdbool.h>
 
 typedef struct Camera {
   int image_width;
