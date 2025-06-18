@@ -51,6 +51,71 @@ typedef enum {
   OBJ_MODEL_STATE,
 } ParserState;
 
+void validate_hittable(const Hittable *obj, const char *context) {
+  if (!obj) {
+    printf("ERROR [%s]: Hittable is NULL\n", context);
+    return;
+  }
+
+  printf("=== VALIDATING HITTABLE [%s] ===\n", context);
+  printf("Hittable pointer: %p\n", (void *)obj);
+  printf("Type: %d\n", obj->type);
+  printf("Hit function: %p\n", (void *)obj->hit);
+  printf("Destroy function: %p\n", (void *)obj->destroy);
+  printf("Material: %p\n", (void *)obj->mat);
+  printf("Data pointer: %p\n", (void *)obj->data);
+
+  // Validate type is in range
+  if (obj->type < 0 || obj->type > HITTABLE_TRIANGLE_MESH) {
+    printf("ERROR: Invalid hittable type: %d\n", obj->type);
+  }
+
+  // Check if it's a sphere
+  if (obj->type == HITTABLE_SPHERE) {
+    printf("SPHERE validation:\n");
+    if (obj->data) {
+      // Don't dereference - just check pointer is reasonable
+      printf("  Sphere data pointer looks valid\n");
+    } else {
+      printf("  ERROR: Sphere data is NULL\n");
+    }
+  }
+
+  // Check if it's a mesh
+  if (obj->type == HITTABLE_TRIANGLE_MESH) {
+    printf("MESH validation:\n");
+    if (obj->data) {
+      Mesh *mesh = (Mesh *)obj->data;
+      printf("  Triangle count: %d\n", mesh->triangles->size);
+      printf("  Triangles pointer: %p\n", (void *)mesh->triangles);
+    } else {
+      printf("  ERROR: Mesh data is NULL\n");
+    }
+  }
+  printf("===============================\n");
+}
+// Add this to your scene parser after adding each object
+void debug_scene_addition(Scene *scene, Hittable *new_obj,
+                          const char *obj_name) {
+  printf("\n>>> ADDING %s TO SCENE <<<\n", obj_name);
+  validate_hittable(new_obj, obj_name);
+
+  size_t before_count = dynarray_size(scene->objects);
+  scene_add_obj(scene, new_obj);
+  size_t after_count = dynarray_size(scene->objects);
+
+  printf("Scene object count: %zu -> %zu\n", before_count, after_count);
+
+  // Validate the object was added correctly
+  if (after_count > 0) {
+    Hittable *last_added =
+        (Hittable *)dynarray_get(scene->objects, after_count - 1);
+    printf("Last added object validation:\n");
+    validate_hittable(last_added, "last_added");
+  }
+  printf(">>> END ADDING %s <<<\n\n", obj_name);
+}
+
 static int tokenize(char *line, char *tokens[]) {
   int num_toks = 0;
   char *saveptr = NULL;
@@ -248,11 +313,21 @@ static void parse_geometry(ParserState state, char *tokens[], int num_toks,
   }
 }
 void parse_obj_model(char *tokens[], int num_toks, char *filename,
-                     char *material_name) {
+                     char *material_name, Vec3 *position, Vec3 *scale,
+                     Vec3 *rotation) {
   if (num_toks == 2 && strcmp(tokens[0], "file") == 0) {
     strcpy(filename, tokens[1]);
   } else if (num_toks == 2 && strcmp(tokens[0], "material") == 0) {
     strcpy(material_name, tokens[1]);
+  } else if (num_toks == 4 && strcmp(tokens[0], "position") == 0) {
+    *position = parse_vec3(tokens);
+  } else if (num_toks == 4 && strcmp(tokens[0], "scale") == 0) {
+    *scale = parse_vec3(tokens);
+  } else if (num_toks == 4 && strcmp(tokens[0], "rotation") == 0) {
+    // Convert degrees to radians
+    rotation->x = atof(tokens[1]) * PI / 180.0;
+    rotation->y = atof(tokens[2]) * PI / 180.0;
+    rotation->z = atof(tokens[3]) * PI / 180.0;
   } else {
     PANIC("Unknown obj_model parameter: %s", tokens[0]);
   }
@@ -327,6 +402,9 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
 
   char obj_filename[128] = "";
   char obj_material_name[64] = "";
+  Vec3 obj_position = {0.0, 0.0, 0.0};
+  Vec3 obj_scale = {1.0, 1.0, 1.0};
+  Vec3 obj_rotation = {0.0, 0.0, 0.0};
 
   while (fgets(line, MAX_LINE_LENGTH, file)) {
     if (line[0] == '\n') {
@@ -363,25 +441,62 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
         scene_add_obj(scene, quad_create(Q, u, v, current_mat));
         break;
       case OBJ_MODEL_STATE: {
+        if (strlen(obj_filename) == 0) {
+          printf("Warning: missing 'file' parameter, skipping\n");
+          goto cleanup_obj;
+        }
+
+        if (strlen(obj_material_name) == 0) {
+          printf("Warning: missing 'material' parameter, skipping\n");
+          goto cleanup_obj;
+        }
+
+        FILE *test_file = fopen(obj_filename, "r");
+        if (!test_file) {
+          printf("Warning: OBJ file not found: %s\n", obj_filename);
+          printf("Make sure the file exists and path is correct\n");
+          goto cleanup_obj;
+        }
+        fclose(test_file);
+
         Material *obj_material =
             find_material_by_name(scene, mat_names, obj_material_name);
-        if (obj_material) {
-          Hittable *mesh = mesh_create(obj_material);
-          ObjParseResult result = obj_parse_file(obj_filename, mesh);
-          if (result.success) {
-            scene_add_obj(scene, mesh);
-            // printf("Loaded OBJ Model: %s (%d triangles)\n successfully.",
-            //  obj_filename, result.face_count);
-          } else {
-            // printf("Failed to load OBJ Model: %s", obj_filename);
-            hittable_destroy(mesh);
+        if (!obj_material) {
+          printf("Warning: Material '%s' not found\n", obj_material_name);
+          printf("Available materials:\n");
+          for (size_t i = 0; i < dynarray_size(mat_names); i++) {
+            char *name = (char *)dynarray_get(mat_names, i);
+            if (name)
+              printf("     - %s\n", name);
           }
-        } else {
-          PANIC("Material %s not found for OBJ Model: %s", obj_material_name,
-                obj_filename);
+          goto cleanup_obj;
         }
+
+        printf("Loading OBJ: %s with material: %s\n", obj_filename,
+               obj_material_name);
+
+        Hittable *mesh = mesh_create(obj_material);
+        ObjParseResult result = obj_parse_file(obj_filename, mesh, obj_scale,
+                                               obj_position, obj_rotation);
+
+        if (result.success) {
+          mesh_compute_bounds_and_update_hittable(mesh);
+          scene_add_obj(scene, mesh);
+          printf("Successfully loaded %s (%d triangles)\n", obj_filename,
+                 result.face_count);
+
+        } else {
+          printf("Failed to load %s: %s\n", obj_filename, result.error_message);
+          hittable_destroy(mesh);
+        }
+
+      cleanup_obj:
+        // Always reset variables
         strcpy(obj_filename, "");
         strcpy(obj_material_name, "");
+        obj_position = (Vec3){0.0, 0.0, 0.0};
+        obj_scale = (Vec3){1.0, 1.0, 1.0};
+        obj_rotation = (Vec3){0.0, 0.0, 0.0};
         break;
       }
       default:
@@ -427,7 +542,8 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
         parse_texture(tokens, num_toks, tex_name, tex_type, &tex_scale,
                       &tex_color1, &tex_color2);
       } else if (state == OBJ_MODEL_STATE) {
-        parse_obj_model(tokens, num_toks, obj_filename, obj_material_name);
+        parse_obj_model(tokens, num_toks, obj_filename, obj_material_name,
+                        &obj_position, &obj_scale, &obj_rotation);
       } else {
         if (num_toks == 2 && strcmp(tokens[0], "material") == 0) {
           size_t num_mats = dynarray_size(mat_names);

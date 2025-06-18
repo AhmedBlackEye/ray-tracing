@@ -31,7 +31,14 @@ void hittable_print(const Hittable *self) {
   case HITTABLE_TRIANGLE_MESH:
     mesh_print(self);
     break;
+  case HITTABLE_LIST:
+    hittablelist_print(self);
+    break;
+  case HITTABLE_BVHNODE:
+    bvhnode_print(self);
+    break;
   default:
-    assert(false);
+    printf("Unknown hittable type: %d\n", self->type);
+    break;
   }
 }

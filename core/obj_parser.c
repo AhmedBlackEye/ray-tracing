@@ -2,6 +2,7 @@
 #include "core/vec3.h"
 #include "hittable/triangle_mesh.h"
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,7 +10,57 @@
 #define MAX_LINE_LENGTH 512
 #define INITIAL_VERTEX_CAPACITY 1000
 
-// Simple dynamic array for storing vertices during parsing
+// ===== TRANSFORM FUNCTIONS =====
+
+static Vec3 rotate_x(Vec3 v, double angle) {
+  if (angle == 0.0)
+    return v; // Skip if no rotation
+  double cos_a = cos(angle);
+  double sin_a = sin(angle);
+  return (Vec3){v.x, v.y * cos_a - v.z * sin_a, v.y * sin_a + v.z * cos_a};
+}
+
+static Vec3 rotate_y(Vec3 v, double angle) {
+  if (angle == 0.0)
+    return v; // Skip if no rotation
+  double cos_a = cos(angle);
+  double sin_a = sin(angle);
+  return (Vec3){v.x * cos_a + v.z * sin_a, v.y, -v.x * sin_a + v.z * cos_a};
+}
+
+static Vec3 rotate_z(Vec3 v, double angle) {
+  if (angle == 0.0)
+    return v; // Skip if no rotation
+  double cos_a = cos(angle);
+  double sin_a = sin(angle);
+  return (Vec3){v.x * cos_a - v.y * sin_a, v.x * sin_a + v.y * cos_a, v.z};
+}
+
+static void apply_transforms(Vec3 *vertex, Vec3 scale, Vec3 translation,
+                             Vec3 rotation) {
+  // 1. Scale first
+  vertex->x *= scale.x;
+  vertex->y *= scale.y;
+  vertex->z *= scale.z;
+
+  // 2. Rotate (X, Y, Z order)
+  *vertex = rotate_x(*vertex, rotation.x);
+  *vertex = rotate_y(*vertex, rotation.y);
+  *vertex = rotate_z(*vertex, rotation.z);
+
+  // 3. Translate last
+  *vertex = vec3_add(*vertex, translation);
+  // Debug output for first few vertices
+  static int debug_count = 0;
+  if (debug_count < 3) {
+    printf("  Transformed vertex %d: (%.3f, %.3f, %.3f)\n", debug_count,
+           vertex->x, vertex->y, vertex->z);
+    debug_count++;
+  }
+}
+
+// ===== DYNAMIC VERTEX ARRAY =====
+
 typedef struct VertexArray {
   Vec3 *vertices;
   int count;
@@ -49,54 +100,61 @@ static Vec3 vertex_array_get(VertexArray *arr, int index) {
   return arr->vertices[index];
 }
 
+// static void vertex_array_print(VertexArray *arr) {
+//   for (int i = 0; i < arr->count; i++) {
+//     vec3_print(arr->vertices[i]);
+//   }
+// }
+
+// ===== PARSING FUNCTIONS =====
+
 bool obj_parse_vertex(const char *line, Vec3 *vertex) {
-  // Check if line starts with "v "
   if (line[0] != 'v' || line[1] != ' ') {
     return false;
   }
 
-  // Parse three floating point numbers
   int result =
       sscanf(line + 2, "%lf %lf %lf", &vertex->x, &vertex->y, &vertex->z);
   return result == 3;
 }
 
 bool obj_parse_face(const char *line, int *v1, int *v2, int *v3) {
-  // Check if line starts with "f "
   if (line[0] != 'f' || line[1] != ' ') {
     return false;
   }
 
-  // Handle different face formats:
-  // f v1 v2 v3 (just vertex indices)
-  // f v1/vt1 v2/vt2 v3/vt3 (vertex/texture - ignore texture)
-  // f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3 (vertex/texture/normal - ignore texture
-  // and normal) f v1//vn1 v2//vn2 v3//vn3 (vertex//normal - ignore normal)
+  int dummy;
 
-  int dummy; // For texture/normal indices we don't use
-
-  // Try vertex/texture/normal format first
+  // Try different face formats
   int result = sscanf(line + 2, "%d/%d/%d %d/%d/%d %d/%d/%d", v1, &dummy,
                       &dummy, v2, &dummy, &dummy, v3, &dummy, &dummy);
   if (result == 9)
     return true;
 
-  // Try vertex//normal format
   result = sscanf(line + 2, "%d//%d %d//%d %d//%d", v1, &dummy, v2, &dummy, v3,
                   &dummy);
   if (result == 6)
     return true;
 
-  // Try vertex/texture format
   result =
       sscanf(line + 2, "%d/%d %d/%d %d/%d", v1, &dummy, v2, &dummy, v3, &dummy);
   if (result == 6)
     return true;
 
-  // Try simple vertex-only format
   result = sscanf(line + 2, "%d %d %d", v1, v2, v3);
-  return result == 3;
+  if (result == 3) {
+    // Debug output for first few faces
+    static int face_debug_count = 0;
+    if (face_debug_count < 3) {
+      printf("  Parsed face %d: %d %d %d\n", face_debug_count, *v1, *v2, *v3);
+      face_debug_count++;
+    }
+    return true;
+  }
+  return false;
 }
+
+// ===== SINGLE PARSING FUNCTION =====
 
 ObjParseResult obj_parse_file(const char *filename, Hittable *mesh_hittable,
                               Vec3 scale, Vec3 translation, Vec3 rotation) {
@@ -124,7 +182,17 @@ ObjParseResult obj_parse_file(const char *filename, Hittable *mesh_hittable,
     return result;
   }
 
-  printf("Parsing OBJ file: %s\n", filename);
+  // Check if we have any transforms to apply
+  bool has_transforms =
+      (scale.x != 1.0 || scale.y != 1.0 || scale.z != 1.0 ||
+       translation.x != 0.0 || translation.y != 0.0 || translation.z != 0.0 ||
+       rotation.x != 0.0 || rotation.y != 0.0 || rotation.z != 0.0);
+
+  printf("Parsing OBJ file: %s", filename);
+  if (has_transforms) {
+    printf(" (with transforms)");
+  }
+  printf("\n");
 
   VertexArray *vertices = vertex_array_create();
   char line[MAX_LINE_LENGTH];
@@ -146,12 +214,13 @@ ObjParseResult obj_parse_file(const char *filename, Hittable *mesh_hittable,
     if (line[0] == 'v' && line[1] == ' ') {
       Vec3 vertex;
       if (obj_parse_vertex(line, &vertex)) {
-        obj_apply_transform(&vertex, scale, translation, rotation);
+        // Apply transforms (does nothing if all are identity)
+        apply_transforms(&vertex, scale, translation, rotation);
         vertex_array_push(vertices, vertex);
         result.vertex_count++;
       } else {
         result.success = false;
-        printf("Invalid vertex format at line %d: %s", line_number, line);
+        printf("Invalid vertex format at line %d.", line_number);
         fclose(file);
         vertex_array_destroy(vertices);
         return result;
@@ -161,15 +230,16 @@ ObjParseResult obj_parse_file(const char *filename, Hittable *mesh_hittable,
     else if (line[0] == 'f' && line[1] == ' ') {
       int v1, v2, v3;
       if (obj_parse_face(line, &v1, &v2, &v3)) {
-        // Convert from 1-based to 0-based indexing as OBJ files use 1
+        // OBJ files use 1-based indexing, convert to 0-based
         v1--;
         v2--;
         v3--;
+
         // Check if indices are valid
         if (v1 < 0 || v1 >= vertices->count || v2 < 0 ||
             v2 >= vertices->count || v3 < 0 || v3 >= vertices->count) {
           result.success = false;
-          printf("Invalid vertex index at line %d: %s", line_number, line);
+          printf("Invalid vertex index at line %d", line_number);
           fclose(file);
           vertex_array_destroy(vertices);
           return result;
@@ -179,28 +249,65 @@ ObjParseResult obj_parse_file(const char *filename, Hittable *mesh_hittable,
         Vec3 vert1 = vertex_array_get(vertices, v1);
         Vec3 vert2 = vertex_array_get(vertices, v2);
         Vec3 vert3 = vertex_array_get(vertices, v3);
+        // Debug output for first few triangles
+        if (result.face_count < 3) {
+          printf("  Triangle %d:\n", result.face_count);
+          printf("    v1 (idx %d): (%.3f, %.3f, %.3f)\n", v1, vert1.x, vert1.y,
+                 vert1.z);
+          printf("    v2 (idx %d): (%.3f, %.3f, %.3f)\n", v2, vert2.x, vert2.y,
+                 vert2.z);
+          printf("    v3 (idx %d): (%.3f, %.3f, %.3f)\n", v3, vert3.x, vert3.y,
+                 vert3.z);
+        }
 
         // Add triangle to the mesh
         mesh_add_triangle(mesh_hittable, vert1, vert2, vert3);
         result.face_count++;
       } else {
         result.success = false;
-        printf("Invalid face format at line %d: %s", line_number, line);
+        printf("Invalid face format at line %d.", line_number);
         fclose(file);
         vertex_array_destroy(vertices);
         return result;
       }
     }
-    // Ignore other line types (vn for normals, vt for textures, o for objects,
-    // etc.)
+    // Ignore other line types
+    // vertex_array_print(vertices);
+  }
+
+  fclose(file);
+  vertex_array_destroy(vertices);
+
+  if (result.vertex_count == 0) {
+    result.success = false;
+    strcpy(result.error_message, "No vertices found in OBJ file");
+    printf("ERROR: %s\n", result.error_message);
+    return result;
+  }
+
+  if (result.face_count == 0) {
+    result.success = false;
+    strcpy(result.error_message, "No faces found in OBJ file");
+    printf("ERROR: %s\n", result.error_message);
+    return result;
   }
 
   result.success = true;
-  printf("Successfully loaded OBJ file!\n");
+  printf("=== Successfully loaded OBJ file! ===\n");
   printf("  Vertices: %d\n", result.vertex_count);
   printf("  Faces: %d\n", result.face_count);
+  if (has_transforms) {
+    printf("  Applied transforms: scale(%.1f,%.1f,%.1f) pos(%.1f,%.1f,%.1f) "
+           "rot(%.0f°,%.0f°,%.0f°)\n",
+           scale.x, scale.y, scale.z, translation.x, translation.y,
+           translation.z, rotation.x * 180.0 / M_PI, rotation.y * 180.0 / M_PI,
+           rotation.z * 180.0 / M_PI);
+  }
+  printf("=====================================\n");
+
   return result;
 }
+
 void obj_print_statistics(const ObjParseResult *result) {
   if (!result)
     return;
@@ -215,41 +322,4 @@ void obj_print_statistics(const ObjParseResult *result) {
     printf("  ✗ Failed to load\n");
     printf("  ✗ Error: %s\n", result->error_message);
   }
-}
-
-static Vec3 rotate_x(Vec3 v, double angle) {
-  double cos_a = cos(angle);
-  double sin_a = sin(angle);
-  return (Vec3){v.x, v.y * cos_a - v.z * sin_a, v.y * sin_a + v.z * cos_a};
-}
-
-static Vec3 rotate_y(Vec3 v, double angle) {
-  double cos_a = cos(angle);
-  double sin_a = sin(angle);
-  return (Vec3){v.x * cos_a + v.z * sin_a, v.y, -v.x * sin_a + v.z * cos_a};
-}
-
-static Vec3 rotate_z(Vec3 v, double angle) {
-  double cos_a = cos(angle);
-  double sin_a = sin(angle);
-  return (Vec3){v.x * cos_a - v.y * sin_a, v.x * sin_a + v.y * cos_a, v.z};
-}
-
-void obj_apply_transform(Vec3 *vertex, Vec3 scale, Vec3 translation,
-                         Vec3 rotation) {
-  // Apply scaling first
-  vertex->x *= scale.x;
-  vertex->y *= scale.y;
-  vertex->z *= scale.z;
-
-  // Apply rotation (X, Y, Z order)
-  if (rotation.x != 0.0)
-    *vertex = rotate_x(*vertex, rotation.x);
-  if (rotation.y != 0.0)
-    *vertex = rotate_y(*vertex, rotation.y);
-  if (rotation.z != 0.0)
-    *vertex = rotate_z(*vertex, rotation.z);
-
-  // Apply translation last
-  *vertex = vec3_add(*vertex, translation);
 }

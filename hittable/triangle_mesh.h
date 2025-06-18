@@ -40,6 +40,8 @@ Hittable *mesh_create(Material *mat);
 // Add triangle to mesh hittable
 void mesh_add_triangle(Hittable *mesh_hittable, Vec3 v0, Vec3 v1, Vec3 v2);
 
+void mesh_compute_bounds_and_update_hittable(Hittable *mesh_hittable);
+
 // Print mesh hittable info
 void mesh_print(const Hittable *hittable);
 

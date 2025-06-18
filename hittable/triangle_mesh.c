@@ -20,13 +20,12 @@ static bool mesh_hit(const Hittable *self, Ray r, Interval t_bounds,
 static void mesh_destroy(void *self);
 static bool ray_box_intersect(Ray ray, BoundingBox box, Interval *t_bounds);
 static BoundingBox bounding_box_empty(void);
+void mesh_compute_bounds_and_update_hittable(Hittable *mesh_hittable);
 static void bounding_box_expand(BoundingBox *box, Vec3 point);
-static void mesh_compute_bounds(Mesh *mesh);
 static TriangleArr *triarray_create(int initial_capacity);
 static void triarray_push(TriangleArr *arr, TriangleRaw tri);
 static void triarray_destroy(TriangleArr *arr);
 static TriangleRaw *triarray_get(TriangleArr *arr, int index);
-static void triarray_print(TriangleArr *arr);
 
 // === CREATING HITTABLE MESH ===
 
@@ -50,6 +49,7 @@ Hittable *mesh_create(Material *mat) {
   hittable->destroy = (HittableDestroyFn)mesh_destroy;
   hittable->hit = (HitFn)mesh_hit;
   hittable->mat = mat;
+  hittable->bbox = aabb_empty();
 
   return hittable;
 }
@@ -63,6 +63,8 @@ void mesh_add_triangle(Hittable *mesh_hittable, Vec3 v0, Vec3 v1, Vec3 v2) {
 
   triarray_push(mesh->triangles, tri);
   mesh->bounds_dirty = true;
+
+  mesh_compute_bounds_and_update_hittable(mesh_hittable);
 }
 
 void mesh_print(const Hittable *hittable) {
@@ -151,7 +153,14 @@ static void bounding_box_expand(BoundingBox *box, Vec3 point) {
   }
 }
 
-static void mesh_compute_bounds(Mesh *mesh) {
+void mesh_compute_bounds_and_update_hittable(Hittable *mesh_hittable) {
+  assert(mesh_hittable->type == HITTABLE_TRIANGLE_MESH);
+  Mesh *mesh = (Mesh *)mesh_hittable->data;
+
+  if (!mesh->bounds_dirty)
+    return;
+
+  // Compute mesh bounds
   mesh->bounds = bounding_box_empty();
 
   for (int i = 0; i < mesh->triangles->size; i++) {
@@ -162,6 +171,14 @@ static void mesh_compute_bounds(Mesh *mesh) {
   }
 
   mesh->bounds_dirty = false;
+
+  // Update the hittable's bounding box for BVH
+  if (mesh->bounds.valid) {
+    mesh_hittable->bbox = aabb_from_points(mesh->bounds.min, mesh->bounds.max);
+  } else {
+    printf("WARNING: Mesh bounds are invalid!\n");
+    mesh_hittable->bbox = aabb_empty();
+  }
 }
 
 static bool ray_box_intersect(Ray ray, BoundingBox box, Interval *t_bounds) {
@@ -236,7 +253,7 @@ static bool mesh_hit(const Hittable *self, Ray r, Interval t_bounds,
   Mesh *mesh = (Mesh *)self->data;
 
   if (mesh->bounds_dirty) {
-    mesh_compute_bounds(mesh);
+    mesh_compute_bounds_and_update_hittable((Hittable *)self);
   }
 
   Interval box_t = t_bounds;
@@ -296,21 +313,21 @@ TriangleRaw *triarray_get(TriangleArr *arr, int index) {
   return &arr->data[index];
 }
 
-void triarray_print(TriangleArr *arr) {
-  if (arr == NULL) {
-    printf("Triangle Array: NULL.\n");
-    return;
-  }
-  if (arr->size == 0) {
-    puts("[]");
-    return;
-  }
-  putchar('[');
-  for (int i = 0; i < arr->size; i++) {
-    triangle_raw_print(&arr->data[i]);
-    if (i < arr->size - 1) {
-      printf(", ");
-    }
-  }
-  puts("]");
-}
+// void triarray_print(TriangleArr *arr) {
+//   if (arr == NULL) {
+//     printf("Triangle Array: NULL.\n");
+//     return;
+//   }
+//   if (arr->size == 0) {
+//     puts("[]");
+//     return;
+//   }
+//   putchar('[');
+//   for (int i = 0; i < arr->size; i++) {
+//     triangle_raw_print(&arr->data[i]);
+//     if (i < arr->size - 1) {
+//       printf(", ");
+//     }
+//   }
+//   puts("]");
+// }
