@@ -14,11 +14,13 @@
 #include "hittable/quad.h"
 #include "hittable/sphere.h"
 #include "hittable/triangle_hittable.h"
+#include "hittable/triangle_mesh.h"
 #include "material/dielectric.h"
 #include "material/diffuse_light.h"
 #include "material/lambertian.h"
 #include "material/material.h"
 #include "material/metal.h"
+#include "obj_parser.h"
 #include "scene_parser.h"
 #include "texture/checkered.h"
 #include "texture/solid_color.h"
@@ -45,7 +47,8 @@ typedef enum {
   SPHERE_STATE,
   PLANE_STATE,
   TRIANGLE_STATE,
-  QUAD_STATE
+  QUAD_STATE,
+  OBJ_MODEL_STATE,
 } ParserState;
 
 static int tokenize(char *line, char *tokens[]) {
@@ -244,6 +247,28 @@ static void parse_geometry(ParserState state, char *tokens[], int num_toks,
     PANIC("Unknown geometry state");
   }
 }
+void parse_obj_model(char *tokens[], int num_toks, char *filename,
+                     char *material_name) {
+  if (num_toks == 2 && strcmp(tokens[0], "file") == 0) {
+    strcpy(filename, tokens[1]);
+  } else if (num_toks == 2 && strcmp(tokens[0], "material") == 0) {
+    strcpy(material_name, tokens[1]);
+  } else {
+    PANIC("Unknown obj_model parameter: %s", tokens[0]);
+  }
+}
+
+static Material *find_material_by_name(Scene *scene, DynArray *mat_names,
+                                       const char *name) {
+  size_t num_materials = dynarray_size(mat_names);
+  for (size_t i = 0; i < num_materials; i++) {
+    char *mat_name_str = (char *)dynarray_get(mat_names, i);
+    if (mat_name_str && strcmp(name, mat_name_str) == 0) {
+      return (Material *)dynarray_get(scene->materials, i);
+    }
+  }
+  return NULL;
+}
 
 void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
   FILE *file = fopen(filename, "r");
@@ -300,6 +325,9 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
   Vec3 u;
   Vec3 v;
 
+  char obj_filename[128] = "";
+  char obj_material_name[64] = "";
+
   while (fgets(line, MAX_LINE_LENGTH, file)) {
     if (line[0] == '\n') {
       continue;
@@ -329,11 +357,30 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
         scene_add_obj(scene, plane_create(point, normal, current_mat));
         break;
       case TRIANGLE_STATE:
-        scene_add_obj(scene, triangle_create(v0, v1, v2, current_mat));
+        scene_add_obj(scene, triangle_hittable_create(v0, v1, v2, current_mat));
         break;
       case QUAD_STATE:
         scene_add_obj(scene, quad_create(Q, u, v, current_mat));
         break;
+      case OBJ_MODEL_STATE: {
+        Material *obj_material =
+            find_material_by_name(scene, mat_names, obj_material_name);
+        if (obj_material) {
+          Hittable *mesh = mesh_create(obj_material);
+          ObjParseResult result = obj_parse_file(obj_filename, mesh);
+          if (result.success) {
+            scene_add_obj(scene, mesh);
+            // printf("Loaded OBJ Model: %s (%d triangles)\n successfully.",
+            //  obj_filename, result.face_count);
+          } else {
+            // printf("Failed to load OBJ Model: %s", obj_filename);
+            hittable_destroy(mesh);
+          }
+        } else {
+          PANIC("Material %s not found for OBJ Model: %s", obj_material_name,
+                obj_filename);
+        }
+      }
       default:
         break;
       }
@@ -360,6 +407,8 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
         state = TRIANGLE_STATE;
       } else if (strcmp(tokens[0], "quad") == 0) {
         state = QUAD_STATE;
+      } else if (strcmp(tokens[0], "obj_model") == 0) {
+        state = OBJ_MODEL_STATE;
       } else {
         PANIC("Unknown top level type: %s", tokens[0]);
       }

@@ -2,6 +2,7 @@
 #include "core/color.h"
 #include "core/dyn_array.h"
 #include "core/generic_types.h"
+#include "core/obj_parser.h"
 #include "core/ray.h"
 #include "core/scene_parser.h"
 #include "core/vec3.h"
@@ -46,9 +47,8 @@ int main(int argc, char **argv) {
   // Material *glass =
   //     scene_add_material(&scene, metal_create((Color){1, 1, 1}, 0.0));
   // scene_add_obj(&scene, sphere_create((Vec3){0, -1000, 0}, 1000, glass));
+
   parse_scene(argv[1], &scene, &cam);
-  create_round_table(&scene);
-  create_simple_table(&scene);
   // Add small spheres in a grid with random materials
   for (int a = -5; a < 5; a++) {
     for (int b = -5; b < 5; b++) {
