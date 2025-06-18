@@ -331,3 +331,11 @@ TriangleRaw *triarray_get(TriangleArr *arr, int index) {
 //   }
 //   puts("]");
 // }
+
+/**
+ * Change triangle raw to triangle hittable
+ * Use dynamic arrays
+ * so no more triangle raw only triangle (and all are hittable)
+ * mesh will store hittable triangles.
+ * => can use for different materials.
+ */
