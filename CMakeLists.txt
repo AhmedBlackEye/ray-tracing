@@ -21,7 +21,8 @@ add_library(hittable
   hittable/hittable_list.c
   hittable/sphere.c
   hittable/plane.c
-  hittable/triangle.c
+  hittable/triangle_hittable.c
+  hittable/triangle_raw.c
   hittable/triangle_mesh.c
   hittable/quad.c
   hittable/rotate_y.c
