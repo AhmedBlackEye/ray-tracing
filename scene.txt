@@ -1,48 +1,139 @@
 camera {
-  lookfrom 8 3 8
-  lookat   0 1 0
-  vup      0 1 0
+  lookfrom 278 278 -800
+  lookat   278 278 0
+  vup 0 1 0
   vfov 40
-  defocus_angle 0.6
+  defocus_angle 0
   focus_distance 10
-  samples_per_pixel 100
+  samples_per_pixel 10
   max_depth 25
   width 720
-  aspect_ratio 16 9
+  aspect_ratio 1 1
   background 0 0 0
   lighting on
 }
 
-texture {
-  name ground_checkered
-  type checkered
-  scale 0.5
-  color1 0.2 0.3 0.1
-  color2 0.9 0.9 0.9
-}
-
 material {
-  name ground_material
+  name red
   type lambertian
-  texture ground_checkered
+  color 0.65 0.05 0.05
 }
 
 material {
-  name bright_light
+  name green
+  type lambertian
+  color 0.12 0.45 0.15
+}
+
+material {
+  name white
+  type lambertian
+  color 0.73 0.73 0.73
+}
+
+material {
+  name light
   type diffuse_light
   color 15 15 15
 }
 
-sphere {
-  center 0 -1000 0
-  radius 1000
-  material ground_material
+quad {
+  Q 555 0 0
+  u 0 0 555
+  v 0 555 0
+  material green
 }
 
-sphere {
-  center 0 1 0
-  radius 1.5
-  material bright_light
+quad {
+  Q 0 0 555
+  u 0 0 -555
+  v 0 555 0
+  material red
 }
+
+quad {
+  Q 0 0 0
+  u 555 0 0
+  v 0 0 555
+  material white
+}
+
+quad {
+  Q 0 555 0
+  u 555 0 0
+  v 0 0 555
+  material white
+}
+
+quad {
+  Q 0 0 555
+  u 555 0 0
+  v 0 555 0
+  material white
+}
+
+quad {
+  Q 213 554 227
+  u 129 0 0
+  v 0 0 100
+  material light
+}
+
+quad {
+  Q 130 0 65
+  u 0 0 165
+  v 0 165 0
+  material white
+}
+
+quad {
+  Q 295 0 230
+  u -165 0 0
+  v 0 165 0
+  material white
+}
+
+quad {
+  Q 130 0 230
+  u 165 0 0
+  v 0 0 -165
+  material white
+}
+
+quad {
+  Q 130 165 65
+  u 0 0 165
+  v 165 0 0
+  material white
+}
+
+quad {
+  Q 265 0 295
+  u 0 0 165
+  v 0 330 0
+  material white
+}
+
+quad {
+  Q 430 0 460
+  u -165 0 0
+  v 0 330 0
+  material white
+}
+
+quad {
+  Q 265 0 460
+  u 165 0 0
+  v 0 0 -165
+  material white
+}
+
+quad {
+  Q 265 330 295
+  u 0 0 165
+  v 165 0 0
+  material white
+}
+
 
 
