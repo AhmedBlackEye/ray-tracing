@@ -66,35 +66,65 @@ static Vec3 parse_vec3(char **tokens) {
       .x = atof(tokens[1]), .y = atof(tokens[2]), .z = atof(tokens[3])};
 }
 
-static void parse_camera(char *tokens[], int num_toks, Vec3 *lookfrom,
-                         Vec3 *lookat, Vec3 *vup, double *vfov,
-                         double *defocus_angle, double *focus_dist,
-                         int *samples_per_pixel, int *max_depth,
-                         double *aspect_ratio, int *width, Color *background,
-                         bool *is_lighting) {
+static int name_index(const DynArray *name_array, const char *name) {
+    size_t n = dynarray_size(name_array);
+    for (size_t i = 0; i < n; i++) {
+        const char *name_at_index = (const char *)dynarray_get(name_array, i);
+        if (name_at_index && strcmp(name_at_index, name) == 0)
+            return (int)i;
+    }
+    return -1;
+}
+
+static void parse_camera(
+  char *tokens[], 
+  int num_toks, 
+  Vec3 *lookfrom,
+  Vec3 *lookat, 
+  Vec3 *vup, 
+  double *vfov,
+  double *defocus_angle, 
+  double *focus_dist,
+  int *samples_per_pixel, 
+  int *max_depth,
+  double *aspect_ratio, 
+  int *width, 
+  Color *background,
+  bool *is_lighting
+) {
   if (num_toks == 2 && strcmp(tokens[0], "width") == 0) {
     *width = atoi(tokens[1]);
-  } else if (num_toks == 3 && strcmp(tokens[0], "aspect_ratio") == 0) {
+  }
+  else if (num_toks == 3 && strcmp(tokens[0], "aspect_ratio") == 0) {
     double w = atof(tokens[1]);
     double h = atof(tokens[2]);
     *aspect_ratio = w / h;
-  } else if (num_toks == 4 && strcmp(tokens[0], "lookfrom") == 0) {
+  } 
+  else if (num_toks == 4 && strcmp(tokens[0], "lookfrom") == 0) {
     *lookfrom = parse_vec3(tokens);
-  } else if (num_toks == 4 && strcmp(tokens[0], "lookat") == 0) {
+  } 
+  else if (num_toks == 4 && strcmp(tokens[0], "lookat") == 0) {
     *lookat = parse_vec3(tokens);
-  } else if (num_toks == 4 && strcmp(tokens[0], "vup") == 0) {
+  } 
+  else if (num_toks == 4 && strcmp(tokens[0], "vup") == 0) {
     *vup = parse_vec3(tokens);
-  } else if (num_toks == 2 && strcmp(tokens[0], "vfov") == 0) {
+  } 
+  else if (num_toks == 2 && strcmp(tokens[0], "vfov") == 0) {
     *vfov = atof(tokens[1]);
-  } else if (num_toks == 2 && strcmp(tokens[0], "defocus_angle") == 0) {
+  } 
+  else if (num_toks == 2 && strcmp(tokens[0], "defocus_angle") == 0) {
     *defocus_angle = atof(tokens[1]);
-  } else if (num_toks == 2 && strcmp(tokens[0], "focus_distance") == 0) {
+  } 
+  else if (num_toks == 2 && strcmp(tokens[0], "focus_distance") == 0) {
     *focus_dist = atof(tokens[1]);
-  } else if (num_toks == 2 && strcmp(tokens[0], "samples_per_pixel") == 0) {
+  } 
+  else if (num_toks == 2 && strcmp(tokens[0], "samples_per_pixel") == 0) {
     *samples_per_pixel = atoi(tokens[1]);
-  } else if (num_toks == 2 && strcmp(tokens[0], "max_depth") == 0) {
+  } 
+  else if (num_toks == 2 && strcmp(tokens[0], "max_depth") == 0) {
     *max_depth = atoi(tokens[1]);
-  } else if (num_toks == 4 && strcmp(tokens[0], "background") == 0) {
+  } 
+  else if (num_toks == 4 && strcmp(tokens[0], "background") == 0) {
     *background = parse_vec3(tokens);
   } 
   else if (num_toks == 2 && strcmp(tokens[0], "lighting") == 0) {
@@ -105,8 +135,15 @@ static void parse_camera(char *tokens[], int num_toks, Vec3 *lookfrom,
   }
 }
 
-static void parse_texture(char *tokens[], int num_toks, char *name, char *type,
-                          double *scale, Vec3 *color1, Vec3 *color2) {
+static void parse_texture(
+  char *tokens[], 
+  int num_toks, 
+  char *name, 
+  char *type,
+  double *scale, 
+  Vec3 *color1,
+  Vec3 *color2
+) {
   if (num_toks == 2 && strcmp(tokens[0], "name") == 0) {
     strcpy(name, tokens[1]);
   } else if (num_toks == 2 && strcmp(tokens[0], "type") == 0) {
@@ -123,9 +160,15 @@ static void parse_texture(char *tokens[], int num_toks, char *name, char *type,
   }
 }
 
-static void add_texture(Scene *scene, DynArray *tex_names, const char *name,
-                        const char *type, double scale, Vec3 color1,
-                        Vec3 color2) {
+static void add_texture(
+  Scene *scene, 
+  DynArray *tex_names, 
+  const char *name,
+  const char *type, 
+  double scale, 
+  Vec3 color1,
+  Vec3 color2
+) {
   Texture *tex;
   if (strcmp(type, "checkered") == 0) {
     tex = (Texture *)checkered_create_colors(scale, &color1, &color2);
@@ -175,33 +218,50 @@ static void parse_material(
     }
 }
 
-static void add_material(Scene *scene, DynArray *mat_names, DynArray *tex_names,
-                         const char *name, const char *type, Vec3 color,
-                         double fuzz, double ref_index,
-                         const char *texture_name) {
+static void add_material(
+  Scene *scene, 
+  DynArray *mat_names, 
+  DynArray *tex_names,
+  const char *name, 
+  const char *type, 
+  Vec3 color,
+  double fuzz, 
+  double ref_index,
+  const char *texture_name
+) {
   Material *mat;
   if (strcmp(type, "lambertian") == 0) {
     if (strlen(texture_name) > 0) {
-      Texture *tex;
-      size_t num_textures = dynarray_size(tex_names);
-      for (size_t i = 0; i < num_textures; i++) {
-        char *tex_name_str = (char *)dynarray_get(tex_names, i);
-        if (tex_name_str && strcmp(texture_name, tex_name_str) == 0) {
-          tex = (Texture *)dynarray_get(scene->textures, i);
-          break;
-        }
-      }
-      PANIC_IF(!tex, "Texture not found: %s", texture_name);
+      int index = name_index(tex_names, texture_name);
+      PANIC_IF(index < 0, "Texture not found: %s", texture_name);
+      Texture *tex = (Texture *)dynarray_get(scene->textures, (size_t)index);
       mat = lambertian_create_texture(tex);
-    } else {
+    } 
+    else {
       mat = lambertian_create(color);
     }
   } else if (strcmp(type, "metal") == 0) {
-    mat = metal_create(color, fuzz);
+    if (strlen(texture_name) > 0) {
+      int index = name_index(tex_names, texture_name);
+      PANIC_IF(index < 0, "Texture not found: %s", texture_name);
+      Texture *tex = (Texture *)dynarray_get(scene->textures, (size_t)index);
+      mat = metal_create_texture(tex, fuzz);
+    } 
+    else {
+      mat = metal_create(color, fuzz);
+    }
   } else if (strcmp(type, "dielectric") == 0) {
     mat = dielectric_create(ref_index);
   } else if (strcmp(type, "diffuse_light") == 0) {
-    mat = diffuse_light_create(color);
+    if (strlen(texture_name) > 0) {
+      int index = name_index(tex_names, texture_name);
+      PANIC_IF(index < 0, "Texture not found: %s", texture_name);
+      Texture *tex = (Texture *)dynarray_get(scene->textures, (size_t)index);
+      mat = diffuse_light_create_texture(tex);
+    } 
+    else {
+      mat = diffuse_light_create(color);
+    }
   } else {
     PANIC("Unknown material type: %s", type);
   }
@@ -213,11 +273,20 @@ static void add_material(Scene *scene, DynArray *mat_names, DynArray *tex_names,
   dynarray_push(mat_names, name_dup);
 }
 
-static void parse_geometry(ParserState state, char *tokens[], int num_toks,
-                           Vec3 *center_start, Vec3 *center_end,
-                           bool *is_moving, double *radius, Vec3 *point,
-                           Vec3 *normal, Vec3 *Q,
-                           Vec3 *u, Vec3 *v) {
+static void parse_geometry(
+  ParserState state, 
+  char *tokens[], 
+  int num_toks,
+  Vec3 *center_start, 
+  Vec3 *center_end,
+  bool *is_moving, 
+  double *radius, 
+  Vec3 *point,
+  Vec3 *normal, 
+  Vec3 *Q,
+  Vec3 *u, 
+  Vec3 *v
+) {
   if (state == SPHERE_STATE) {
     if (num_toks == 4 && (strcmp(tokens[0], "center") == 0 ||
                           strcmp(tokens[0], "center_start") == 0)) {
@@ -253,7 +322,11 @@ static void parse_geometry(ParserState state, char *tokens[], int num_toks,
   }
 }
 
-void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
+void parse_scene(
+  const char *filename, 
+  Scene *scene, 
+  Camera *out_cam
+) {
   FILE *file = fopen(filename, "r");
   assert(file != NULL);
 
@@ -376,16 +449,9 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
                       &tex_color1, &tex_color2);
       } else {
         if (num_toks == 2 && strcmp(tokens[0], "material") == 0) {
-          size_t num_mats = dynarray_size(mat_names);
-          for (size_t i = 0; i < num_mats; i++) {
-            char *p = (char *)dynarray_get(mat_names, i);
-            if (p != NULL && strcmp(tokens[1], p) == 0) {
-              current_mat = (Material *)dynarray_get(scene->materials, i);
-              break;
-            }
-          }
-
-          PANIC_IF(!current_mat, "Material not found: %s", tokens[1]);
+          int index = name_index(mat_names, tokens[1]);
+          PANIC_IF(index < 0, "Material not found: %s", tokens[1]);
+          current_mat = (Material *)dynarray_get(scene->materials, (size_t)index);
           continue;
         }
         parse_geometry(state, tokens, num_toks, &center_start, &center_end,

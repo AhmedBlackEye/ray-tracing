@@ -68,7 +68,6 @@ void lambertian_print(const Material *self) {
     printf("Lambertian: Invalid or NULL\n");
     return;
   }
-  //const Lambertian *lamb = (const Lambertian *)self->data;
-  //Color albedo = lamb->albedo;
-  //printf("Lambertian { albedo: %.3f %.3f %.3f}\n", albedo.x, albedo.y, albedo.z);
+  const Lambertian *lamb = (const Lambertian *)self->data;
+  printf("Lambertian { texture: %p}\n", (void*)lamb->tex);
 }

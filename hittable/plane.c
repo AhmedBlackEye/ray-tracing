@@ -20,13 +20,13 @@ static bool plane_hit(const Hittable *self, Ray ray, Interval t_bounds, HitRecor
 
   const Plane *plane = (const Plane *)self->data;
 
-  double denominator = vec3_dot(ray.direction, plane->normal);
-  if (fabs(denominator) < DBL_EPSILON) {
+  double denom = vec3_dot(ray.direction, plane->normal);
+  if (fabs(denom) < DBL_EPSILON) {
     return false;
   }
 
   Vec3 point_minus_origin = vec3_sub(plane->point, ray.origin);  
-  double t = vec3_dot(point_minus_origin, plane->normal) / denominator;
+  double t = vec3_dot(point_minus_origin, plane->normal) / denom;
 
   if (!interval_surrounds(t_bounds, t)) {
         return false;

@@ -21,6 +21,14 @@ texture {
     color2 0.9 0.9 0.9
 }
 
+texture {
+    name metal_checkered
+    type checkered
+    scale 0.2
+    color1 0.9 0.9 0.9  
+    color2 0.1 0.1 0.1   
+}
+
 material {
     name center_material
     type lambertian
@@ -46,10 +54,30 @@ material {
     texture ground_checkered
 }
 
+material {
+    name checkered_metal
+    type metal
+    fuzz 0.0
+    texture metal_checkered
+}
+
 sphere {
     center 0 -1000 0
     radius 1000.0
     material ground_material
+}
+
+sphere {
+    center 2 1 0          
+    radius 1.0
+    material checkered_metal
+}
+
+quad {
+    Q      -1 0 -1    
+    u       4 0  0      
+    v       0 4  0      
+    material checkered_metal
 }
 
 quad {
