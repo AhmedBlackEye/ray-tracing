@@ -1,0 +1,70 @@
+camera {
+  lookfrom 0.1 2.0 -3.0    
+  lookat   0.05 1.98 -5.0  
+  vup      0 1 0
+  vfov     30              
+  defocus_angle 0.6        
+  focus_distance 2.0     
+  samples_per_pixel 10     
+  max_depth 10             
+  width 400              
+  aspect_ratio 16 9
+  background 0.5 0.7 1.0  
+}
+
+texture {
+    name grass
+    type solid
+    scale 2.0               
+    color 0.4 0.9 0.2
+}
+material {
+    name ground_material
+    type lambertian
+    texture grass
+}
+sphere {
+    center 0 -1000 0
+    radius 1000.0
+    material ground_material
+}
+
+material {
+    name key_light
+    type diffuse_light
+    color 8 7 6             
+}
+sphere {
+    center -2 4 -3          
+    radius 0.3
+    material key_light
+}
+
+
+material {
+    name fill_light
+    type diffuse_light
+    color 3 3 4             
+}
+sphere {
+    center 2 3 -4           
+    radius 0.2
+    material fill_light
+}
+
+
+material {
+     name cow_material
+     type metal
+     color 0.8 0.6 0.4      
+    fuzz 0.1              
+}
+
+
+obj_model {
+    file models/cow.obj
+    material cow_material
+    position 0 2 -5
+    scale 0.1 0.1 0.1   
+    rotation 0 -60 0        
+}
