@@ -388,6 +388,7 @@ void parse_scene(
       case MATERIAL_STATE:
         add_material(scene, mat_names, tex_names, mat_name, mat_type, color,
                      fuzz, ref_index, mat_texture_name);
+        mat_texture_name[0] = '\0'; 
         break;
       case TEXTURE_STATE:
         add_texture(scene, tex_names, tex_name, tex_type, tex_scale, tex_color1,
