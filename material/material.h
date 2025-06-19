@@ -29,4 +29,4 @@ extern void material_destroy(Material *self);
 extern void material_print(const Material *self);
 extern Color material_emitted(Material *mat, double u, double v, const Vec3 *p);
 
-#endif // MATERIAL_H
+#endif // MATERIAL_Hss

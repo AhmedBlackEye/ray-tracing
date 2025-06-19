@@ -53,6 +53,19 @@ int main(int argc, char **argv) {
     Hittable *sphere_to_rotate = sphere_create((Vec3){2, 0, -5}, 1.0, blue);  
     Hittable *rotated_sphere = rotate_y_create(sphere_to_rotate, 45.0);
     scene_add_obj(&scene, rotated_sphere);
+
+    Vec3 a = { -1.0, 0.0, -1.0 };  
+    Vec3 b = {  1.0, 2.0,  1.0 };
+
+    DynArray *box_sides = box_create(a, b, box_mat);          // 6 quads
+
+    for (size_t i = 0; i < dynarray_size(box_sides); ++i) {
+        Hittable *face = (Hittable *)dynarray_get(box_sides, i);
+        scene_add_obj(scene, face);                           // <- real use
+    }
+
+    /* destroy only the container; the quads now live in the scene   */
+    dynarray_destroy(box_sides);
     
     camera_render(&cam, scene.objects, out_file);
     scene_destroy(&scene);
