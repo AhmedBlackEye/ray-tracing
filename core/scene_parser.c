@@ -285,306 +285,299 @@ static void add_material(Scene *scene, DynArray *mat_names, DynArray *tex_names,
   char *name_dup = strdup(name);
   dynarray_push(mat_names, name_dup);
 }
-
 static void parse_geometry(ParserState state, char *tokens[], int num_toks,
                            Vec3 *center_start, Vec3 *center_end,
                            bool *is_moving, double *radius, Vec3 *point,
                            Vec3 *normal, Vec3 *Q, Vec3 *u, Vec3 *v) {
-  static void parse_geometry(ParserState state, char *tokens[], int num_toks,
-                             Vec3 *center_start, Vec3 *center_end,
-                             bool *is_moving, double *radius, Vec3 *point,
-                             Vec3 *normal, Vec3 *Q, Vec3 *u, Vec3 *v) {
-    if (state == SPHERE_STATE) {
-      if (num_toks == 4 && (strcmp(tokens[0], "center") == 0 ||
-                            strcmp(tokens[0], "center_start") == 0)) {
-        *center_start = parse_vec3(tokens);
-      } else if (num_toks == 4 && strcmp(tokens[0], "center_end") == 0) {
-        *center_end = parse_vec3(tokens);
-        *is_moving = true;
-      } else if (num_toks == 2 && strcmp(tokens[0], "radius") == 0) {
-        *radius = atof(tokens[1]);
-      } else {
-        PANIC("Unknown sphere parameter: %s", tokens[0]);
-      }
-    } else if (state == PLANE_STATE) {
-      if (num_toks == 4 && strcmp(tokens[0], "point") == 0) {
-        *point = parse_vec3(tokens);
-      } else if (num_toks == 4 && strcmp(tokens[0], "normal") == 0) {
-        *normal = parse_vec3(tokens);
-      } else {
-        PANIC("Unknown plane parameter: %s", tokens[0]);
-      }
-    } else if (state == QUAD_STATE) {
-      if (num_toks == 4 && strcmp(tokens[0], "Q") == 0) {
-        *Q = parse_vec3(tokens);
-      } else if (num_toks == 4 && strcmp(tokens[0], "u") == 0) {
-        *u = parse_vec3(tokens);
-      } else if (num_toks == 4 && strcmp(tokens[0], "v") == 0) {
-        *v = parse_vec3(tokens);
-      } else {
-        PANIC("Unknown quad parameter: %s", tokens[0]);
-      }
+  if (state == SPHERE_STATE) {
+    if (num_toks == 4 && (strcmp(tokens[0], "center") == 0 ||
+                          strcmp(tokens[0], "center_start") == 0)) {
+      *center_start = parse_vec3(tokens);
+    } else if (num_toks == 4 && strcmp(tokens[0], "center_end") == 0) {
+      *center_end = parse_vec3(tokens);
+      *is_moving = true;
+    } else if (num_toks == 2 && strcmp(tokens[0], "radius") == 0) {
+      *radius = atof(tokens[1]);
     } else {
-      PANIC("Unknown geometry state");
+      PANIC("Unknown sphere parameter: %s", tokens[0]);
     }
-  }
-  void parse_obj_model(char *tokens[], int num_toks, char *filename,
-                       char *material_name, Vec3 *position, Vec3 *scale,
-                       Vec3 *rotation) {
-    if (num_toks == 2 && strcmp(tokens[0], "file") == 0) {
-      strcpy(filename, tokens[1]);
-    } else if (num_toks == 2 && strcmp(tokens[0], "material") == 0) {
-      strcpy(material_name, tokens[1]);
-    } else if (num_toks == 4 && strcmp(tokens[0], "position") == 0) {
-      *position = parse_vec3(tokens);
-    } else if (num_toks == 4 && strcmp(tokens[0], "scale") == 0) {
-      *scale = parse_vec3(tokens);
-    } else if (num_toks == 4 && strcmp(tokens[0], "rotation") == 0) {
-      // Convert degrees to radians
-      rotation->x = atof(tokens[1]) * PI / 180.0;
-      rotation->y = atof(tokens[2]) * PI / 180.0;
-      rotation->z = atof(tokens[3]) * PI / 180.0;
+  } else if (state == PLANE_STATE) {
+    if (num_toks == 4 && strcmp(tokens[0], "point") == 0) {
+      *point = parse_vec3(tokens);
+    } else if (num_toks == 4 && strcmp(tokens[0], "normal") == 0) {
+      *normal = parse_vec3(tokens);
     } else {
-      PANIC("Unknown obj_model parameter: %s", tokens[0]);
+      PANIC("Unknown plane parameter: %s", tokens[0]);
+    }
+  } else if (state == QUAD_STATE) {
+    if (num_toks == 4 && strcmp(tokens[0], "Q") == 0) {
+      *Q = parse_vec3(tokens);
+    } else if (num_toks == 4 && strcmp(tokens[0], "u") == 0) {
+      *u = parse_vec3(tokens);
+    } else if (num_toks == 4 && strcmp(tokens[0], "v") == 0) {
+      *v = parse_vec3(tokens);
+    } else {
+      PANIC("Unknown quad parameter: %s", tokens[0]);
+    }
+  } else {
+    PANIC("Unknown geometry state");
+  }
+}
+void parse_obj_model(char *tokens[], int num_toks, char *filename,
+                     char *material_name, Vec3 *position, Vec3 *scale,
+                     Vec3 *rotation) {
+  if (num_toks == 2 && strcmp(tokens[0], "file") == 0) {
+    strcpy(filename, tokens[1]);
+  } else if (num_toks == 2 && strcmp(tokens[0], "material") == 0) {
+    strcpy(material_name, tokens[1]);
+  } else if (num_toks == 4 && strcmp(tokens[0], "position") == 0) {
+    *position = parse_vec3(tokens);
+  } else if (num_toks == 4 && strcmp(tokens[0], "scale") == 0) {
+    *scale = parse_vec3(tokens);
+  } else if (num_toks == 4 && strcmp(tokens[0], "rotation") == 0) {
+    // Convert degrees to radians
+    rotation->x = atof(tokens[1]) * PI / 180.0;
+    rotation->y = atof(tokens[2]) * PI / 180.0;
+    rotation->z = atof(tokens[3]) * PI / 180.0;
+  } else {
+    PANIC("Unknown obj_model parameter: %s", tokens[0]);
+  }
+}
+
+static Material *find_material_by_name(Scene *scene, DynArray *mat_names,
+                                       const char *name) {
+  size_t num_materials = dynarray_size(mat_names);
+  for (size_t i = 0; i < num_materials; i++) {
+    char *mat_name_str = (char *)dynarray_get(mat_names, i);
+    if (mat_name_str && strcmp(name, mat_name_str) == 0) {
+      return (Material *)dynarray_get(scene->materials, i);
     }
   }
+  return NULL;
+}
 
-  static Material *find_material_by_name(Scene * scene, DynArray * mat_names,
-                                         const char *name) {
-    size_t num_materials = dynarray_size(mat_names);
-    for (size_t i = 0; i < num_materials; i++) {
-      char *mat_name_str = (char *)dynarray_get(mat_names, i);
-      if (mat_name_str && strcmp(name, mat_name_str) == 0) {
-        return (Material *)dynarray_get(scene->materials, i);
-      }
+void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
+  FILE *file = fopen(filename, "r");
+  assert(file != NULL);
+
+  DynArray *mat_names = dynarray_create(8, NULL, (GDestroyFn)free);
+
+  DynArray *tex_names = dynarray_create(8, NULL, (GDestroyFn)free);
+  char tex_name[32];
+  char tex_type[32];
+  char mat_texture_name[32] = "";
+  double tex_scale;
+  Vec3 tex_color1;
+  Vec3 tex_color2;
+
+  ParserState state = TOPLEVEL_STATE;
+
+  char line[MAX_LINE_LENGTH];
+  char *tokens[MAX_TOKENS];
+
+  Vec3 center_start;
+  double radius;
+  Vec3 center_end;
+  bool is_moving = false;
+
+  Vec3 normal;
+  Vec3 point;
+
+  Vec3 lookfrom = LOOKFROM;
+  Vec3 lookat = LOOKAT;
+  Vec3 vup = VUP;
+  double vfov = VFOV;
+  double defocus_angle = DEFOCUS_ANGLE;
+  double focus_dist = FOCUS_DIST;
+  int samples_per_pixel = SAMPLES_PER_PIXEL;
+  int max_depth = MAX_DEPTH;
+  double aspect_ratio = ASPECT_RATIO;
+  int width = WIDTH;
+  Color background = BACKGROUND;
+  bool is_lighting = IS_LIGHTING;
+
+  Material *current_mat;
+
+  char mat_name[32];
+  char mat_type[32];
+  Vec3 color;
+  double fuzz;
+  double ref_index;
+
+  Vec3 Q;
+  Vec3 u;
+  Vec3 v;
+
+  Vec3 v0 = {0, 0, 0};
+  Vec3 v1 = {0, 0, 0};
+  Vec3 v2 = {0, 0, 0};
+
+  char obj_filename[128] = "";
+  char obj_material_name[64] = "";
+  Vec3 obj_position = {0.0, 0.0, 0.0};
+  Vec3 obj_scale = {1.0, 1.0, 1.0};
+  Vec3 obj_rotation = {0.0, 0.0, 0.0};
+
+  while (fgets(line, MAX_LINE_LENGTH, file)) {
+    if (line[0] == '\n') {
+      continue;
     }
-    return NULL;
-  }
 
-  void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
-    FILE *file = fopen(filename, "r");
-    assert(file != NULL);
-
-    DynArray *mat_names = dynarray_create(8, NULL, (GDestroyFn)free);
-
-    DynArray *tex_names = dynarray_create(8, NULL, (GDestroyFn)free);
-    char tex_name[32];
-    char tex_type[32];
-    char mat_texture_name[32] = "";
-    double tex_scale;
-    Vec3 tex_color1;
-    Vec3 tex_color2;
-
-    ParserState state = TOPLEVEL_STATE;
-
-    char line[MAX_LINE_LENGTH];
-    char *tokens[MAX_TOKENS];
-
-    Vec3 center_start;
-    double radius;
-    Vec3 center_end;
-    bool is_moving = false;
-
-    Vec3 normal;
-    Vec3 point;
-
-    Vec3 lookfrom = LOOKFROM;
-    Vec3 lookat = LOOKAT;
-    Vec3 vup = VUP;
-    double vfov = VFOV;
-    double defocus_angle = DEFOCUS_ANGLE;
-    double focus_dist = FOCUS_DIST;
-    int samples_per_pixel = SAMPLES_PER_PIXEL;
-    int max_depth = MAX_DEPTH;
-    double aspect_ratio = ASPECT_RATIO;
-    int width = WIDTH;
-    Color background = BACKGROUND;
-    bool is_lighting = IS_LIGHTING;
-
-    Material *current_mat;
-
-    char mat_name[32];
-    char mat_type[32];
-    Vec3 color;
-    double fuzz;
-    double ref_index;
-
-    Vec3 Q;
-    Vec3 u;
-    Vec3 v;
-
-    Vec3 v0 = {0, 0, 0};
-    Vec3 v1 = {0, 0, 0};
-    Vec3 v2 = {0, 0, 0};
-
-    char obj_filename[128] = "";
-    char obj_material_name[64] = "";
-    Vec3 obj_position = {0.0, 0.0, 0.0};
-    Vec3 obj_scale = {1.0, 1.0, 1.0};
-    Vec3 obj_rotation = {0.0, 0.0, 0.0};
-
-    while (fgets(line, MAX_LINE_LENGTH, file)) {
-      if (line[0] == '\n') {
-        continue;
-      }
-
-      if (strchr(line, '}')) {
-        switch (state) {
-        case MATERIAL_STATE:
-          add_material(scene, mat_names, tex_names, mat_name, mat_type, color,
-                       fuzz, ref_index, mat_texture_name);
-          mat_texture_name[0] = '\0';
-          break;
-        case TEXTURE_STATE:
-          add_texture(scene, tex_names, tex_name, tex_type, tex_scale,
-                      tex_color1, tex_color2);
-          break;
-        case SPHERE_STATE:
-          if (is_moving) {
-            scene_add_obj(scene, sphere_create_moving(center_start, center_end,
-                                                      radius, current_mat));
-          } else {
-            scene_add_obj(scene,
-                          sphere_create(center_start, radius, current_mat));
-          }
-          is_moving = false;
-          break;
-        case PLANE_STATE:
-          scene_add_obj(scene, plane_create(point, normal, current_mat));
-          break;
-        case TRIANGLE_STATE:
+    if (strchr(line, '}')) {
+      switch (state) {
+      case MATERIAL_STATE:
+        add_material(scene, mat_names, tex_names, mat_name, mat_type, color,
+                     fuzz, ref_index, mat_texture_name);
+        mat_texture_name[0] = '\0';
+        break;
+      case TEXTURE_STATE:
+        add_texture(scene, tex_names, tex_name, tex_type, tex_scale, tex_color1,
+                    tex_color2);
+        break;
+      case SPHERE_STATE:
+        if (is_moving) {
+          scene_add_obj(scene, sphere_create_moving(center_start, center_end,
+                                                    radius, current_mat));
+        } else {
           scene_add_obj(scene,
-                        triangle_hittable_create(v0, v1, v2, current_mat));
-          break;
-        case QUAD_STATE:
-          scene_add_obj(scene, quad_create(Q, u, v, current_mat));
-          break;
-        case OBJ_MODEL_STATE: {
-          if (strlen(obj_filename) == 0) {
-            printf("Warning: missing 'file' parameter, skipping\n");
-            goto cleanup_obj;
-          }
-
-          if (strlen(obj_material_name) == 0) {
-            printf("Warning: missing 'material' parameter, skipping\n");
-            goto cleanup_obj;
-          }
-
-          FILE *test_file = fopen(obj_filename, "r");
-          if (!test_file) {
-            printf("Warning: OBJ file not found: %s\n", obj_filename);
-            printf("Make sure the file exists and path is correct\n");
-            goto cleanup_obj;
-          }
-          fclose(test_file);
-          Material *obj_material =
-              find_material_by_name(scene, mat_names, obj_material_name);
-          if (!obj_material) {
-            printf("Warning: Material '%s' not found\n", obj_material_name);
-            printf("Available materials:\n");
-            for (int i = 0; i < dynarray_size(mat_names); i++) {
-              char *name = (char *)dynarray_get(mat_names, i);
-              if (name)
-                printf("     - %s\n", name);
-            }
-            goto cleanup_obj;
-          }
-
-          printf("Loading OBJ: %s with material: %s\n", obj_filename,
-                 obj_material_name);
-
-          // Create mesh loader
-          MeshLoader *loader = mesh_loader_create(obj_material);
-
-          // Parse OBJ and add triangles directly to scene objects as individual
-          // hittables
-          ObjParseResult result = obj_parse_file_to_hittables(
-              obj_filename, loader, scene->objects, obj_scale, obj_position,
-              obj_rotation);
-
-          if (result.success) {
-            printf("Successfully loaded %s (%d triangles as individual "
-                   "hittables)\n",
-                   obj_filename, result.face_count);
-          } else {
-            printf("Failed to load %s: %s\n", obj_filename,
-                   result.error_message);
-          }
-
-          mesh_loader_destroy(loader);
-
-        cleanup_obj:
-          // Always reset variables
-          strcpy(obj_filename, "");
-          strcpy(obj_material_name, "");
-          obj_position = (Vec3){0.0, 0.0, 0.0};
-          obj_scale = (Vec3){1.0, 1.0, 1.0};
-          obj_rotation = (Vec3){0.0, 0.0, 0.0};
-          break;
+                        sphere_create(center_start, radius, current_mat));
         }
-        default:
-          break;
+        is_moving = false;
+        break;
+      case PLANE_STATE:
+        scene_add_obj(scene, plane_create(point, normal, current_mat));
+        break;
+      case TRIANGLE_STATE:
+        scene_add_obj(scene, triangle_hittable_create(v0, v1, v2, current_mat));
+        break;
+      case QUAD_STATE:
+        scene_add_obj(scene, quad_create(Q, u, v, current_mat));
+        break;
+      case OBJ_MODEL_STATE: {
+        if (strlen(obj_filename) == 0) {
+          printf("Warning: missing 'file' parameter, skipping\n");
+          goto cleanup_obj;
         }
-        state = TOPLEVEL_STATE;
-        continue;
+
+        if (strlen(obj_material_name) == 0) {
+          printf("Warning: missing 'material' parameter, skipping\n");
+          goto cleanup_obj;
+        }
+
+        FILE *test_file = fopen(obj_filename, "r");
+        if (!test_file) {
+          printf("Warning: OBJ file not found: %s\n", obj_filename);
+          printf("Make sure the file exists and path is correct\n");
+          goto cleanup_obj;
+        }
+        fclose(test_file);
+        Material *obj_material =
+            find_material_by_name(scene, mat_names, obj_material_name);
+        if (!obj_material) {
+          printf("Warning: Material '%s' not found\n", obj_material_name);
+          printf("Available materials:\n");
+          for (int i = 0; i < dynarray_size(mat_names); i++) {
+            char *name = (char *)dynarray_get(mat_names, i);
+            if (name)
+              printf("     - %s\n", name);
+          }
+          goto cleanup_obj;
+        }
+
+        printf("Loading OBJ: %s with material: %s\n", obj_filename,
+               obj_material_name);
+
+        // Create mesh loader
+        MeshLoader *loader = mesh_loader_create(obj_material);
+
+        // Parse OBJ and add triangles directly to scene objects as individual
+        // hittables
+        ObjParseResult result =
+            obj_parse_file_to_hittables(obj_filename, loader, scene->objects,
+                                        obj_scale, obj_position, obj_rotation);
+
+        if (result.success) {
+          printf("Successfully loaded %s (%d triangles as individual "
+                 "hittables)\n",
+                 obj_filename, result.face_count);
+        } else {
+          printf("Failed to load %s: %s\n", obj_filename, result.error_message);
+        }
+
+        mesh_loader_destroy(loader);
+
+      cleanup_obj:
+        // Always reset variables
+        strcpy(obj_filename, "");
+        strcpy(obj_material_name, "");
+        obj_position = (Vec3){0.0, 0.0, 0.0};
+        obj_scale = (Vec3){1.0, 1.0, 1.0};
+        obj_rotation = (Vec3){0.0, 0.0, 0.0};
+        break;
       }
+      default:
+        break;
+      }
+      state = TOPLEVEL_STATE;
+      continue;
+    }
 
-      int num_toks = tokenize(line, tokens);
-      if (num_toks == 0)
-        continue;
+    int num_toks = tokenize(line, tokens);
+    if (num_toks == 0)
+      continue;
 
-      if (state == TOPLEVEL_STATE) {
-        if (strcmp(tokens[0], "camera") == 0) {
-          state = CAMERA_STATE;
-        } else if (strcmp(tokens[0], "material") == 0) {
-          state = MATERIAL_STATE;
-        } else if (strcmp(tokens[0], "texture") == 0) {
-          state = TEXTURE_STATE;
-        } else if (strcmp(tokens[0], "sphere") == 0) {
-          state = SPHERE_STATE;
-        } else if (strcmp(tokens[0], "plane") == 0) {
-          state = PLANE_STATE;
-        } else if (strcmp(tokens[0], "quad") == 0) {
-          state = QUAD_STATE;
-        } else if (strcmp(tokens[0], "obj_model") == 0) {
-          state = OBJ_MODEL_STATE;
-        } else {
-          PANIC("Unknown top level type: %s", tokens[0]);
-        }
+    if (state == TOPLEVEL_STATE) {
+      if (strcmp(tokens[0], "camera") == 0) {
+        state = CAMERA_STATE;
+      } else if (strcmp(tokens[0], "material") == 0) {
+        state = MATERIAL_STATE;
+      } else if (strcmp(tokens[0], "texture") == 0) {
+        state = TEXTURE_STATE;
+      } else if (strcmp(tokens[0], "sphere") == 0) {
+        state = SPHERE_STATE;
+      } else if (strcmp(tokens[0], "plane") == 0) {
+        state = PLANE_STATE;
+      } else if (strcmp(tokens[0], "quad") == 0) {
+        state = QUAD_STATE;
+      } else if (strcmp(tokens[0], "obj_model") == 0) {
+        state = OBJ_MODEL_STATE;
       } else {
-        if (state == CAMERA_STATE) {
-          parse_camera(tokens, num_toks, &lookfrom, &lookat, &vup, &vfov,
-                       &defocus_angle, &focus_dist, &samples_per_pixel,
-                       &max_depth, &aspect_ratio, &width, &background,
-                       &is_lighting);
-        } else if (state == MATERIAL_STATE) {
-          parse_material(tokens, num_toks, mat_name, mat_type, &color, &fuzz,
-                         &ref_index, mat_texture_name);
-        } else if (state == TEXTURE_STATE) {
-          parse_texture(tokens, num_toks, tex_name, tex_type, &tex_scale,
-                        &tex_color1, &tex_color2);
-        } else if (state == OBJ_MODEL_STATE) {
-          parse_obj_model(tokens, num_toks, obj_filename, obj_material_name,
-                          &obj_position, &obj_scale, &obj_rotation);
-        } else {
-          if (num_toks == 2 && strcmp(tokens[0], "material") == 0) {
-            int index = name_index(mat_names, tokens[1]);
-            PANIC_IF(index < 0, "Material not found: %s", tokens[1]);
-            current_mat =
-                (Material *)dynarray_get(scene->materials, (size_t)index);
-            continue;
-          }
-          parse_geometry(state, tokens, num_toks, &center_start, &center_end,
-                         &is_moving, &radius, &point, &normal, &Q, &u, &v);
+        PANIC("Unknown top level type: %s", tokens[0]);
+      }
+    } else {
+      if (state == CAMERA_STATE) {
+        parse_camera(tokens, num_toks, &lookfrom, &lookat, &vup, &vfov,
+                     &defocus_angle, &focus_dist, &samples_per_pixel,
+                     &max_depth, &aspect_ratio, &width, &background,
+                     &is_lighting);
+      } else if (state == MATERIAL_STATE) {
+        parse_material(tokens, num_toks, mat_name, mat_type, &color, &fuzz,
+                       &ref_index, mat_texture_name);
+      } else if (state == TEXTURE_STATE) {
+        parse_texture(tokens, num_toks, tex_name, tex_type, &tex_scale,
+                      &tex_color1, &tex_color2);
+      } else if (state == OBJ_MODEL_STATE) {
+        parse_obj_model(tokens, num_toks, obj_filename, obj_material_name,
+                        &obj_position, &obj_scale, &obj_rotation);
+      } else {
+        if (num_toks == 2 && strcmp(tokens[0], "material") == 0) {
+          int index = name_index(mat_names, tokens[1]);
+          PANIC_IF(index < 0, "Material not found: %s", tokens[1]);
+          current_mat =
+              (Material *)dynarray_get(scene->materials, (size_t)index);
+          continue;
         }
+        parse_geometry(state, tokens, num_toks, &center_start, &center_end,
+                       &is_moving, &radius, &point, &normal, &Q, &u, &v);
       }
     }
-    fclose(file);
-
-    *out_cam = camera_make(width, aspect_ratio, lookfrom, lookat, vup, vfov,
-                           defocus_angle, focus_dist, samples_per_pixel,
-                           max_depth, background, is_lighting);
-
-    dynarray_destroy(mat_names);
-    dynarray_destroy(tex_names);
   }
+  fclose(file);
+
+  *out_cam = camera_make(width, aspect_ratio, lookfrom, lookat, vup, vfov,
+                         defocus_angle, focus_dist, samples_per_pixel,
+                         max_depth, background, is_lighting);
+
+  dynarray_destroy(mat_names);
+  dynarray_destroy(tex_names);
+}
