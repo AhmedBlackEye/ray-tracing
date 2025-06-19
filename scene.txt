@@ -5,39 +5,30 @@ camera {
   vfov     20
   defocus_angle 0.6
   focus_distance 10
-  samples_per_pixel 100
+  samples_per_pixel 10
   max_depth 25
   width 720
-  aspect_ratio 16 9
+  aspect_ratio 1 1
   background 0 0 0
-  lighting off
-}
-
-texture {
-    name ground_checkered
-    type checkered
-    scale 0.5
-    color1 0.2 0.3 0.1
-    color2 0.9 0.9 0.9
+  lighting on
 }
 
 material {
-    name center_material
-    type lambertian
-    color 0.1 0.2 0.5
+  name red
+  type lambertian
+  color 0.65 0.05 0.05
 }
 
 material {
-    name left_material
-    type dielectric
-    ref_idx 1.5
+  name green
+  type lambertian
+  color 0.12 0.45 0.15
 }
 
 material {
-    name right_material
-    type metal
-    color 0.7 0.6 0.5
-    fuzz 0.0
+  name white
+  type lambertian
+  color 0.73 0.73 0.73
 }
 material {
     name ground_material
@@ -51,8 +42,88 @@ sphere {
 }
 
 quad {
-    Q 0 0 0
-    u 1 0 0 
-    v 0 1 0
-    material ground_material
+  Q 0 0 0
+  u 555 0 0
+  v 0 0 555
+  material white
 }
+
+quad {
+  Q 0 555 0
+  u 555 0 0
+  v 0 0 555
+  material white
+}
+
+quad {
+  Q 0 0 555
+  u 555 0 0
+  v 0 555 0
+  material white
+}
+
+quad {
+  Q 213 554 227
+  u 129 0 0
+  v 0 0 100
+  material light
+}
+
+quad {
+  Q 130 0 65
+  u 0 0 165
+  v 0 165 0
+  material white
+}
+
+quad {
+  Q 295 0 230
+  u -165 0 0
+  v 0 165 0
+  material white
+}
+
+quad {
+  Q 130 0 230
+  u 165 0 0
+  v 0 0 -165
+  material white
+}
+
+quad {
+  Q 130 165 65
+  u 0 0 165
+  v 165 0 0
+  material white
+}
+
+quad {
+  Q 265 0 295
+  u 0 0 165
+  v 0 330 0
+  material white
+}
+
+quad {
+  Q 430 0 460
+  u -165 0 0
+  v 0 330 0
+  material white
+}
+
+quad {
+  Q 265 0 460
+  u 165 0 0
+  v 0 0 -165
+  material white
+}
+
+quad {
+  Q 265 330 295
+  u 0 0 165
+  v 165 0 0
+  material white
+}
+
+
+

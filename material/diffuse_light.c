@@ -16,8 +16,9 @@ static bool diffuse_light_scatter(Material *mat, Ray ray_in, HitRecord *rec,
 static void diffuse_light_destroy(void *self) {
   assert(self != NULL);
   Material *mat = (Material *)self;
-  if (mat->data)
+  if (mat->data) {
     free(mat->data);
+  }
   free(self);
 }
 
@@ -26,8 +27,8 @@ void diffuse_light_print(const Material *self) {
     printf("Diffuse Light: Invalid or NULL\n");
     return;
   }
-    const DiffuseLight *diff_l = (const DiffuseLight *)self->data;
-    printf("Diffuse Light { texture: %p }\n", (void*)diff_l->tex);
+  const DiffuseLight *diff_l = (const DiffuseLight *)self->data;
+  printf("Diffuse Light { texture: %p }\n", (void*)diff_l->tex);
 }
 
 Color diffuse_light_emitted(Material *self, double u, double v, const Vec3 *p) {
@@ -39,7 +40,6 @@ Color diffuse_light_emitted(Material *self, double u, double v, const Vec3 *p) {
     return data->tex->value(data->tex, u, v, p);
 }
 
-// New texture-based constructor
 Material *diffuse_light_create_texture(Texture* tex) {
     Material *mat = malloc(sizeof(struct Material));
     assert(mat != NULL);
