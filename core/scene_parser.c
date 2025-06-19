@@ -46,6 +46,7 @@ typedef enum {
   TEXTURE_STATE,
   MATERIAL_STATE,
   SPHERE_STATE,
+  TRIANGLE_STATE,
   PLANE_STATE,
   QUAD_STATE,
   OBJ_MODEL_STATE,
@@ -60,7 +61,7 @@ void validate_hittable(const Hittable *obj, const char *context) {
   printf("=== VALIDATING HITTABLE [%s] ===\n", context);
   printf("Hittable pointer: %p\n", (void *)obj);
   printf("Type: %d\n", obj->type);
-  printf("Hit function: %p\n", (void *)obj->hit);
+  printf("Hit function: %s\n", obj->hit ? "present" : "NULL");
   printf("Destroy function: %p\n", (void *)obj->destroy);
   printf("Material: %p\n", (void *)obj->mat);
   printf("Data pointer: %p\n", (void *)obj->data);
@@ -391,6 +392,10 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
   Vec3 u;
   Vec3 v;
 
+  Vec3 v0 = {0, 0, 0};
+  Vec3 v1 = {0, 0, 0};
+  Vec3 v2 = {0, 0, 0};
+
   char obj_filename[128] = "";
   char obj_material_name[64] = "";
   Vec3 obj_position = {0.0, 0.0, 0.0};
@@ -454,7 +459,7 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
         if (!obj_material) {
           printf("Warning: Material '%s' not found\n", obj_material_name);
           printf("Available materials:\n");
-          for (size_t i = 0; i < dynarray_size(mat_names); i++) {
+          for (int i = 0; i < dynarray_size(mat_names); i++) {
             char *name = (char *)dynarray_get(mat_names, i);
             if (name)
               printf("     - %s\n", name);

@@ -1,13 +1,13 @@
 camera {
-  lookfrom 0.1 1.9 -3.0    
-  lookat   0 1.98 -5.0  
+  lookfrom 0.1 2.0 -3.0    
+  lookat   0.05 1.98 -5.0  
   vup      0 1 0
-  vfov     70              
-  defocus_angle 0      
+  vfov     30              
+  defocus_angle 0.6        
   focus_distance 2.0     
-  samples_per_pixel 80
-  max_depth 40           
-  width 720        
+  samples_per_pixel 10   
+  max_depth 10           
+  width 400             
   aspect_ratio 16 9
   background 0.5 0.7 1.0  
 }
@@ -40,7 +40,6 @@ sphere {
     material key_light
 }
 
-
 material {
     name fill_light
     type diffuse_light
@@ -52,18 +51,16 @@ sphere {
     material fill_light
 }
 
-
 material {
-     name cow_material
-     type metal
-     color 0.83 0.68 0.21    
-     fuzz 0.1              
+    name rock_material
+    type lambertian 
+    color 0.8 0.5 0.3
 }
 
 obj_model {
-    file models/homer.obj
-    material cow_material
-    position -0.1 1.58 -3.7
-    scale 0.5 0.5 0.5
-    rotation 0 -15 0        
+    file models/rock.obj 
+    material rock_material
+    position 0.5 1.6 -4.8
+    scale 0.2 0.2 0.2
+    rotation 0 0 0
 }

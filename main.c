@@ -43,20 +43,6 @@ int main(int argc, char **argv) {
   Camera cam;
   parse_scene(argv[1], &scene, &cam);
 
-  Material *red =
-      scene_add_material(&scene, lambertian_create((Vec3){0.8, 0.2, 0.2}));
-  Material *blue =
-      scene_add_material(&scene, lambertian_create((Vec3){0.2, 0.2, 0.8}));
-
-  // Normal sphere (red)
-  Hittable *normal_sphere = sphere_create((Vec3){-2, 0, -5}, 1.0, red);
-  scene_add_obj(&scene, normal_sphere);
-
-  // Rotated sphere (blue) - should look identical since spheres are symmetric
-  Hittable *sphere_to_rotate = sphere_create((Vec3){2, 0, -5}, 1.0, blue);
-  Hittable *rotated_sphere = rotate_y_create(sphere_to_rotate, 45.0);
-  scene_add_obj(&scene, rotated_sphere);
-
   camera_render(&cam, scene.objects, out_file);
   scene_destroy(&scene);
   fclose(out_file);
