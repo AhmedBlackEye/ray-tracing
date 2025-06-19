@@ -14,6 +14,9 @@
 #include "material/material.h"
 #include "shared.h"
 
+// static declarations
+static void validate_object_for_bvh(Hittable *obj, int index);
+
 typedef struct BVHNode {
   Hittable *left;
   Hittable *right;

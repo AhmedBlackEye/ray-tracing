@@ -40,8 +40,8 @@ Hittable *triangle_hittable_create(Vec3 v0, Vec3 v1, Vec3 v2, Material *mat) {
   hittable->type = HITTABLE_TRIANGLE;
   hittable->data = tri_hit_data;
   hittable->mat = mat;
-  hittable->destroy = triangle_destroy;
-  hittable->hit = triangle_hit;
+  hittable->destroy = (HittableDestroyFn)triangle_destroy;
+  hittable->hit = (HitFn)triangle_hit;
 
   // Initialize bbox to empty first (defensive programming)
   hittable->bbox = aabb_empty();
