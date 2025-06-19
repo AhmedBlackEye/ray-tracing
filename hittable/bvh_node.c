@@ -10,8 +10,12 @@
 #include "core/ray.h"
 #include "hit_record.h"
 #include "hittable.h"
+
 #include "material/material.h"
 #include "shared.h"
+
+// static declarations
+static void validate_object_for_bvh(Hittable *obj, int index);
 
 typedef struct BVHNode {
   Hittable *left;
@@ -113,7 +117,27 @@ static Hittable *bvhnode_create_helper(DynArray *objects, size_t start,
 Hittable *bvhnode_create(Hittable *hittable_list) {
   assert(hittable_list->type == HITTABLE_LIST);
   DynArray *objects = hittable_list->data;
-  return bvhnode_create_helper(objects, 0, dynarray_size(objects));
+
+  printf("\n=== CREATING BVH ===\n");
+  printf("Input objects: %d\n", dynarray_size(objects));
+
+  // Validate all objects before BVH creation
+  for (int i = 0; i < dynarray_size(objects); i++) {
+    Hittable *obj = dynarray_get(objects, i);
+    validate_object_for_bvh(obj, i);
+  }
+
+  if (dynarray_size(objects) == 0) {
+    printf("ERROR: No objects to create BVH from!\n");
+    return NULL;
+  }
+
+  Hittable *bvh = bvhnode_create_helper(objects, 0, dynarray_size(objects));
+
+  printf("BVH created successfully\n");
+  printf("===================\n\n");
+
+  return bvh;
 }
 
 void bvhnode_print(const Hittable *hittable) {
@@ -124,4 +148,20 @@ void bvhnode_print(const Hittable *hittable) {
   BVHNode *node = hittable->data;
   printf("BVH Node: { left: %p, right: %p }\n", (void *)node->left,
          (void *)node->right);
+}
+
+void validate_object_for_bvh(Hittable *obj, int index) {
+  printf("BVH Object %d: type=%d", index, obj->type);
+
+  // Check if bounding box is valid
+  double box_size_x = obj->bbox.x.max - obj->bbox.x.min;
+  double box_size_y = obj->bbox.y.max - obj->bbox.y.min;
+  double box_size_z = obj->bbox.z.max - obj->bbox.z.min;
+
+  printf(", bbox size: (%.3f,%.3f,%.3f)", box_size_x, box_size_y, box_size_z);
+
+  if (box_size_x <= 0 || box_size_y <= 0 || box_size_z <= 0) {
+    printf(" [INVALID BBOX!]");
+  }
+  printf("\n");
 }

@@ -1,9 +1,9 @@
 camera {
-  lookfrom 278 278 -800
-  lookat   278 278 0
-  vup 0 1 0
-  vfov 40
-  defocus_angle 0
+  lookfrom 0.1 2.0 -3.0    
+  lookat   0.05 1.98 -5.0  
+  vup      0 1 0
+  vfov     20
+  defocus_angle 0.6
   focus_distance 10
   samples_per_pixel 10
   max_depth 25
@@ -30,25 +30,15 @@ material {
   type lambertian
   color 0.73 0.73 0.73
 }
-
 material {
-  name light
-  type diffuse_light
-  color 15 15 15
+    name ground_material
+    type lambertian
+    texture ground_checkered
 }
-
-quad {
-  Q 555 0 0
-  u 0 0 555
-  v 0 555 0
-  material green
-}
-
-quad {
-  Q 0 0 555
-  u 0 0 -555
-  v 0 555 0
-  material red
+sphere {
+    center 0 -1000 0
+    radius 1000.0
+    material ground_material
 }
 
 quad {
