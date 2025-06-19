@@ -288,7 +288,9 @@ static void add_material(Scene *scene, DynArray *mat_names, DynArray *tex_names,
 static void parse_geometry(ParserState state, char *tokens[], int num_toks,
                            Vec3 *center_start, Vec3 *center_end,
                            bool *is_moving, double *radius, Vec3 *point,
-                           Vec3 *normal, Vec3 *Q, Vec3 *u, Vec3 *v) {
+                           Vec3 *normal, Vec3 *Q, Vec3 *u, Vec3 *v,
+                           Vec3 *triangle_v0, Vec3 *triangle_v1,
+                           Vec3 *triangle_v2) {
   if (state == SPHERE_STATE) {
     if (num_toks == 4 && (strcmp(tokens[0], "center") == 0 ||
                           strcmp(tokens[0], "center_start") == 0)) {
@@ -318,6 +320,16 @@ static void parse_geometry(ParserState state, char *tokens[], int num_toks,
       *v = parse_vec3(tokens);
     } else {
       PANIC("Unknown quad parameter: %s", tokens[0]);
+    }
+  } else if (state == TRIANGLE_STATE) {
+    if (num_toks == 4 && strcmp(tokens[0], "v0") == 0) {
+      *triangle_v0 = parse_vec3(tokens);
+    } else if (num_toks == 4 && strcmp(tokens[0], "v1") == 0) {
+      *triangle_v1 = parse_vec3(tokens);
+    } else if (num_toks == 4 && strcmp(tokens[0], "v2") == 0) {
+      *triangle_v2 = parse_vec3(tokens);
+    } else {
+      PANIC("Unknown triangle parameter: %s", tokens[0]);
     }
   } else {
     PANIC("Unknown geometry state");
@@ -408,9 +420,9 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
   Vec3 u;
   Vec3 v;
 
-  Vec3 v0 = {0, 0, 0};
-  Vec3 v1 = {0, 0, 0};
-  Vec3 v2 = {0, 0, 0};
+  Vec3 triangle_v0 = {0, 0, 0};
+  Vec3 triangle_v1 = {0, 0, 0};
+  Vec3 triangle_v2 = {0, 0, 0};
 
   char obj_filename[128] = "";
   char obj_material_name[64] = "";
@@ -448,7 +460,9 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
         scene_add_obj(scene, plane_create(point, normal, current_mat));
         break;
       case TRIANGLE_STATE:
-        scene_add_obj(scene, triangle_hittable_create(v0, v1, v2, current_mat));
+        scene_add_obj(scene,
+                      triangle_hittable_create(triangle_v0, triangle_v1,
+                                               triangle_v2, current_mat));
         break;
       case QUAD_STATE:
         scene_add_obj(scene, quad_create(Q, u, v, current_mat));
@@ -535,6 +549,8 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
         state = SPHERE_STATE;
       } else if (strcmp(tokens[0], "plane") == 0) {
         state = PLANE_STATE;
+      } else if (strcmp(tokens[0], "triangle") == 0) {
+        state = TRIANGLE_STATE;
       } else if (strcmp(tokens[0], "quad") == 0) {
         state = QUAD_STATE;
       } else if (strcmp(tokens[0], "obj_model") == 0) {
@@ -566,7 +582,8 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
           continue;
         }
         parse_geometry(state, tokens, num_toks, &center_start, &center_end,
-                       &is_moving, &radius, &point, &normal, &Q, &u, &v);
+                       &is_moving, &radius, &point, &normal, &Q, &u, &v,
+                       &triangle_v0, &triangle_v1, &triangle_v2);
       }
     }
   }
