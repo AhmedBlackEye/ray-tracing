@@ -39,12 +39,13 @@ static bool quad_hit(const Hittable *self, Ray ray, Interval t_bounds, HitRecord
 
   Vec3 intersection = ray_at(ray, t);
 
-  Vec3 pvec = vec3_sub(intersection, q->Q);
-  double alpha = vec3_dot(q->w, vec3_cross(pvec, q->v));
-  double beta  = vec3_dot(q->w, vec3_cross(q->u, pvec));
+  Vec3 p = vec3_sub(intersection, q->Q);
+  double alpha = vec3_dot(q->w, vec3_cross(p, q->v));
+  double beta  = vec3_dot(q->w, vec3_cross(q->u, p));
 
-  if (alpha < 0.0 || alpha > 1.0 || beta < 0.0 || beta > 1.0)
+  if (alpha < 0.0 || alpha > 1.0 || beta < 0.0 || beta > 1.0) {
         return false;
+  }
   
   rec->t = t;
   rec->p = intersection;
