@@ -74,13 +74,8 @@ Hittable *triangle_hittable_create(Vec3 v0, Vec3 v1, Vec3 v2, Material *mat) {
   min_point = vec3_sub(min_point, padding);
   max_point = vec3_add(max_point, padding);
 
-  // Create AABB with explicit assignment
+  // Create AABB
   hittable->bbox = aabb_from_points(min_point, max_point);
-
-  // Validate the created bounding box (defensive check)
-  double size_x = hittable->bbox.x.max - hittable->bbox.x.min;
-  double size_y = hittable->bbox.y.max - hittable->bbox.y.min;
-  double size_z = hittable->bbox.z.max - hittable->bbox.z.min;
 
   return hittable;
 }
