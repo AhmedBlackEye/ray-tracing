@@ -1,8 +1,8 @@
 camera {
-  lookfrom 13 2 3
-  lookat   0 0 0
+  lookfrom 8 3 8
+  lookat   0 1 0
   vup      0 1 0
-  vfov     20
+  vfov 40
   defocus_angle 0.6
   focus_distance 10
   samples_per_pixel 100
@@ -10,79 +10,39 @@ camera {
   width 720
   aspect_ratio 16 9
   background 0 0 0
-  lighting off
+  lighting on
 }
 
 texture {
-    name ground_checkered
-    type checkered
-    scale 0.5
-    color1 0.2 0.3 0.1
-    color2 0.9 0.9 0.9
-}
-
-texture {
-    name metal_checkered
-    type checkered
-    scale 0.2
-    color1 0.9 0.9 0.9  
-    color2 0.1 0.1 0.1   
+  name ground_checkered
+  type checkered
+  scale 0.5
+  color1 0.2 0.3 0.1
+  color2 0.9 0.9 0.9
 }
 
 material {
-    name center_material
-    type lambertian
-    color 0.1 0.2 0.5
+  name ground_material
+  type lambertian
+  texture ground_checkered
 }
 
 material {
-    name left_material
-    type dielectric
-    ref_idx 1.5
-}
-
-material {
-    name right_material
-    type metal
-    color 0.7 0.6 0.5
-    fuzz 0.0
-}
-
-material {
-    name ground_material
-    type lambertian
-    texture ground_checkered
-}
-
-material {
-    name checkered_metal
-    type metal
-    fuzz 0.0
-    texture metal_checkered
+  name bright_light
+  type diffuse_light
+  color 15 15 15
 }
 
 sphere {
-    center 0 -1000 0
-    radius 1000.0
-    material ground_material
+  center 0 -1000 0
+  radius 1000
+  material ground_material
 }
 
 sphere {
-    center 2 1 0          
-    radius 1.0
-    material checkered_metal
+  center 0 1 0
+  radius 1.5
+  material bright_light
 }
 
-quad {
-    Q      -1 0 -1    
-    u       4 0  0      
-    v       0 4  0      
-    material checkered_metal
-}
 
-quad {
-    Q 0 0 0
-    u 1 0 0 
-    v 0 1 0
-    material ground_material
-}
