@@ -497,9 +497,7 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
                                         obj_scale, obj_position, obj_rotation);
 
         if (result.success) {
-          printf("Successfully loaded %s (%d triangles as individual "
-                 "hittables)\n",
-                 obj_filename, result.face_count);
+          printf("Successfully loaded %s)\n", obj_filename);
         } else {
           printf("Failed to load %s: %s\n", obj_filename, result.error_message);
         }

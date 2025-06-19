@@ -31,9 +31,6 @@ ObjParseResult obj_parse_file(const char *filename, Hittable *mesh_hittable,
 bool obj_parse_vertex(const char *line, Vec3 *vertex);
 bool obj_parse_face(const char *line, int *v1, int *v2, int *v3);
 
-// Print parsing results
-void obj_print_statistics(const ObjParseResult *result);
-
 // Helper functions for no transforms (identity transform)
 static inline Vec3 obj_no_scale(void) { return (Vec3){1.0, 1.0, 1.0}; }
 static inline Vec3 obj_no_translation(void) { return (Vec3){0.0, 0.0, 0.0}; }

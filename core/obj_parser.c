@@ -218,17 +218,6 @@ ObjParseResult obj_parse_file_to_hittables(const char *filename,
         Vec3 vert3 = *vert3_ptr;
 
         // Debug output for first few triangles
-        if (result.face_count < 3) {
-          printf("  Triangle %d:\n", result.face_count);
-          printf("    v1 (idx %d): (%.3f, %.3f, %.3f)\n", v1, vert1.x, vert1.y,
-                 vert1.z);
-          printf("    v2 (idx %d): (%.3f, %.3f, %.3f)\n", v2, vert2.x, vert2.y,
-                 vert2.z);
-          printf("    v3 (idx %d): (%.3f, %.3f, %.3f)\n", v3, vert3.x, vert3.y,
-                 vert3.z);
-        }
-
-        // *** KEY PART: Add triangle as individual hittable ***
         mesh_loader_add_triangle(loader, hittable_list, vert1, vert2, vert3);
         result.face_count++;
       } else {
@@ -264,7 +253,7 @@ ObjParseResult obj_parse_file_to_hittables(const char *filename,
   result.success = true;
   printf("=== Successfully loaded OBJ file! ===\n");
   printf("  Vertices: %d\n", result.vertex_count);
-  printf("  Faces: %d (each now an individual hittable)\n", result.face_count);
+  printf("  Faces: %d\n", result.face_count);
   if (has_transforms) {
     printf("  Applied transforms: scale(%.1f,%.1f,%.1f) pos(%.1f,%.1f,%.1f) "
            "rot(%.0f°,%.0f°,%.0f°)\n",
@@ -432,19 +421,3 @@ ObjParseResult obj_parse_file_to_hittables(const char *filename,
 
 //   return result;
 // }
-
-void obj_print_statistics(const ObjParseResult *result) {
-  if (!result)
-    return;
-
-  if (result->success) {
-    printf("OBJ Parse Result:\n");
-    printf("  ✓ Successfully loaded\n");
-    printf("  ✓ Vertices: %d\n", result->vertex_count);
-    printf("  ✓ Triangles: %d\n", result->face_count);
-  } else {
-    printf("OBJ Parse Result:\n");
-    printf("  ✗ Failed to load\n");
-    printf("  ✗ Error: %s\n", result->error_message);
-  }
-}

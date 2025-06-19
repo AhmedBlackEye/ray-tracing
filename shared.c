@@ -18,10 +18,17 @@ void update_progress_bar(int current, int total) {
   }
   printf("] %3d%%", (int)(progress * 100));
   fflush(stdout);
+
+  if (current == total) {
+    printf("\n");
+  }
 }
 
 void update_simple_progress_bar(int current, int total) {
   int percent = (int)(100.0 * current / total);
   printf("\rRendering: %3d%%", percent);
   fflush(stdout);
+  if (current == total) {
+    printf("\n");
+  }
 }

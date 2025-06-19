@@ -5,9 +5,9 @@ camera {
   vfov     70              
   defocus_angle 0      
   focus_distance 2.0     
-  samples_per_pixel 80
-  max_depth 40           
-  width 720        
+  samples_per_pixel 10
+  max_depth 30         
+  width 300        
   aspect_ratio 16 9
   background 0.5 0.7 1.0  
 }
@@ -54,7 +54,7 @@ sphere {
 
 
 material {
-     name cow_material
+     name homer_material
      type metal
      color 0.83 0.68 0.21    
      fuzz 0.1              
@@ -62,7 +62,7 @@ material {
 
 obj_model {
     file models/homer.obj
-    material cow_material
+    material homer_material
     position -0.1 1.58 -3.7
     scale 0.5 0.5 0.5
     rotation 0 -15 0        
