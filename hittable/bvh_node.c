@@ -10,7 +10,7 @@
 #include "core/ray.h"
 #include "hit_record.h"
 #include "hittable.h"
-#include "hittable/triangle_mesh.h"
+
 #include "material/material.h"
 #include "shared.h"
 
@@ -149,17 +149,6 @@ void bvhnode_print(const Hittable *hittable) {
 
 void validate_object_for_bvh(Hittable *obj, int index) {
   printf("BVH Object %d: type=%d", index, obj->type);
-
-  if (obj->type == HITTABLE_TRIANGLE_MESH) {
-    Mesh *mesh = (Mesh *)obj->data;
-    printf(", triangles=%d", mesh->triangles->size);
-
-    // Ensure bounds are computed
-    if (mesh->bounds_dirty) {
-      printf(" [bounds dirty - computing]");
-      mesh_compute_bounds_and_update_hittable(obj);
-    }
-  }
 
   // Check if bounding box is valid
   double box_size_x = obj->bbox.x.max - obj->bbox.x.min;

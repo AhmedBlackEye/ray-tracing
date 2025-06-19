@@ -82,16 +82,16 @@ void validate_hittable(const Hittable *obj, const char *context) {
   }
 
   // Check if it's a mesh
-  if (obj->type == HITTABLE_TRIANGLE_MESH) {
-    printf("MESH validation:\n");
-    if (obj->data) {
-      Mesh *mesh = (Mesh *)obj->data;
-      printf("  Triangle count: %d\n", mesh->triangles->size);
-      printf("  Triangles pointer: %p\n", (void *)mesh->triangles);
-    } else {
-      printf("  ERROR: Mesh data is NULL\n");
-    }
-  }
+  // if (obj->type == HITTABLE_TRIANGLE_MESH) {
+  //   printf("MESH validation:\n");
+  //   if (obj->data) {
+  //     Mesh *mesh = (Mesh *)obj->data;
+  //     printf("  Triangle count: %d\n", mesh->triangles->size);
+  //     printf("  Triangles pointer: %p\n", (void *)mesh->triangles);
+  //   } else {
+  //     printf("  ERROR: Mesh data is NULL\n");
+  //   }
+  // }
   printf("===============================\n");
 }
 // Add this to your scene parser after adding each object
@@ -99,7 +99,7 @@ void debug_scene_addition(Scene *scene, Hittable *new_obj,
                           const char *obj_name) {
   printf("\n>>> ADDING %s TO SCENE <<<\n", obj_name);
   validate_hittable(new_obj, obj_name);
-
+  DynArray *objects_array = (DynArray *)scene->objects->data;
   size_t before_count = dynarray_size(scene->objects);
   scene_add_obj(scene, new_obj);
   size_t after_count = dynarray_size(scene->objects);
@@ -458,7 +458,6 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
           goto cleanup_obj;
         }
         fclose(test_file);
-
         Material *obj_material =
             find_material_by_name(scene, mat_names, obj_material_name);
         if (!obj_material) {
@@ -475,20 +474,24 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
         printf("Loading OBJ: %s with material: %s\n", obj_filename,
                obj_material_name);
 
-        Hittable *mesh = mesh_create(obj_material);
-        ObjParseResult result = obj_parse_file(obj_filename, mesh, obj_scale,
-                                               obj_position, obj_rotation);
+        // Create mesh loader
+        MeshLoader *loader = mesh_loader_create(obj_material);
+
+        // Parse OBJ and add triangles directly to scene objects as individual
+        // hittables
+        ObjParseResult result =
+            obj_parse_file_to_hittables(obj_filename, loader, scene->objects,
+                                        obj_scale, obj_position, obj_rotation);
 
         if (result.success) {
-          mesh_compute_bounds_and_update_hittable(mesh);
-          scene_add_obj(scene, mesh);
-          printf("Successfully loaded %s (%d triangles)\n", obj_filename,
-                 result.face_count);
-
+          printf(
+              "Successfully loaded %s (%d triangles as individual hittables)\n",
+              obj_filename, result.face_count);
         } else {
           printf("Failed to load %s: %s\n", obj_filename, result.error_message);
-          hittable_destroy(mesh);
         }
+
+        mesh_loader_destroy(loader);
 
       cleanup_obj:
         // Always reset variables

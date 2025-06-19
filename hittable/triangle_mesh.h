@@ -11,41 +11,44 @@
 #include "triangle_raw.h"
 #include <stdbool.h>
 
-// Bounding box structure (internal use)
-typedef struct BoundingBox {
-  Vec3 min;
-  Vec3 max;
-  bool valid;
-} BoundingBox;
+typedef struct MeshLoader {
+  Material *default_material; // Default material for all triangles
+  DynArray *materials;        // Array of materials (one per triangle, optional)
+  bool per_triangle_materials; // Whether to use per-triangle materials
+} MeshLoader;
 
-typedef struct TriangleArr {
-  TriangleRaw *data;
-  int size;
-  int capacity;
-} TriangleArr;
+// Create a mesh loader with a default material
+MeshLoader *mesh_loader_create(Material *default_material);
 
-// Internal mesh structure (private - users don't see this)
-typedef struct Mesh {
-  TriangleArr *triangles;
-  BoundingBox bounds;
-  bool bounds_dirty;
-  Material *material;
-} Mesh;
+// Add per-triangle material support
+void mesh_loader_enable_per_triangle_materials(MeshLoader *loader);
+void mesh_loader_add_material(MeshLoader *loader, Material *material);
 
-// === PUBLIC API === (Only these functions are exposed)
+// Add triangle and convert to hittable - adds to the provided hittable list
+void mesh_loader_add_triangle(MeshLoader *loader, Hittable *hittable_list,
+                              Vec3 v0, Vec3 v1, Vec3 v2);
 
-// Create a triangle mesh hittable
-Hittable *mesh_create(Material *mat);
+// Add triangle with specific material
+void mesh_loader_add_triangle_with_material(MeshLoader *loader,
+                                            Hittable *hittable_list, Vec3 v0,
+                                            Vec3 v1, Vec3 v2,
+                                            Material *material);
 
-// Add triangle to mesh hittable
-void mesh_add_triangle(Hittable *mesh_hittable, Vec3 v0, Vec3 v1, Vec3 v2);
+// Clean up the loader (doesn't affect the created hittables)
+void mesh_loader_destroy(MeshLoader *loader);
 
-void mesh_compute_bounds_and_update_hittable(Hittable *mesh_hittable);
+// Load OBJ file and add all triangles as individual hittables
+typedef struct MeshLoadResult {
+  bool success;
+  char error_message[256];
+  int triangle_count;
+} MeshLoadResult;
 
-// Print mesh hittable info
-void mesh_print(const Hittable *hittable);
+// Load OBJ and add triangles to hittable list
+MeshLoadResult mesh_load_obj(const char *filename, MeshLoader *loader,
+                             Hittable *hittable_list, Vec3 scale,
+                             Vec3 translation, Vec3 rotation);
 
-// === INTERSECTION FUNCTION === (for reuse)
 // Ray-triangle intersection (reusable)
 bool triangle_raw_intersect(const TriangleRaw *tri, Ray r, Interval t_bounds,
                             HitRecord *rec, Material *mat);

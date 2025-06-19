@@ -10,7 +10,6 @@
 #include "quad.h"
 #include "sphere.h"
 #include "triangle_hittable.h"
-#include "triangle_mesh.h"
 
 extern void hittable_destroy(Hittable *self) { self->destroy(self); }
 
@@ -27,9 +26,6 @@ void hittable_print(const Hittable *self) {
     break;
   case HITTABLE_QUAD:
     quad_print(self);
-    break;
-  case HITTABLE_TRIANGLE_MESH:
-    mesh_print(self);
     break;
   case HITTABLE_LIST:
     hittablelist_print(self);
