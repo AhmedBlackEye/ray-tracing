@@ -9,11 +9,16 @@
 #include "material/material.h"
 #include "shared.h"
 
+static bool use_lighting = true;
+
 // Create a new camera instance
 Camera camera_make(int image_width, double aspect_ratio, Vec3 lookfrom,
                    Vec3 lookat, Vec3 vup, double vfov, double defocus_angle,
                    double focus_dist, int samples_per_pixel, int max_depth,
-                   Color background) {
+                   Color background, bool is_lighting) {
+
+  use_lighting = is_lighting;
+
   Camera cam = {0}; // Initialize all fields to zero
 
   // Basic camera parameters
@@ -77,53 +82,50 @@ Camera camera_make(int image_width, double aspect_ratio, Vec3 lookfrom,
   return cam;
 }
 
-/*
-static Color ray_color(Ray r, int depth, Hittable *hittable_world, Color
-background) { if (depth <= 0) return vec3_zero();
+static Color ray_color(Ray r, int depth, Hittable *hittable_world, Color background) {
+    if (use_lighting) {
+        if (depth <= 0)
+            return vec3_zero();
 
-    HitRecord rec;
-    if (!hittable_world->hit(hittable_world, r, interval_make(1e-4, INFINITY),
-&rec)) { return background;
+        HitRecord rec;
+        if (!hittable_world->hit(hittable_world, r, interval_make(1e-4, INFINITY), &rec)) {
+            return background;
+        }
+
+        Ray scatterd;
+        Color attenuation;
+        Color color_from_emission = material_emitted(rec.mat, 0.0, 0.0, &rec.p);
+
+        if (!rec.mat->scatter(rec.mat, r, &rec, &attenuation, &scatterd)) {
+            return color_from_emission;
+        }
+
+        Color color_from_scatter =
+            vec3_mul(ray_color(scatterd, depth - 1, hittable_world, background),
+                     attenuation);
+
+        return vec3_add(color_from_emission, color_from_scatter);
+    } else {
+        if (depth <= 0)
+            return vec3_zero();
+
+        HitRecord rec;
+        if (hittable_world->hit(hittable_world, r, interval_make(1e-4, INFINITY), &rec)) {
+            Ray scattered;
+            Color attenuation;
+            if (rec.mat->scatter(rec.mat, r, &rec, &attenuation, &scattered)) {
+                return vec3_mul(
+                    ray_color(scattered, depth - 1, hittable_world, background),
+                    attenuation);
+            }
+            return (Color){0, 0, 0};
+        }
+
+        Vec3 unit_direction = vec3_normalized(r.direction);
+        double a = (unit_direction.y + 1) * 0.5;
+        return vec3_add((Vec3){1.0 - a, 1.0 - a, 1.0 - a},
+                        (Vec3){0.5 * a, 0.7 * a, 1.0 * a});
     }
-
-    Ray scatterd;
-    Color attenuation;
-    Color color_from_emission = material_emitted(rec.mat, 0.0, 0.0, &rec.p);
-
-    if (!rec.mat->scatter(rec.mat, r, &rec, &attenuation, &scatterd)) {
-        return color_from_emission;
-    }
-
-    Color color_from_scatter = vec3_mul(ray_color(scatterd, depth - 1,
-hittable_world, background), attenuation);
-
-    return vec3_add(color_from_emission, color_from_scatter);
-}
-*/
-
-// Old ray color
-static Color ray_color(Ray r, int depth, Hittable *hittable_world,
-                       Color background) {
-  if (depth <= 0)
-    return vec3_zero();
-
-  HitRecord rec;
-  if (hittable_world->hit(hittable_world, r, interval_make(1e-4, INFINITY),
-                          &rec)) {
-    Ray scattered;
-    Color attenuation;
-    if (rec.mat->scatter(rec.mat, r, &rec, &attenuation, &scattered)) {
-      return vec3_mul(
-          ray_color(scattered, depth - 1, hittable_world, background),
-          attenuation);
-    }
-    return (Color){0, 0, 0};
-  }
-
-  Vec3 unit_direction = vec3_normalized(r.direction);
-  double a = (unit_direction.y + 1) * 0.5;
-  return vec3_add((Vec3){1.0 - a, 1.0 - a, 1.0 - a},
-                  (Vec3){0.5 * a, 0.7 * a, 1.0 * a});
 }
 
 // Construct a camera ray originating from the defocus disk and directed at a

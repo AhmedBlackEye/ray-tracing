@@ -38,6 +38,7 @@
 #define SAMPLES_PER_PIXEL 10
 #define MAX_DEPTH 20
 #define BACKGROUND ((Color){0.70, 0.80, 1.00})
+#define IS_LIGHTING false
 
 typedef enum {
   TOPLEVEL_STATE,
@@ -46,7 +47,6 @@ typedef enum {
   MATERIAL_STATE,
   SPHERE_STATE,
   PLANE_STATE,
-  TRIANGLE_STATE,
   QUAD_STATE,
   OBJ_MODEL_STATE,
 } ParserState;
@@ -138,7 +138,8 @@ static void parse_camera(char *tokens[], int num_toks, Vec3 *lookfrom,
                          Vec3 *lookat, Vec3 *vup, double *vfov,
                          double *defocus_angle, double *focus_dist,
                          int *samples_per_pixel, int *max_depth,
-                         double *aspect_ratio, int *width, Color *background) {
+                         double *aspect_ratio, int *width, Color *background,
+                         bool *is_lighting) {
   if (num_toks == 2 && strcmp(tokens[0], "width") == 0) {
     *width = atoi(tokens[1]);
   } else if (num_toks == 3 && strcmp(tokens[0], "aspect_ratio") == 0) {
@@ -163,6 +164,8 @@ static void parse_camera(char *tokens[], int num_toks, Vec3 *lookfrom,
     *max_depth = atoi(tokens[1]);
   } else if (num_toks == 4 && strcmp(tokens[0], "background") == 0) {
     *background = parse_vec3(tokens);
+  } else if (num_toks == 2 && strcmp(tokens[0], "lighting") == 0) {
+    *is_lighting = (strcmp(tokens[1], "on") == 0);
   } else {
     PANIC("Unknown camera parameter: %s", tokens[0]);
   }
@@ -212,7 +215,9 @@ static void parse_material(char *tokens[], int num_toks, char *name, char *type,
     strcpy(name, tokens[1]);
   } else if (num_toks == 2 && strcmp(tokens[0], "type") == 0) {
     strcpy(type, tokens[1]);
-  } else if (num_toks == 4 && strcmp(tokens[0], "color") == 0) {
+  } else if (num_toks == 4 && (strcmp(tokens[0], "color") == 0 ||
+                               strcmp(tokens[0], "emit_color") == 0 ||
+                               strcmp(tokens[0], "albedo") == 0)) {
     *color = parse_vec3(tokens);
   } else if (num_toks == 2 && strcmp(tokens[0], "fuzz") == 0) {
     *fuzz = atof(tokens[1]);
@@ -266,8 +271,7 @@ static void add_material(Scene *scene, DynArray *mat_names, DynArray *tex_names,
 static void parse_geometry(ParserState state, char *tokens[], int num_toks,
                            Vec3 *center_start, Vec3 *center_end,
                            bool *is_moving, double *radius, Vec3 *point,
-                           Vec3 *normal, Vec3 *v0, Vec3 *v1, Vec3 *v2, Vec3 *Q,
-                           Vec3 *u, Vec3 *v) {
+                           Vec3 *normal, Vec3 *Q, Vec3 *u, Vec3 *v) {
   if (state == SPHERE_STATE) {
     if (num_toks == 4 && (strcmp(tokens[0], "center") == 0 ||
                           strcmp(tokens[0], "center_start") == 0)) {
@@ -287,16 +291,6 @@ static void parse_geometry(ParserState state, char *tokens[], int num_toks,
       *normal = parse_vec3(tokens);
     } else {
       PANIC("Unknown plane parameter: %s", tokens[0]);
-    }
-  } else if (state == TRIANGLE_STATE) {
-    if (num_toks == 4 && strcmp(tokens[0], "v0") == 0) {
-      *v0 = parse_vec3(tokens);
-    } else if (num_toks == 4 && strcmp(tokens[0], "v1") == 0) {
-      *v1 = parse_vec3(tokens);
-    } else if (num_toks == 4 && strcmp(tokens[0], "v2") == 0) {
-      *v2 = parse_vec3(tokens);
-    } else {
-      PANIC("Unknown triangle parameter: %s", tokens[0]);
     }
   } else if (state == QUAD_STATE) {
     if (num_toks == 4 && strcmp(tokens[0], "Q") == 0) {
@@ -383,6 +377,7 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
   double aspect_ratio = ASPECT_RATIO;
   int width = WIDTH;
   Color background = BACKGROUND;
+  bool is_lighting = IS_LIGHTING;
 
   Material *current_mat;
 
@@ -391,10 +386,6 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
   Vec3 color;
   double fuzz;
   double ref_index;
-
-  Vec3 v0;
-  Vec3 v1;
-  Vec3 v2;
 
   Vec3 Q;
   Vec3 u;
@@ -524,8 +515,6 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
         state = SPHERE_STATE;
       } else if (strcmp(tokens[0], "plane") == 0) {
         state = PLANE_STATE;
-      } else if (strcmp(tokens[0], "triangle") == 0) {
-        state = TRIANGLE_STATE;
       } else if (strcmp(tokens[0], "quad") == 0) {
         state = QUAD_STATE;
       } else if (strcmp(tokens[0], "obj_model") == 0) {
@@ -537,7 +526,8 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
       if (state == CAMERA_STATE) {
         parse_camera(tokens, num_toks, &lookfrom, &lookat, &vup, &vfov,
                      &defocus_angle, &focus_dist, &samples_per_pixel,
-                     &max_depth, &aspect_ratio, &width, &background);
+                     &max_depth, &aspect_ratio, &width, &background,
+                     &is_lighting);
       } else if (state == MATERIAL_STATE) {
         parse_material(tokens, num_toks, mat_name, mat_type, &color, &fuzz,
                        &ref_index, mat_texture_name);
@@ -562,8 +552,7 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
           continue;
         }
         parse_geometry(state, tokens, num_toks, &center_start, &center_end,
-                       &is_moving, &radius, &point, &normal, &v0, &v1, &v2, &Q,
-                       &u, &v);
+                       &is_moving, &radius, &point, &normal, &Q, &u, &v);
       }
     }
   }
@@ -571,7 +560,7 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
 
   *out_cam = camera_make(width, aspect_ratio, lookfrom, lookat, vup, vfov,
                          defocus_angle, focus_dist, samples_per_pixel,
-                         max_depth, background);
+                         max_depth, background, is_lighting);
 
   dynarray_destroy(mat_names);
   dynarray_destroy(tex_names);
