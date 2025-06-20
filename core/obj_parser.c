@@ -36,7 +36,7 @@ static Vec3 rotate_z(Vec3 v, double angle) {
   return (Vec3){v.x * cos_a - v.y * sin_a, v.x * sin_a + v.y * cos_a, v.z};
 }
 
-static void apply_transforms(Vec3 *vertex, Vec3 scale, Vec3 translation,
+static void apply_transforms(Vec3 *vertex, Vec3 scale, Vec3 position,
                              Vec3 rotation) {
   // 1. Scale first
   vertex->x *= scale.x;
@@ -48,11 +48,11 @@ static void apply_transforms(Vec3 *vertex, Vec3 scale, Vec3 translation,
   *vertex = rotate_y(*vertex, rotation.y);
   *vertex = rotate_z(*vertex, rotation.z);
 
-  // 3. Translate last
-  *vertex = vec3_add(*vertex, translation);
+  // 3. Set absolute position (not translate)
+  *vertex = vec3_add(*vertex, position);
 }
 
-// ===== PARSING FUNCTION =====
+// ===== PARSING FUNCTIONS =====
 
 bool obj_parse_vertex(const char *line, Vec3 *vertex) {
   if (line[0] != 'v' || line[1] != ' ') {
@@ -64,46 +64,77 @@ bool obj_parse_vertex(const char *line, Vec3 *vertex) {
   return result == 3;
 }
 
-bool obj_parse_face(const char *line, int *v1, int *v2, int *v3) {
+// Updated function signature to handle both triangles and quads
+bool obj_parse_face(const char *line, int *v1, int *v2, int *v3, int *v4,
+                    bool *is_quad) {
   if (line[0] != 'f' || line[1] != ' ') {
     return false;
   }
 
   int dummy;
+  *is_quad = false;
 
-  // Try different face formats
-  int result = sscanf(line + 2, "%d/%d/%d %d/%d/%d %d/%d/%d", v1, &dummy,
-                      &dummy, v2, &dummy, &dummy, v3, &dummy, &dummy);
-  if (result == 9)
+  // Try quad formats first
+  int result = sscanf(line + 2, "%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d", v1,
+                      &dummy, &dummy, v2, &dummy, &dummy, v3, &dummy, &dummy,
+                      v4, &dummy, &dummy);
+  if (result == 12) {
+    *is_quad = true;
     return true;
+  }
+
+  result = sscanf(line + 2, "%d//%d %d//%d %d//%d %d//%d", v1, &dummy, v2,
+                  &dummy, v3, &dummy, v4, &dummy);
+  if (result == 8) {
+    *is_quad = true;
+    return true;
+  }
+
+  result = sscanf(line + 2, "%d/%d %d/%d %d/%d %d/%d", v1, &dummy, v2, &dummy,
+                  v3, &dummy, v4, &dummy);
+  if (result == 8) {
+    *is_quad = true;
+    return true;
+  }
+
+  // Try simple quad format
+  result = sscanf(line + 2, "%d %d %d %d", v1, v2, v3, v4);
+  if (result == 4) {
+    *is_quad = true;
+    return true;
+  }
+
+  // Try triangle formats
+  result = sscanf(line + 2, "%d/%d/%d %d/%d/%d %d/%d/%d", v1, &dummy, &dummy,
+                  v2, &dummy, &dummy, v3, &dummy, &dummy);
+  if (result == 9) {
+    return true;
+  }
 
   result = sscanf(line + 2, "%d//%d %d//%d %d//%d", v1, &dummy, v2, &dummy, v3,
                   &dummy);
-  if (result == 6)
+  if (result == 6) {
     return true;
+  }
 
   result =
       sscanf(line + 2, "%d/%d %d/%d %d/%d", v1, &dummy, v2, &dummy, v3, &dummy);
-  if (result == 6)
+  if (result == 6) {
     return true;
+  }
 
   result = sscanf(line + 2, "%d %d %d", v1, v2, v3);
   if (result == 3) {
-    // Debug output for first few faces
-    static int face_debug_count = 0;
-    if (face_debug_count < 3) {
-      printf("  Parsed face %d: %d %d %d\n", face_debug_count, *v1, *v2, *v3);
-      face_debug_count++;
-    }
     return true;
   }
+
   return false;
 }
 
 ObjParseResult obj_parse_file_to_hittables(const char *filename,
                                            MeshLoader *loader,
                                            Hittable *hittable_list, Vec3 scale,
-                                           Vec3 translation, Vec3 rotation) {
+                                           Vec3 position, Vec3 rotation) {
   ObjParseResult result = {0};
 
   // Validate input
@@ -131,7 +162,7 @@ ObjParseResult obj_parse_file_to_hittables(const char *filename,
   // Check if we have any transforms to apply
   bool has_transforms =
       (scale.x != 1.0 || scale.y != 1.0 || scale.z != 1.0 ||
-       translation.x != 0.0 || translation.y != 0.0 || translation.z != 0.0 ||
+       position.x != 0.0 || position.y != 0.0 || position.z != 0.0 ||
        rotation.x != 0.0 || rotation.y != 0.0 || rotation.z != 0.0);
 
   printf("Parsing OBJ file: %s", filename);
@@ -164,7 +195,7 @@ ObjParseResult obj_parse_file_to_hittables(const char *filename,
 
       if (obj_parse_vertex(line, vertex)) {
         // Apply transforms
-        apply_transforms(vertex, scale, translation, rotation);
+        apply_transforms(vertex, scale, position, rotation);
 
         // Add to dynamic array
         dynarray_push(vertices, vertex);
@@ -187,19 +218,24 @@ ObjParseResult obj_parse_file_to_hittables(const char *filename,
         return result;
       }
     }
-    // Parse face lines (f v1 v2 v3)
+    // Parse face lines (f v1 v2 v3 or f v1 v2 v3 v4)
     else if (line[0] == 'f' && line[1] == ' ') {
-      int v1, v2, v3;
-      if (obj_parse_face(line, &v1, &v2, &v3)) {
+      int v1, v2, v3, v4;
+      bool is_quad;
+
+      if (obj_parse_face(line, &v1, &v2, &v3, &v4, &is_quad)) {
         // OBJ files use 1-based indexing, convert to 0-based
         v1--;
         v2--;
         v3--;
+        if (is_quad)
+          v4--;
 
-        // Check if indices are valid
+        // Validate indices
         int vertex_count = dynarray_size(vertices);
         if (v1 < 0 || v1 >= vertex_count || v2 < 0 || v2 >= vertex_count ||
-            v3 < 0 || v3 >= vertex_count) {
+            v3 < 0 || v3 >= vertex_count ||
+            (is_quad && (v4 < 0 || v4 >= vertex_count))) {
           result.success = false;
           snprintf(result.error_message, sizeof(result.error_message),
                    "Invalid vertex index at line %d", line_number);
@@ -208,18 +244,23 @@ ObjParseResult obj_parse_file_to_hittables(const char *filename,
           return result;
         }
 
-        // Get the three vertices from DynArray
-        Vec3 *vert1_ptr = (Vec3 *)dynarray_get(vertices, v1);
-        Vec3 *vert2_ptr = (Vec3 *)dynarray_get(vertices, v2);
-        Vec3 *vert3_ptr = (Vec3 *)dynarray_get(vertices, v3);
+        // Get vertices
+        Vec3 vert1 = *(Vec3 *)dynarray_get(vertices, v1);
+        Vec3 vert2 = *(Vec3 *)dynarray_get(vertices, v2);
+        Vec3 vert3 = *(Vec3 *)dynarray_get(vertices, v3);
 
-        Vec3 vert1 = *vert1_ptr;
-        Vec3 vert2 = *vert2_ptr;
-        Vec3 vert3 = *vert3_ptr;
+        if (is_quad) {
+          Vec3 vert4 = *(Vec3 *)dynarray_get(vertices, v4);
 
-        // Debug output for first few triangles
-        mesh_loader_add_triangle(loader, hittable_list, vert1, vert2, vert3);
-        result.face_count++;
+          // Split quad into two triangles: (v1,v2,v3) and (v1,v3,v4)
+          mesh_loader_add_triangle(loader, hittable_list, vert1, vert2, vert3);
+          mesh_loader_add_triangle(loader, hittable_list, vert1, vert3, vert4);
+          result.face_count += 2;
+        } else {
+          // Single triangle
+          mesh_loader_add_triangle(loader, hittable_list, vert1, vert2, vert3);
+          result.face_count++;
+        }
       } else {
         result.success = false;
         snprintf(result.error_message, sizeof(result.error_message),
@@ -257,167 +298,11 @@ ObjParseResult obj_parse_file_to_hittables(const char *filename,
   if (has_transforms) {
     printf("  Applied transforms: scale(%.1f,%.1f,%.1f) pos(%.1f,%.1f,%.1f) "
            "rot(%.0f°,%.0f°,%.0f°)\n",
-           scale.x, scale.y, scale.z, translation.x, translation.y,
-           translation.z, rotation.x * 180.0 / M_PI, rotation.y * 180.0 / M_PI,
+           scale.x, scale.y, scale.z, position.x, position.y, position.z,
+           rotation.x * 180.0 / M_PI, rotation.y * 180.0 / M_PI,
            rotation.z * 180.0 / M_PI);
   }
   printf("=====================================\n");
 
   return result;
 }
-
-// ===== OLD PARSING FUNCTION =====
-
-// ObjParseResult obj_parse_file(const char *filename, Hittable *mesh_hittable,
-//                               Vec3 scale, Vec3 translation, Vec3 rotation) {
-//   ObjParseResult result = {0};
-//   // Validate input
-//   if (!filename || !mesh_hittable) {
-//     result.success = false;
-//     strcpy(result.error_message, "Invalid input parameters");
-//     return result;
-//   }
-
-//   if (mesh_hittable->type != HITTABLE_TRIANGLE_MESH) {
-//     result.success = false;
-//     strcpy(result.error_message, "Hittable must be a triangle mesh");
-//     return result;
-//   }
-
-//   // Try to open the file
-//   FILE *file = fopen(filename, "r");
-//   if (!file) {
-//     result.success = false;
-//     snprintf(result.error_message, sizeof(result.error_message),
-//              "Could not open file: %s", filename);
-//     return result;
-//   }
-
-//   // Check if we have any transforms to apply
-//   bool has_transforms =
-//       (scale.x != 1.0 || scale.y != 1.0 || scale.z != 1.0 ||
-//        translation.x != 0.0 || translation.y != 0.0 || translation.z != 0.0
-//        || rotation.x != 0.0 || rotation.y != 0.0 || rotation.z != 0.0);
-
-//   printf("Parsing OBJ file: %s", filename);
-//   if (has_transforms) {
-//     printf(" (with transforms)");
-//   }
-//   printf("\n");
-
-//   VertexArray *vertices = vertex_array_create();
-//   char line[MAX_LINE_LENGTH];
-//   int line_number = 0;
-
-//   // Read file line by line
-//   while (fgets(line, sizeof(line), file)) {
-//     line_number++;
-
-//     // Remove newline character
-//     line[strcspn(line, "\n")] = '\0';
-
-//     // Skip empty lines and comments
-//     if (line[0] == '\0' || line[0] == '#') {
-//       continue;
-//     }
-
-//     // Parse vertex lines (v x y z)
-//     if (line[0] == 'v' && line[1] == ' ') {
-//       Vec3 vertex;
-//       if (obj_parse_vertex(line, &vertex)) {
-//         // Apply transforms (does nothing if all are identity)
-//         apply_transforms(&vertex, scale, translation, rotation);
-//         vertex_array_push(vertices, vertex);
-//         result.vertex_count++;
-//       } else {
-//         result.success = false;
-//         printf("Invalid vertex format at line %d.", line_number);
-//         fclose(file);
-//         vertex_array_destroy(vertices);
-//         return result;
-//       }
-//     }
-//     // Parse face lines (f v1 v2 v3)
-//     else if (line[0] == 'f' && line[1] == ' ') {
-//       int v1, v2, v3;
-//       if (obj_parse_face(line, &v1, &v2, &v3)) {
-//         // OBJ files use 1-based indexing, convert to 0-based
-//         v1--;
-//         v2--;
-//         v3--;
-
-//         // Check if indices are valid
-//         if (v1 < 0 || v1 >= vertices->count || v2 < 0 ||
-//             v2 >= vertices->count || v3 < 0 || v3 >= vertices->count) {
-//           result.success = false;
-//           printf("Invalid vertex index at line %d", line_number);
-//           fclose(file);
-//           vertex_array_destroy(vertices);
-//           return result;
-//         }
-
-//         // Get the three vertices and create a triangle
-//         Vec3 vert1 = vertex_array_get(vertices, v1);
-//         Vec3 vert2 = vertex_array_get(vertices, v2);
-//         Vec3 vert3 = vertex_array_get(vertices, v3);
-//         // Debug output for first few triangles
-//         if (result.face_count < 3) {
-//           printf("  Triangle %d:\n", result.face_count);
-//           printf("    v1 (idx %d): (%.3f, %.3f, %.3f)\n", v1, vert1.x,
-//           vert1.y,
-//                  vert1.z);
-//           printf("    v2 (idx %d): (%.3f, %.3f, %.3f)\n", v2, vert2.x,
-//           vert2.y,
-//                  vert2.z);
-//           printf("    v3 (idx %d): (%.3f, %.3f, %.3f)\n", v3, vert3.x,
-//           vert3.y,
-//                  vert3.z);
-//         }
-
-//         // Add triangle to the mesh
-//         mesh_add_triangle(mesh_hittable, vert1, vert2, vert3);
-//         result.face_count++;
-//       } else {
-//         result.success = false;
-//         printf("Invalid face format at line %d.", line_number);
-//         fclose(file);
-//         vertex_array_destroy(vertices);
-//         return result;
-//       }
-//     }
-//     // Ignore other line types
-//     // vertex_array_print(vertices);
-//   }
-
-//   fclose(file);
-//   vertex_array_destroy(vertices);
-
-//   if (result.vertex_count == 0) {
-//     result.success = false;
-//     strcpy(result.error_message, "No vertices found in OBJ file");
-//     printf("ERROR: %s\n", result.error_message);
-//     return result;
-//   }
-
-//   if (result.face_count == 0) {
-//     result.success = false;
-//     strcpy(result.error_message, "No faces found in OBJ file");
-//     printf("ERROR: %s\n", result.error_message);
-//     return result;
-//   }
-
-//   result.success = true;
-//   printf("=== Successfully loaded OBJ file! ===\n");
-//   printf("  Vertices: %d\n", result.vertex_count);
-//   printf("  Faces: %d\n", result.face_count);
-//   if (has_transforms) {
-//     printf("  Applied transforms: scale(%.1f,%.1f,%.1f) pos(%.1f,%.1f,%.1f) "
-//            "rot(%.0f°,%.0f°,%.0f°)\n",
-//            scale.x, scale.y, scale.z, translation.x, translation.y,
-//            translation.z, rotation.x * 180.0 / M_PI, rotation.y * 180.0 /
-//            M_PI, rotation.z * 180.0 / M_PI);
-//   }
-//   printf("=====================================\n");
-
-//   return result;
-// }

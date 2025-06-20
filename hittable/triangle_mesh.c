@@ -122,6 +122,11 @@ bool triangle_raw_intersect(const TriangleRaw *tri, Ray r, Interval t_bounds,
   if (interval_surrounds(t_bounds, t)) {
     rec->t = t;
     rec->p = ray_at(r, t);
+    Vec3 normal = tri->normal;
+    if (det < 0.0) {
+      normal = vec3_negate(normal); // Flip normal for back-facing triangles
+    }
+
     hitrec_set_face_normal(rec, r, tri->normal);
     rec->mat = mat;
     return true;

@@ -4,6 +4,8 @@ project(raytracer C)
 set(CMAKE_C_STANDARD 11)
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -Wall -Wextra -Wshadow -Wpedantic")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffast-math -funroll-loops -finline-functions")
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 
 # Create core library
 add_library(core

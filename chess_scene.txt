@@ -1,0 +1,101 @@
+camera {
+    width 600
+    aspect_ratio 16 9
+    lookfrom 8.0 6.0 12.0
+    lookat 0.0 1.0 0.0
+    vup 0.0 1.0 0.0
+    vfov 35.0
+    defocus_angle 0.0
+    focus_distance 15.0
+    samples_per_pixel 130
+    max_depth 30
+    background 0.7 0.65 0.8
+    lighting on
+}
+
+material {
+    name white_matte
+    type lambertian
+    color 0.9 0.9 0.9
+}
+
+material {
+    name black_matte
+    type lambertian
+    color 0.1 0.1 0.1
+}
+
+
+texture {
+    name floor_checkered
+    type checkered
+    scale 1.2
+    color1 0.2 0.2 0.2
+    color2 0.8 0.8 0.8
+}
+
+material {
+    name floor_marble
+    type metal
+    fuzz 0.0 
+    texture floor_checkered
+}
+
+
+material {
+    name main_light
+    type diffuse_light
+    emit_color 8.0 8.0 7.5
+}
+
+material {
+    name accent_light_warm
+    type diffuse_light
+    emit_color 8.0 4.0 2.0
+}
+
+quad {
+    material main_light
+    Q -4.0 12.0 -4.0
+    u 8.0 0.0 0.0
+    v 0.0 0.0 8.0
+}
+
+quad {
+    material accent_light_warm
+    Q 12.0 8.0 -2.0
+    u 0.0 0.0 4.0
+    v 0.0 3.0 0.0
+}
+
+
+quad {
+    material floor_marble
+    Q -10.0 0.0 -10.0
+    u 20.0 0.0 0.0
+    v 0.0 0.0 20.0
+}
+
+obj_model {
+    file models/king.obj
+    material white_matte
+    position  0 0 2
+    scale 0.6 0.6 0.6
+    rotation 0 15 0
+}
+
+obj_model {
+    file models/bishop.obj
+    material white_matte
+    position 4 0.0 3
+    scale 0.6 0.6 0.6
+    rotation 0 -25 0
+}
+
+obj_model {
+    file models/rook.obj
+    material black_matte
+    position -1.0 0.0 5
+    scale 0.55 0.55 0.55
+    rotation 0 50 0
+}

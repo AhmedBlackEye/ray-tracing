@@ -23,13 +23,10 @@ ObjParseResult obj_parse_file_to_hittables(const char *filename,
                                            Hittable *hittable_list, Vec3 scale,
                                            Vec3 translation, Vec3 rotation);
 
-// LEGACY: Keep old function for backward compatibility (if needed)
-ObjParseResult obj_parse_file(const char *filename, Hittable *mesh_hittable,
-                              Vec3 scale, Vec3 translation, Vec3 rotation);
-
 // Utility functions for parsing individual lines
 bool obj_parse_vertex(const char *line, Vec3 *vertex);
-bool obj_parse_face(const char *line, int *v1, int *v2, int *v3);
+bool obj_parse_face(const char *line, int *v1, int *v2, int *v3, int *v4,
+                    bool *is_quad);
 
 // Helper functions for no transforms (identity transform)
 static inline Vec3 obj_no_scale(void) { return (Vec3){1.0, 1.0, 1.0}; }
