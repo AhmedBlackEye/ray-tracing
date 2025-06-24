@@ -6,7 +6,7 @@
 #include "core/ray.h"
 #include "core/scene_parser.h"
 #include "core/vec3.h"
-#include "hittable/bvh_node.h" // Add this include
+#include "hittable/bvh_node.h"
 #include "hittable/hittable.h"
 #include "hittable/hittable_list.h"
 #include "hittable/quad.h"
@@ -27,7 +27,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h> // ADD THIS LINE
+#include <string.h>
 
 int main(int argc, char **argv) {
   printf("=== RAYTRACER STARTING ===\n");
