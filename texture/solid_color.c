@@ -5,6 +5,9 @@
 #include "core/color.h"
 
 Color solid_color_value(Texture *self, double u, double v, const Vec3* p) {
+    (void)v;
+    (void)u;
+    (void)p;
     SolidColor* sol_col = (SolidColor*)self;
     return sol_col->albedo;
 }

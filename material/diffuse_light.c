@@ -10,6 +10,11 @@ typedef struct DiffuseLight {
 
 static bool diffuse_light_scatter(Material *mat, Ray ray_in, HitRecord *rec,
                                   Color *attenuation, Ray *scattered) {
+  (void)mat;
+  (void)ray_in;
+  (void)rec;
+  (void)attenuation;
+  (void)scattered;
   return false;
 }
 

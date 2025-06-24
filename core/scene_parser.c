@@ -61,8 +61,6 @@ void validate_hittable(const Hittable *obj, const char *context) {
   printf("=== VALIDATING HITTABLE [%s] ===\n", context);
   printf("Hittable pointer: %p\n", (void *)obj);
   printf("Type: %d\n", obj->type);
-  printf("Hit function: %s\n", obj->hit ? "present" : "NULL");
-  printf("Destroy function: %p\n", (void *)obj->destroy);
   printf("Material: %p\n", (void *)obj->mat);
   printf("Data pointer: %p\n", (void *)obj->data);
 
@@ -101,16 +99,16 @@ void debug_scene_addition(Scene *scene, Hittable *new_obj,
   printf("\n>>> ADDING %s TO SCENE <<<\n", obj_name);
   validate_hittable(new_obj, obj_name);
   DynArray *objects_array = (DynArray *)scene->objects->data;
-  size_t before_count = dynarray_size(scene->objects);
+  size_t before_count = dynarray_size(objects_array);
   scene_add_obj(scene, new_obj);
-  size_t after_count = dynarray_size(scene->objects);
+  size_t after_count = dynarray_size(objects_array);
 
   printf("Scene object count: %zu -> %zu\n", before_count, after_count);
 
   // Validate the object was added correctly
   if (after_count > 0) {
     Hittable *last_added =
-        (Hittable *)dynarray_get(scene->objects, after_count - 1);
+        (Hittable *)dynarray_get(objects_array, after_count - 1);
     printf("Last added object validation:\n");
     validate_hittable(last_added, "last_added");
   }
@@ -379,21 +377,21 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
   char tex_type[32];
   char mat_texture_name[32] = "";
   double tex_scale;
-  Vec3 tex_color1;
-  Vec3 tex_color2;
+  Vec3 tex_color1 = {0};
+  Vec3 tex_color2 = {0};
 
   ParserState state = TOPLEVEL_STATE;
 
   char line[MAX_LINE_LENGTH];
   char *tokens[MAX_TOKENS];
 
-  Vec3 center_start;
-  double radius;
-  Vec3 center_end;
+  Vec3 center_start = {0};
+  double radius = 0;
+  Vec3 center_end = {0};
   bool is_moving = false;
 
-  Vec3 normal;
-  Vec3 point;
+  Vec3 normal = {0};
+  Vec3 point = {0};
 
   Vec3 lookfrom = LOOKFROM;
   Vec3 lookat = LOOKAT;
@@ -412,9 +410,9 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
 
   char mat_name[32];
   char mat_type[32];
-  Vec3 color;
-  double fuzz;
-  double ref_index;
+  Vec3 color = {0};
+  double fuzz = 0.0;
+  double ref_index = 0.0;
 
   Vec3 Q;
   Vec3 u;
