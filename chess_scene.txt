@@ -1,5 +1,5 @@
 camera {
-    width 600
+    width 1200
     aspect_ratio 16 9
     lookfrom 8.0 6.0 12.0
     lookat 0.0 1.0 0.0
@@ -7,86 +7,162 @@ camera {
     vfov 35.0
     defocus_angle 0.0
     focus_distance 15.0
-    samples_per_pixel 130
-    max_depth 30
-    background 0.7 0.65 0.8
+    samples_per_pixel 200
+    max_depth 50
+    background 0.05 0.05 0.1
     lighting on
 }
 
 material {
-    name white_matte
+    name white_marble
     type lambertian
-    color 0.9 0.9 0.9
+    color 0.95 0.95 0.92
 }
 
 material {
-    name black_matte
+    name black_piece
     type lambertian
-    color 0.1 0.1 0.1
+    color 0.08 0.08 0.12
 }
-
 
 texture {
     name floor_checkered
     type checkered
-    scale 1.2
-    color1 0.2 0.2 0.2
-    color2 0.8 0.8 0.8
+    scale 2.0
+    color1 0.15 0.15 0.18
+    color2 0.25 0.25 0.28
 }
 
 material {
-    name floor_marble
+    name reflective_floor
     type metal
-    fuzz 0.0 
+    fuzz 0.02
     texture floor_checkered
 }
 
-
 material {
-    name main_light
+    name key_light
     type diffuse_light
-    emit_color 8.0 8.0 7.5
+    emit_color 12.0 11.5 10.0
 }
 
 material {
-    name accent_light_warm
+    name rim_light_blue
     type diffuse_light
-    emit_color 8.0 4.0 2.0
+    emit_color 3.0 6.0 12.0
+}
+
+material {
+    name rim_light_warm
+    type diffuse_light
+    emit_color 15.0 8.0 4.0
+}
+
+material {
+    name fill_light
+    type diffuse_light
+    emit_color 4.0 4.5 5.0
+}
+
+material {
+    name accent_light_purple
+    type diffuse_light
+    emit_color 8.0 4.0 12.0
 }
 
 quad {
-    material main_light
-    Q -4.0 12.0 -4.0
-    u 8.0 0.0 0.0
-    v 0.0 0.0 8.0
+    material key_light
+    Q -3.0 15.0 -1.0
+    u 6.0 0.0 0.0
+    v 0.0 0.0 4.0
 }
 
 quad {
-    material accent_light_warm
-    Q 12.0 8.0 -2.0
-    u 0.0 0.0 4.0
+    material rim_light_blue
+    Q -15.0 10.0 -3.0
+    u 0.0 0.0 6.0
+    v 0.0 4.0 0.0
+}
+
+quad {
+    material rim_light_warm
+    Q 15.0 8.0 0.0
+    u 0.0 0.0 6.0
+    v 0.0 5.0 0.0
+}
+
+quad {
+    material fill_light
+    Q -2.0 12.0 8.0
+    u 4.0 0.0 0.0
+    v 0.0 0.0 4.0
+}
+
+quad {
+    material accent_light_purple
+    Q -1.0 6.0 -12.0
+    u 3.0 0.0 0.0
     v 0.0 3.0 0.0
 }
 
+quad {
+    material reflective_floor
+    Q -20.0 0.0 -20.0
+    u 40.0 0.0 0.0
+    v 0.0 0.0 40.0
+}
+
+material {
+    name wall_material
+    type metal
+    color 0.1 0.1 0.15
+    fuzz 0.3
+}
 
 quad {
-    material floor_marble
-    Q -10.0 0.0 -10.0
-    u 20.0 0.0 0.0
-    v 0.0 0.0 20.0
+    material wall_material
+    Q -25.0 0.0 -15.0
+    u 50.0 0.0 0.0
+    v 0.0 20.0 0.0
+}
+
+material {
+    name wall_warm
+    type lambertian
+    color 0.2 0.15 0.1
+}
+
+material {
+    name wall_cool
+    type lambertian
+    color 0.1 0.15 0.2
+}
+
+quad {
+    material wall_warm
+    Q 20.0 0.0 -15.0
+    u 0.0 0.0 30.0
+    v 0.0 15.0 0.0
+}
+
+quad {
+    material wall_cool
+    Q -20.0 0.0 -15.0
+    u 0.0 0.0 30.0
+    v 0.0 15.0 0.0
 }
 
 obj_model {
     file models/king.obj
-    material white_matte
-    position  0 0 2
+    material white_marble
+    position 0 0 2
     scale 0.6 0.6 0.6
     rotation 0 15 0
 }
 
 obj_model {
     file models/bishop.obj
-    material white_matte
+    material white_marble
     position 4 0.0 3
     scale 0.6 0.6 0.6
     rotation 0 -25 0
@@ -94,7 +170,7 @@ obj_model {
 
 obj_model {
     file models/rook.obj
-    material black_matte
+    material black_piece
     position -1.0 0.0 5
     scale 0.55 0.55 0.55
     rotation 0 50 0

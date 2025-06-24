@@ -1,177 +1,232 @@
 camera {
-    lookfrom 2.5 4.0 8.0    
-    lookat   0.0 1.8 0.0  
+    lookfrom 2.5 3.0 6.0    
+    lookat   0.0 1.5 0.0  
     vup      0 1 0
-    vfov     35              
+    vfov     40              
     defocus_angle 0.0      
-    focus_distance 8.9     
-    samples_per_pixel 150
-    max_depth 30         
-    width 512        
+    focus_distance 6.5     
+    samples_per_pixel 1000
+    max_depth 50         
+    width 300        
     aspect_ratio 16 9
-    background 0.05 0.1 0.15
+    background 0.02 0.05 0.08
     lighting on
 }
 
 texture {
-    name elegant_marble
+    name floor_pattern
     type checkered
-    scale 2.0
-    color1 0.9 0.9 0.95
-    color2 0.7 0.7 0.8
+    scale 1.5
+    color1 0.85 0.85 0.9
+    color2 0.75 0.75 0.8
 }
 
 material {
     name marble_floor
-    type lambertian
-    texture elegant_marble
+    type metal
+    fuzz 0.08
+    texture floor_pattern
 }
 
 material {
-    name heart_crimson
+    name back_wall
     type lambertian
-    color 0.85 0.15 0.2
+    color 0.15 0.12 0.18
+}
+
+material {
+    name side_wall_warm
+    type lambertian
+    color 0.18 0.15 0.12
+}
+
+material {
+    name side_wall_cool
+    type lambertian
+    color 0.12 0.15 0.18
+}
+
+material {
+    name ceiling
+    type lambertian
+    color 0.9 0.9 0.95
+}
+
+material {
+    name heart_red
+    type lambertian
+    color 0.9 0.2 0.25
 }
 
 material {
     name heart_glass
     type dielectric
-    ref_idx 1.6
+    ref_idx 1.5
 }
 
 material {
-    name gold_metal
-    type metal
-    color 0.8 0.6 0.2
-    fuzz 0.02
+    name heart_crystal
+    type dielectric
+    ref_idx 2.0
 }
 
 material {
-    name silver_chrome
+    name gold_sphere
     type metal
-    color 0.9 0.9 0.95
+    color 0.85 0.65 0.25
     fuzz 0.0
 }
 
 material {
-    name ruby_red
-    type dielectric
-    ref_idx 2.4
+    name silver_sphere
+    type metal
+    color 0.9 0.9 0.95
+    fuzz 0.02
 }
 
 material {
-    name warm_key_light
-    type diffuse_light
-    emit_color 20.0 16.0 12.0
+    name ruby_sphere
+    type lambertian
+    color 0.8 0.1 0.15
 }
 
 material {
-    name cool_fill_light
+    name main_light
     type diffuse_light
-    emit_color 6.0 8.0 12.0
+    emit_color 15.0 12.0 10.0
 }
 
 material {
-    name romantic_accent
+    name accent_warm
     type diffuse_light
-    emit_color 8.0 3.0 4.0
+    emit_color 12.0 6.0 4.0
 }
 
 material {
-    name soft_ambient
+    name accent_cool
     type diffuse_light
-    emit_color 2.0 2.5 3.0
+    emit_color 4.0 8.0 15.0
 }
 
-plane {
-    material marble_floor
-    point 0.0 0.0 0.0
-    normal 0.0 1.0 0.0
-}
-
-obj_model {
-    file models/heart.obj
-    material heart_crimson
-    position 0.0 2.0 0.0
-    scale 0.12 0.12 0.12
-    rotation -90 25 0
-}
-
-obj_model {
-    file models/heart.obj
-    material heart_glass
-    position -2.5 1.2 1.5
-    scale 0.08 0.08 0.08
-    rotation -90 -30 0
-}
-
-obj_model {
-    file models/heart.obj
-    material ruby_red
-    position 2.8 1.5 -1.0
-    scale 0.09 0.09 0.09
-    rotation -90 60 0
-}
-
-sphere {
-    center -1.5 0.6 3.0
-    radius 0.35
-    material gold_metal
-}
-
-sphere {
-    center 3.5 0.8 2.0
-    radius 0.4
-    material silver_chrome
-}
-
-sphere {
-    center -3.0 1.0 -1.5
-    radius 0.3
-    material heart_glass
-}
-
-sphere {
-    center 1.2 0.5 4.0
-    radius 0.25
-    material ruby_red
-}
-
-sphere {
-    center 0.8 0.4 -3.5
-    radius 0.3
-    material gold_metal
-}
-
-sphere {
-    center -1.8 0.7 -2.8
-    radius 0.35
-    material silver_chrome
+material {
+    name soft_fill
+    type diffuse_light
+    emit_color 3.0 3.5 4.0
 }
 
 quad {
-    material warm_key_light
-    Q -1.5 10.0 -1.0
+    material marble_floor
+    Q -10.0 0.0 -10.0
+    u 20.0 0.0 0.0
+    v 0.0 0.0 20.0
+}
+
+quad {
+    material back_wall
+    Q -10.0 0.0 -8.0
+    u 20.0 0.0 0.0
+    v 0.0 12.0 0.0
+}
+
+quad {
+    material side_wall_warm
+    Q 10.0 0.0 -8.0
+    u 0.0 0.0 18.0
+    v 0.0 12.0 0.0
+}
+
+quad {
+    material side_wall_cool
+    Q -10.0 0.0 -8.0
+    u 0.0 0.0 18.0
+    v 0.0 12.0 0.0
+}
+
+quad {
+    material ceiling
+    Q -10.0 12.0 -8.0
+    u 20.0 0.0 0.0
+    v 0.0 0.0 18.0
+}
+
+obj_model {
+    file models/heart.obj
+    material heart_red
+    position 0.0 0.7 0.0
+    scale 0.10 0.10 0.10
+    rotation -90 0 0
+}
+
+obj_model {
+    file models/heart.obj
+    material heart_glass
+    position -1.8 1.0 1.2
+    scale 0.1 0.1 0.1
+    rotation -90 -45 0
+}
+
+obj_model {
+    file models/heart.obj
+    material heart_crystal
+    position 2.0 1.2 -0.8
+    scale 0.12 0.12 0.12
+    rotation -90 30 0
+}
+
+sphere {
+    center -1.2 0.4 2.2
+    radius 0.25
+    material gold_sphere
+}
+
+sphere {
+    center 2.5 0.35 1.8
+    radius 0.3
+    material silver_sphere
+}
+
+sphere {
+    center -2.2 0.3 -1.0
+    radius 0.2
+    material ruby_sphere
+}
+
+sphere {
+    center 1.0 0.25 -2.5
+    radius 0.22
+    material gold_sphere
+}
+
+sphere {
+    center -0.8 0.3 -2.0
+    radius 0.25
+    material silver_sphere
+}
+
+quad {
+    material main_light
+    Q -2.0 8.0 -1.0
+    u 4.0 0.0 0.0
+    v 0.0 0.0 3.0
+}
+
+quad {
+    material accent_warm
+    Q 6.0 6.0 2.0
+    u 0.0 0.0 2.0
+    v 0.0 2.0 0.0
+}
+
+quad {
+    material accent_cool
+    Q -6.0 5.0 -2.0
+    u 0.0 0.0 2.0
+    v 0.0 2.0 0.0
+}
+
+quad {
+    material soft_fill
+    Q 0.0 10.0 6.0
     u 3.0 0.0 0.0
     v 0.0 0.0 2.0
-}
-
-quad {
-    material cool_fill_light
-    Q 4.0 7.0 3.0
-    u 1.8 0.0 0.0
-    v 0.0 0.0 1.8
-}
-
-quad {
-    material romantic_accent
-    Q -3.5 6.0 -3.0
-    u 1.2 0.0 0.0
-    v 0.0 0.0 1.2
-}
-
-sphere {
-    center 0.0 12.0 0.0
-    radius 0.8
-    material soft_ambient
 }
