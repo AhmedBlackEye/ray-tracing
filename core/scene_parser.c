@@ -93,16 +93,14 @@ void validate_hittable(const Hittable *obj, const char *context) {
   // }
   printf("===============================\n");
 }
-// Add this to your scene parser after adding each object
+
 void debug_scene_addition(Scene *scene, Hittable *new_obj,
                           const char *obj_name) {
   printf("\n>>> ADDING %s TO SCENE <<<\n", obj_name);
   validate_hittable(new_obj, obj_name);
   DynArray *objects_array = (DynArray *)scene->objects->data;
   size_t before_count = dynarray_size(objects_array);
-  size_t before_count = dynarray_size(objects_array);
   scene_add_obj(scene, new_obj);
-  size_t after_count = dynarray_size(objects_array);
   size_t after_count = dynarray_size(objects_array);
 
   printf("Scene object count: %zu -> %zu\n", before_count, after_count);
@@ -375,25 +373,25 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
   DynArray *mat_names = dynarray_create(8, NULL, (GDestroyFn)free);
 
   DynArray *tex_names = dynarray_create(8, NULL, (GDestroyFn)free);
-  char tex_name[32];
-  char tex_type[32];
+  char tex_name[32] = "";
+  char tex_type[32] = "";
   char mat_texture_name[32] = "";
-  double tex_scale;
-  Vec3 tex_color1;
-  Vec3 tex_color2;
+  double tex_scale = 1.0;
+  Vec3 tex_color1 = {0.5, 0.5, 0.5};
+  Vec3 tex_color2 = {0.8, 0.8, 0.8};
 
   ParserState state = TOPLEVEL_STATE;
 
   char line[MAX_LINE_LENGTH];
   char *tokens[MAX_TOKENS];
 
-  Vec3 center_start;
-  double radius;
-  Vec3 center_end;
+  Vec3 center_start = {0, 0, 0};
+  double radius = 0.5;
+  Vec3 center_end = {0, 0, 0};
   bool is_moving = false;
 
-  Vec3 normal;
-  Vec3 point;
+  Vec3 normal = {0, 1, 0};
+  Vec3 point = {0, 0, 0};
 
   Vec3 lookfrom = LOOKFROM;
   Vec3 lookat = LOOKAT;
@@ -410,15 +408,17 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
 
   Material *current_mat = NULL; // Initialize to NULL
 
-  char mat_name[32];
-  char mat_type[32];
-  Vec3 color;
-  double fuzz;
-  double ref_index;
+  // Material variables
+  char mat_name[32] = "";
+  char mat_type[32] = "";
+  Vec3 color = {0.5, 0.5, 0.5}; // Initialize with default gray
+  double fuzz = 0.0;            // Initialize to zero
+  double ref_index = 1.5;       // Initialize to glass default
 
-  Vec3 Q;
-  Vec3 u;
-  Vec3 v;
+  // Quad variables
+  Vec3 Q = {0, 0, 0}; // Initialize to origin
+  Vec3 u = {1, 0, 0}; // Initialize to unit X
+  Vec3 v = {0, 1, 0}; // Initialize to unit Y
 
   Vec3 triangle_v0 = {0, 0, 0};
   Vec3 triangle_v1 = {0, 0, 0};

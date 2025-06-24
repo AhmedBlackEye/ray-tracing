@@ -14,9 +14,6 @@
 #include "material/material.h"
 #include "shared.h"
 
-// static declarations
-static void validate_object_for_bvh(Hittable *obj, int index);
-
 typedef struct BVHNode {
   Hittable *left;
   Hittable *right;
@@ -137,7 +134,7 @@ static Hittable *bvhnode_create_helper(DynArray *objects, size_t start,
     node->left = node->right = dynarray_get(objects, start);
     node->owns_left = false;
     node->owns_right = false;
-    printf("    Created leaf node: single object %p\n", (void *)node->left);
+    // printf("    Created leaf node: single object %p\n", (void *)node->left);
   } else if (object_span == 2) {
     // Two objects - point to original objects
     // WE DO NOT OWN THESE - they belong to the scene
@@ -152,8 +149,8 @@ static Hittable *bvhnode_create_helper(DynArray *objects, size_t start,
     }
     node->owns_left = false;
     node->owns_right = false;
-    printf("    Created leaf node: two objects %p, %p\n", (void *)node->left,
-           (void *)node->right);
+    // printf("    Created leaf node: two objects %p, %p\n", (void *)node->left,
+    //  (void *)node->right);
   } else {
     // Multiple objects - create child BVH nodes
     // WE OWN THESE because we created them
@@ -164,8 +161,8 @@ static Hittable *bvhnode_create_helper(DynArray *objects, size_t start,
     node->right = bvhnode_create_helper(objects, mid, end);
     node->owns_left = true;
     node->owns_right = true;
-    printf("    Created internal node: owns children %p, %p\n",
-           (void *)node->left, (void *)node->right);
+    // printf("    Created internal node: owns children %p, %p\n",
+    //  (void *)node->left, (void *)node->right);
   }
 
   hittable->type = HITTABLE_BVHNODE;
@@ -185,10 +182,10 @@ Hittable *bvhnode_create(Hittable *hittable_list) {
   printf("Input objects: %d\n", dynarray_size(objects));
 
   // Validate all objects before BVH creation
-  for (int i = 0; i < dynarray_size(objects); i++) {
-    Hittable *obj = dynarray_get(objects, i);
-    validate_object_for_bvh(obj, i);
-  }
+  // for (int i = 0; i < dynarray_size(objects); i++) {
+  // Hittable *obj = dynarray_get(objects, i);
+  // validate_object_for_bvh(obj, i);
+  // }
 
   if (dynarray_size(objects) == 0) {
     printf("ERROR: No objects to create BVH from!\n");
@@ -213,18 +210,19 @@ void bvhnode_print(const Hittable *hittable) {
          (void *)node->right);
 }
 
-void validate_object_for_bvh(Hittable *obj, int index) {
-  printf("BVH Object %d: type=%d", index, obj->type);
+// void validate_object_for_bvh(Hittable *obj, int index) {
+//   printf("BVH Object %d: type=%d", index, obj->type);
 
-  // Check if bounding box is valid
-  double box_size_x = obj->bbox.x.max - obj->bbox.x.min;
-  double box_size_y = obj->bbox.y.max - obj->bbox.y.min;
-  double box_size_z = obj->bbox.z.max - obj->bbox.z.min;
+//   Check if bounding box is valid
+//   double box_size_x = obj->bbox.x.max - obj->bbox.x.min;
+//   double box_size_y = obj->bbox.y.max - obj->bbox.y.min;
+//   double box_size_z = obj->bbox.z.max - obj->bbox.z.min;
 
-  printf(", bbox size: (%.3f,%.3f,%.3f)", box_size_x, box_size_y, box_size_z);
+//   printf(", bbox size: (%.3f,%.3f,%.3f)", box_size_x, box_size_y,
+//   box_size_z);
 
-  if (box_size_x <= 0 || box_size_y <= 0 || box_size_z <= 0) {
-    printf(" [INVALID BBOX!]");
-  }
-  printf("\n");
-}
+//   if (box_size_x <= 0 || box_size_y <= 0 || box_size_z <= 0) {
+//     printf(" [INVALID BBOX!]");
+//   }
+//   printf("\n");
+// }
