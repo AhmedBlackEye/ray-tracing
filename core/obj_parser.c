@@ -74,6 +74,9 @@ bool obj_parse_face(const char *line, int *v1, int *v2, int *v3, int *v4,
   int dummy;
   *is_quad = false;
 
+  // Initialize all vertices to invalid values
+  *v1 = *v2 = *v3 = *v4 = -1;
+
   // Try quad formats first
   int result = sscanf(line + 2, "%d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d", v1,
                       &dummy, &dummy, v2, &dummy, &dummy, v3, &dummy, &dummy,
@@ -104,6 +107,9 @@ bool obj_parse_face(const char *line, int *v1, int *v2, int *v3, int *v4,
     return true;
   }
 
+  // Reset v4 for triangle parsing (important!)
+  *v4 = -1;
+
   // Try triangle formats
   result = sscanf(line + 2, "%d/%d/%d %d/%d/%d %d/%d/%d", v1, &dummy, &dummy,
                   v2, &dummy, &dummy, v3, &dummy, &dummy);
@@ -130,7 +136,6 @@ bool obj_parse_face(const char *line, int *v1, int *v2, int *v3, int *v4,
 
   return false;
 }
-
 ObjParseResult obj_parse_file_to_hittables(const char *filename,
                                            MeshLoader *loader,
                                            Hittable *hittable_list, Vec3 scale,
@@ -228,43 +233,125 @@ ObjParseResult obj_parse_file_to_hittables(const char *filename,
         v1--;
         v2--;
         v3--;
-        if (is_quad)
+        if (is_quad) {
           v4--;
+        }
 
-        // Validate indices
+        // Validate indices more thoroughly
         int vertex_count = dynarray_size(vertices);
+
+        // Check basic triangle indices
         if (v1 < 0 || v1 >= vertex_count || v2 < 0 || v2 >= vertex_count ||
-            v3 < 0 || v3 >= vertex_count ||
-            (is_quad && (v4 < 0 || v4 >= vertex_count))) {
+            v3 < 0 || v3 >= vertex_count) {
           result.success = false;
           snprintf(result.error_message, sizeof(result.error_message),
-                   "Invalid vertex index at line %d", line_number);
+                   "Invalid triangle vertex indices at line %d: v1=%d v2=%d "
+                   "v3=%d (vertex_count=%d)",
+                   line_number, v1, v2, v3, vertex_count);
+          printf("ERROR: %s\n", result.error_message);
           dynarray_destroy(vertices);
           fclose(file);
           return result;
         }
 
-        // Get vertices
-        Vec3 vert1 = *(Vec3 *)dynarray_get(vertices, v1);
-        Vec3 vert2 = *(Vec3 *)dynarray_get(vertices, v2);
-        Vec3 vert3 = *(Vec3 *)dynarray_get(vertices, v3);
+        // Check quad fourth vertex if needed
+        if (is_quad && (v4 < 0 || v4 >= vertex_count)) {
+          result.success = false;
+          snprintf(
+              result.error_message, sizeof(result.error_message),
+              "Invalid quad vertex index at line %d: v4=%d (vertex_count=%d)",
+              line_number, v4, vertex_count);
+          printf("ERROR: %s\n", result.error_message);
+          dynarray_destroy(vertices);
+          fclose(file);
+          return result;
+        }
+
+        // Check for duplicate vertices (degenerate faces)
+        if (v1 == v2 || v1 == v3 || v2 == v3) {
+          printf("WARNING: Degenerate triangle at line %d: v1=%d v2=%d v3=%d\n",
+                 line_number, v1, v2, v3);
+          continue; // Skip this face
+        }
+
+        if (is_quad && (v1 == v4 || v2 == v4 || v3 == v4)) {
+          printf(
+              "WARNING: Degenerate quad at line %d: v1=%d v2=%d v3=%d v4=%d\n",
+              line_number, v1, v2, v3, v4);
+          continue; // Skip this face
+        }
+
+        // Get vertices safely
+        Vec3 vert1, vert2, vert3, vert4;
+
+        Vec3 *v1_ptr = (Vec3 *)dynarray_get(vertices, v1);
+        Vec3 *v2_ptr = (Vec3 *)dynarray_get(vertices, v2);
+        Vec3 *v3_ptr = (Vec3 *)dynarray_get(vertices, v3);
+
+        if (!v1_ptr || !v2_ptr || !v3_ptr) {
+          result.success = false;
+          snprintf(result.error_message, sizeof(result.error_message),
+                   "Null vertex pointer at line %d", line_number);
+          dynarray_destroy(vertices);
+          fclose(file);
+          return result;
+        }
+
+        vert1 = *v1_ptr;
+        vert2 = *v2_ptr;
+        vert3 = *v3_ptr;
 
         if (is_quad) {
-          Vec3 vert4 = *(Vec3 *)dynarray_get(vertices, v4);
+          Vec3 *v4_ptr = (Vec3 *)dynarray_get(vertices, v4);
+          if (!v4_ptr) {
+            result.success = false;
+            snprintf(result.error_message, sizeof(result.error_message),
+                     "Null vertex pointer for v4 at line %d", line_number);
+            dynarray_destroy(vertices);
+            fclose(file);
+            return result;
+          }
+          vert4 = *v4_ptr;
 
-          // Split quad into two triangles: (v1,v2,v3) and (v1,v3,v4)
-          mesh_loader_add_triangle(loader, hittable_list, vert1, vert2, vert3);
-          mesh_loader_add_triangle(loader, hittable_list, vert1, vert3, vert4);
-          result.face_count += 2;
+          // Check for degenerate triangles before creating them
+          Vec3 edge1 = vec3_sub(vert2, vert1);
+          Vec3 edge2 = vec3_sub(vert3, vert1);
+          Vec3 normal1 = vec3_cross(edge1, edge2);
+          double area1 = vec3_length(normal1) * 0.5;
+
+          Vec3 edge3 = vec3_sub(vert3, vert1);
+          Vec3 edge4 = vec3_sub(vert4, vert1);
+          Vec3 normal2 = vec3_cross(edge3, edge4);
+          double area2 = vec3_length(normal2) * 0.5;
+
+          if (area1 >= 1e-10) {
+            mesh_loader_add_triangle(loader, hittable_list, vert1, vert2,
+                                     vert3);
+            result.face_count++;
+          }
+
+          if (area2 >= 1e-10) {
+            mesh_loader_add_triangle(loader, hittable_list, vert1, vert3,
+                                     vert4);
+            result.face_count++;
+          }
         } else {
-          // Single triangle
-          mesh_loader_add_triangle(loader, hittable_list, vert1, vert2, vert3);
-          result.face_count++;
+          // Single triangle - check for degeneracy
+          Vec3 edge1 = vec3_sub(vert2, vert1);
+          Vec3 edge2 = vec3_sub(vert3, vert1);
+          Vec3 normal = vec3_cross(edge1, edge2);
+          double area = vec3_length(normal) * 0.5;
+
+          if (area >= 1e-10) {
+            mesh_loader_add_triangle(loader, hittable_list, vert1, vert2,
+                                     vert3);
+            result.face_count++;
+          }
         }
       } else {
         result.success = false;
         snprintf(result.error_message, sizeof(result.error_message),
-                 "Invalid face format at line %d", line_number);
+                 "Invalid face format at line %d: '%s'", line_number, line);
         dynarray_destroy(vertices);
         fclose(file);
         return result;
@@ -277,6 +364,7 @@ ObjParseResult obj_parse_file_to_hittables(const char *filename,
   dynarray_destroy(vertices);
   fclose(file);
 
+  // MOVED THESE CHECKS OUTSIDE THE LOOP!
   if (result.vertex_count == 0) {
     result.success = false;
     strcpy(result.error_message, "No vertices found in OBJ file");
@@ -299,8 +387,8 @@ ObjParseResult obj_parse_file_to_hittables(const char *filename,
     printf("  Applied transforms: scale(%.1f,%.1f,%.1f) pos(%.1f,%.1f,%.1f) "
            "rot(%.0f°,%.0f°,%.0f°)\n",
            scale.x, scale.y, scale.z, position.x, position.y, position.z,
-           rotation.x * 180.0 / M_PI, rotation.y * 180.0 / M_PI,
-           rotation.z * 180.0 / M_PI);
+           rotation.x * 180.0 / PI, rotation.y * 180.0 / PI,
+           rotation.z * 180.0 / PI);
   }
   printf("=====================================\n");
 

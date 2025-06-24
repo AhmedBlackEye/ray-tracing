@@ -5,9 +5,9 @@ camera {
   vfov     70              
   defocus_angle 0      
   focus_distance 2.0     
-  samples_per_pixel 10
-  max_depth 30         
-  width 300        
+  samples_per_pixel 200
+  max_depth 80         
+  width 720        
   aspect_ratio 16 9
   background 0.5 0.7 1.0  
 }

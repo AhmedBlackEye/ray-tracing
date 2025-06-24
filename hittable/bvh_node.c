@@ -20,10 +20,11 @@ static void validate_object_for_bvh(Hittable *obj, int index);
 typedef struct BVHNode {
   Hittable *left;
   Hittable *right;
+  bool owns_left;  // Does this node own left child?
+  bool owns_right; // Does this node own right child?
 } BVHNode;
 
-static bool bvhnode_hit(Hittable *self, Ray ray, Interval t_bounds,
-                        HitRecord *rec) {
+bool bvhnode_hit(Hittable *self, Ray ray, Interval t_bounds, HitRecord *rec) {
   assert(self != NULL);
   assert(rec != NULL);
 
@@ -43,21 +44,60 @@ static void bvhnode_destroy(void *self) {
   Hittable *hittable = (Hittable *)self;
   assert(hittable->data);
   BVHNode *node = hittable->data;
-  node->left->destroy(node->left);
-  node->right->destroy(node->right);
+
+  printf("    Destroying BVH node: left=%p (owns=%d), right=%p (owns=%d)\n",
+         (void *)node->left, node->owns_left, (void *)node->right,
+         node->owns_right);
+
+  // Only destroy children if we own them AND they're different objects
+  if (node->owns_left && node->left) {
+    printf("      Destroying left child\n");
+    node->left->destroy(node->left);
+  }
+
+  // CRITICAL: Check if right is different from left before destroying
+  if (node->owns_right && node->right && node->right != node->left) {
+    printf("      Destroying right child\n");
+    node->right->destroy(node->right);
+  }
+
   free(node);
   free(self);
+  printf("    BVH node destroyed\n");
 }
 
-static int box_x_compare(Hittable *a, Hittable *b) {
-  return a->bbox.x.min < b->bbox.x.min;
+// Fixed comparison functions - need to return int, not bool
+static int box_x_compare(const void *a, const void *b) {
+  Hittable *ha = *(Hittable **)a;
+  Hittable *hb = *(Hittable **)b;
+
+  if (ha->bbox.x.min < hb->bbox.x.min)
+    return -1;
+  if (ha->bbox.x.min > hb->bbox.x.min)
+    return 1;
+  return 0;
 }
 
-static int box_y_compare(Hittable *a, Hittable *b) {
-  return a->bbox.y.min < b->bbox.y.min;
+static int box_y_compare(const void *a, const void *b) {
+  Hittable *ha = *(Hittable **)a;
+  Hittable *hb = *(Hittable **)b;
+
+  if (ha->bbox.y.min < hb->bbox.y.min)
+    return -1;
+  if (ha->bbox.y.min > hb->bbox.y.min)
+    return 1;
+  return 0;
 }
-static int box_z_compare(Hittable *a, Hittable *b) {
-  return a->bbox.z.min < b->bbox.z.min;
+
+static int box_z_compare(const void *a, const void *b) {
+  Hittable *ha = *(Hittable **)a;
+  Hittable *hb = *(Hittable **)b;
+
+  if (ha->bbox.z.min < hb->bbox.z.min)
+    return -1;
+  if (ha->bbox.z.min > hb->bbox.z.min)
+    return 1;
+  return 0;
 }
 
 static Hittable *bvhnode_create_helper(DynArray *objects, size_t start,
@@ -68,26 +108,39 @@ static Hittable *bvhnode_create_helper(DynArray *objects, size_t start,
   BVHNode *node = malloc(sizeof(struct BVHNode));
   assert(node != NULL);
 
+  // Initialize ownership flags - VERY IMPORTANT!
+  node->owns_left = false;
+  node->owns_right = false;
+
+  // Calculate bounding box for this node
   hittable->bbox = aabb_empty();
   for (size_t obj_index = start; obj_index < end; obj_index++) {
     Hittable *h = dynarray_get(objects, obj_index);
     hittable->bbox = aabb_surrounding_box(&hittable->bbox, &h->bbox);
   }
+
   int axis = aabb_longest_axis(&hittable->bbox);
   size_t object_span = end - start;
 
   GCmp comparator;
   if (axis == 0) {
-    comparator = (GCmp)box_x_compare;
+    comparator = box_x_compare;
   } else if (axis == 1) {
-    comparator = (GCmp)box_y_compare;
+    comparator = box_y_compare;
   } else {
-    comparator = (GCmp)box_z_compare;
+    comparator = box_z_compare;
   }
 
   if (object_span == 1) {
+    // Single object - both children point to same original object
+    // WE DO NOT OWN THESE - they belong to the scene
     node->left = node->right = dynarray_get(objects, start);
+    node->owns_left = false;
+    node->owns_right = false;
+    printf("    Created leaf node: single object %p\n", (void *)node->left);
   } else if (object_span == 2) {
+    // Two objects - point to original objects
+    // WE DO NOT OWN THESE - they belong to the scene
     Hittable *a = dynarray_get(objects, start);
     Hittable *b = dynarray_get(objects, start + 1);
     if (comparator(&a, &b) > 0) {
@@ -97,12 +150,22 @@ static Hittable *bvhnode_create_helper(DynArray *objects, size_t start,
       node->left = a;
       node->right = b;
     }
+    node->owns_left = false;
+    node->owns_right = false;
+    printf("    Created leaf node: two objects %p, %p\n", (void *)node->left,
+           (void *)node->right);
   } else {
-    dynarray_partial_sort(objects, start, end, (GCmp)comparator);
+    // Multiple objects - create child BVH nodes
+    // WE OWN THESE because we created them
+    dynarray_partial_sort(objects, start, end, comparator);
 
-    int mid = start + object_span / 2;
+    size_t mid = start + object_span / 2;
     node->left = bvhnode_create_helper(objects, start, mid);
     node->right = bvhnode_create_helper(objects, mid, end);
+    node->owns_left = true;
+    node->owns_right = true;
+    printf("    Created internal node: owns children %p, %p\n",
+           (void *)node->left, (void *)node->right);
   }
 
   hittable->type = HITTABLE_BVHNODE;
