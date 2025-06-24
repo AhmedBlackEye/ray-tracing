@@ -61,8 +61,6 @@ void validate_hittable(const Hittable *obj, const char *context) {
   printf("=== VALIDATING HITTABLE [%s] ===\n", context);
   printf("Hittable pointer: %p\n", (void *)obj);
   printf("Type: %d\n", obj->type);
-  printf("Hit function: %s\n", obj->hit ? "present" : "NULL");
-  printf("Destroy function: %p\n", (void *)obj->destroy);
   printf("Material: %p\n", (void *)obj->mat);
   printf("Data pointer: %p\n", (void *)obj->data);
 
@@ -102,7 +100,9 @@ void debug_scene_addition(Scene *scene, Hittable *new_obj,
   validate_hittable(new_obj, obj_name);
   DynArray *objects_array = (DynArray *)scene->objects->data;
   size_t before_count = dynarray_size(objects_array);
+  size_t before_count = dynarray_size(objects_array);
   scene_add_obj(scene, new_obj);
+  size_t after_count = dynarray_size(objects_array);
   size_t after_count = dynarray_size(objects_array);
 
   printf("Scene object count: %zu -> %zu\n", before_count, after_count);
@@ -379,21 +379,21 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
   char tex_type[32];
   char mat_texture_name[32] = "";
   double tex_scale;
-  Vec3 tex_color1 = {0.5, 0.5, 0.5}; // Initialize with defaults
-  Vec3 tex_color2 = {0.8, 0.8, 0.8}; // Initialize with defaults
+  Vec3 tex_color1;
+  Vec3 tex_color2;
 
   ParserState state = TOPLEVEL_STATE;
 
   char line[MAX_LINE_LENGTH];
   char *tokens[MAX_TOKENS];
 
-  Vec3 center_start = {0, 0, 0}; // Initialize to zero
-  double radius = 0.5;           // Initialize to default
-  Vec3 center_end = {0, 0, 0};   // Initialize to zero
+  Vec3 center_start;
+  double radius;
+  Vec3 center_end;
   bool is_moving = false;
 
-  Vec3 normal = {0, 1, 0}; // Initialize to up vector
-  Vec3 point = {0, 0, 0};  // Initialize to origin
+  Vec3 normal;
+  Vec3 point;
 
   Vec3 lookfrom = LOOKFROM;
   Vec3 lookat = LOOKAT;
@@ -412,14 +412,13 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
 
   char mat_name[32];
   char mat_type[32];
-  Vec3 color = {0.5, 0.5, 0.5}; // Initialize with default gray
-  double fuzz = 0.0;            // Initialize to zero
-  double ref_index = 1.5;       // Initialize to glass default
+  Vec3 color;
+  double fuzz;
+  double ref_index;
 
-  // Quad variables
-  Vec3 Q = {0, 0, 0}; // Initialize to origin
-  Vec3 u = {1, 0, 0}; // Initialize to unit X
-  Vec3 v = {0, 1, 0}; // Initialize to unit Y
+  Vec3 Q;
+  Vec3 u;
+  Vec3 v;
 
   Vec3 triangle_v0 = {0, 0, 0};
   Vec3 triangle_v1 = {0, 0, 0};
