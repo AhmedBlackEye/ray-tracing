@@ -468,58 +468,66 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
         scene_add_obj(scene, quad_create(Q, u, v, current_mat));
         break;
       case OBJ_MODEL_STATE: {
+        printf("DEBUG: Processing OBJ_MODEL - filename: '%s', material: '%s'\n",
+               obj_filename, obj_material_name);
+
         if (strlen(obj_filename) == 0) {
-          printf("Warning: missing 'file' parameter, skipping\n");
+          printf("DEBUG: No filename specified, skipping OBJ\n");
           goto cleanup_obj;
         }
 
         if (strlen(obj_material_name) == 0) {
-          printf("Warning: missing 'material' parameter, skipping\n");
+          printf("DEBUG: No material specified, skipping OBJ\n");
           goto cleanup_obj;
         }
 
+        // Check if file exists
         FILE *test_file = fopen(obj_filename, "r");
         if (!test_file) {
-          printf("Warning: OBJ file not found: %s\n", obj_filename);
-          printf("Make sure the file exists and path is correct\n");
+          printf("DEBUG: Cannot open OBJ file: %s\n", obj_filename);
           goto cleanup_obj;
         }
         fclose(test_file);
+
+        // Find material
         Material *obj_material =
             find_material_by_name(scene, mat_names, obj_material_name);
         if (!obj_material) {
-          printf("Warning: Material '%s' not found\n", obj_material_name);
-          printf("Available materials:\n");
-          for (int i = 0; i < dynarray_size(mat_names); i++) {
-            char *name = (char *)dynarray_get(mat_names, i);
-            if (name)
-              printf("     - %s\n", name);
-          }
+          printf("DEBUG: Material '%s' not found\n", obj_material_name);
           goto cleanup_obj;
         }
 
-        printf("Loading OBJ: %s with material: %s\n", obj_filename,
-               obj_material_name);
+        printf("DEBUG: Starting OBJ parsing for %s\n", obj_filename);
 
         // Create mesh loader
         MeshLoader *loader = mesh_loader_create(obj_material);
 
-        // Parse OBJ and add triangles directly to scene objects as individual
-        // hittables
+        // Get object count before OBJ loading
+        int objects_before = dynarray_size((DynArray *)scene->objects->data);
+        printf("DEBUG: Objects in scene before OBJ: %d\n", objects_before);
+
+        // Parse OBJ and add triangles
         ObjParseResult result =
             obj_parse_file_to_hittables(obj_filename, loader, scene->objects,
                                         obj_scale, obj_position, obj_rotation);
 
+        // Get object count after OBJ loading
+        int objects_after = dynarray_size((DynArray *)scene->objects->data);
+        printf("DEBUG: Objects in scene after OBJ: %d (added %d)\n",
+               objects_after, objects_after - objects_before);
+
         if (result.success) {
-          printf("Successfully loaded %s)\n", obj_filename);
+          printf("DEBUG: Successfully loaded %s: %d vertices, %d faces\n",
+                 obj_filename, result.vertex_count, result.face_count);
         } else {
-          printf("Failed to load %s: %s\n", obj_filename, result.error_message);
+          printf("DEBUG: Failed to load %s: %s\n", obj_filename,
+                 result.error_message);
         }
 
         mesh_loader_destroy(loader);
 
       cleanup_obj:
-        // Always reset variables
+        // Reset variables
         strcpy(obj_filename, "");
         strcpy(obj_material_name, "");
         obj_position = (Vec3){0.0, 0.0, 0.0};
@@ -554,6 +562,7 @@ void parse_scene(const char *filename, Scene *scene, Camera *out_cam) {
       } else if (strcmp(tokens[0], "quad") == 0) {
         state = QUAD_STATE;
       } else if (strcmp(tokens[0], "obj_model") == 0) {
+        printf("entering OBJ model state");
         state = OBJ_MODEL_STATE;
       } else {
         PANIC("Unknown top level type: %s", tokens[0]);
