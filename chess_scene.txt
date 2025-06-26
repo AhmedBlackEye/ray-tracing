@@ -7,7 +7,7 @@ camera {
     vfov 35.0
     defocus_angle 0.0
     focus_distance 15.0
-    samples_per_pixel 200
+    samples_per_pixel 100
     max_depth 50
     background 0.05 0.05 0.1
     lighting on
@@ -155,23 +155,23 @@ quad {
 obj_model {
     file models/king.obj
     material white_marble
-    position 0 0 2
+    position 0.0 0.0 2.0
     scale 0.6 0.6 0.6
-    rotation 0 15 0
+    rotation 0.0 15.0 0.0
 }
 
 obj_model {
     file models/bishop.obj
     material white_marble
-    position 4 0.0 3
+    position 4.0 0.0 3.0
     scale 0.6 0.6 0.6
-    rotation 0 -25 0
+    rotation 0.0 -25.0 0.0
 }
 
 obj_model {
     file models/rook.obj
     material black_piece
-    position -1.0 0.0 5
+    position -1.0 0.0 5.0
     scale 0.55 0.55 0.55
-    rotation 0 50 0
+    rotation 0.0 50.0 0.0
 }
