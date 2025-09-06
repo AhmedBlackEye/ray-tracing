@@ -1,0 +1,214 @@
+camera {
+    lookfrom 4.0 3.0 6.0    
+    lookat   0.0 1.0 0.0  
+    vup      0 1 0
+    vfov     45              
+    defocus_angle 0.0      
+    focus_distance 7.5     
+    samples_per_pixel 500
+    max_depth 100         
+    width 512        
+    aspect_ratio 16 9
+    background 0.01 0.02 0.05
+    lighting on
+}
+
+texture {
+    name pyramid_floor
+    type checkered
+    scale 2.0
+    color1 0.15 0.12 0.2
+    color2 0.1 0.08 0.15
+}
+
+material {
+    name floor_mat
+    type lambertian
+    texture pyramid_floor
+}
+
+material {
+    name pyramid_glass
+    type dielectric
+    ref_idx 1.8
+}
+
+material {
+    name crystal_glass
+    type dielectric
+    ref_idx 2.1
+}
+
+material {
+    name metal_frame
+    type metal
+    color 0.3 0.3 0.4
+    fuzz 0.1
+}
+
+material {
+    name apex_light
+    type diffuse_light
+    emit_color 20.0 15.0 25.0
+}
+
+material {
+    name base_light
+    type diffuse_light
+    emit_color 15.0 18.0 12.0
+}
+
+plane {
+    material floor_mat
+    point 0.0 0.0 0.0
+    normal 0.0 1.0 0.0
+}
+
+triangle {
+    v0 -1.0 0.0 -1.0
+    v1 1.0 0.0 -1.0
+    v2 0.0 2.0 0.0
+    material pyramid_glass
+}
+
+triangle {
+    v0 1.0 0.0 -1.0
+    v1 1.0 0.0 1.0
+    v2 0.0 2.0 0.0
+    material pyramid_glass
+}
+
+triangle {
+    v0 1.0 0.0 1.0
+    v1 -1.0 0.0 1.0
+    v2 0.0 2.0 0.0
+    material pyramid_glass
+}
+
+triangle {
+    v0 -1.0 0.0 1.0
+    v1 -1.0 0.0 -1.0
+    v2 0.0 2.0 0.0
+    material pyramid_glass
+}
+
+triangle {
+    v0 -2.5 0.0 -0.5
+    v1 -1.5 0.0 -0.5
+    v2 -2.0 1.2 0.0
+    material crystal_glass
+}
+
+triangle {
+    v0 -1.5 0.0 -0.5
+    v1 -1.5 0.0 0.5
+    v2 -2.0 1.2 0.0
+    material crystal_glass
+}
+
+triangle {
+    v0 -1.5 0.0 0.5
+    v1 -2.5 0.0 0.5
+    v2 -2.0 1.2 0.0
+    material crystal_glass
+}
+
+triangle {
+    v0 -2.5 0.0 0.5
+    v1 -2.5 0.0 -0.5
+    v2 -2.0 1.2 0.0
+    material crystal_glass
+}
+
+triangle {
+    v0 2.0 0.0 -0.8
+    v1 3.2 0.0 -0.8
+    v2 2.6 1.5 -0.2
+    material pyramid_glass
+}
+
+triangle {
+    v0 3.2 0.0 -0.8
+    v1 3.2 0.0 0.4
+    v2 2.6 1.5 -0.2
+    material pyramid_glass
+}
+
+triangle {
+    v0 3.2 0.0 0.4
+    v1 2.0 0.0 0.4
+    v2 2.6 1.5 -0.2
+    material pyramid_glass
+}
+
+triangle {
+    v0 2.0 0.0 0.4
+    v1 2.0 0.0 -0.8
+    v2 2.6 1.5 -0.2
+    material pyramid_glass
+}
+
+triangle {
+    v0 -0.3 0.0 2.5
+    v1 0.3 0.0 2.5
+    v2 0.0 0.8 2.0
+    material crystal_glass
+}
+
+triangle {
+    v0 0.3 0.0 2.5
+    v1 0.3 0.0 1.5
+    v2 0.0 0.8 2.0
+    material crystal_glass
+}
+
+triangle {
+    v0 0.3 0.0 1.5
+    v1 -0.3 0.0 1.5
+    v2 0.0 0.8 2.0
+    material crystal_glass
+}
+
+triangle {
+    v0 -0.3 0.0 1.5
+    v1 -0.3 0.0 2.5
+    v2 0.0 0.8 2.0
+    material crystal_glass
+}
+
+sphere {
+    center 0.0 0.1 0.0
+    radius 0.08
+    material metal_frame
+}
+
+sphere {
+    center -2.0 0.1 0.0
+    radius 0.06
+    material metal_frame
+}
+
+sphere {
+    center 2.6 0.1 -0.2
+    radius 0.07
+    material metal_frame
+}
+
+sphere {
+    center 0.0 0.1 2.0
+    radius 0.05
+    material metal_frame
+}
+
+sphere {
+    center 0.0 2.2 0.0
+    radius 0.15
+    material apex_light
+}
+
+quad {
+    material base_light
+    Q -3.0 5.0 -2.0
+    u 6.0 0.0 0.0
+    v 0.0 0.0 4.0
+}

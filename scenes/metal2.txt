@@ -1,0 +1,285 @@
+camera {
+    lookfrom 0.0 3.0 10.0    
+    lookat   0.0 1.0 0.0  
+    vup      0 1 0
+    vfov     30              
+    defocus_angle 0.8      
+    focus_distance 10.0     
+    samples_per_pixel 40
+    max_depth 35         
+    width 400        
+    aspect_ratio 16 9
+    background 0.0 0.0 0.0
+    lighting on
+}
+
+texture {
+    name dramatic_floor
+    type checkered
+    scale 1.0
+    color1 0.1 0.1 0.12
+    color2 0.05 0.05 0.06
+}
+
+texture {
+    name accent_pattern
+    type checkered
+    scale 0.3
+    color1 0.2 0.15 0.1
+    color2 0.15 0.1 0.05
+}
+
+material {
+    name floor_dark
+    type lambertian
+    texture dramatic_floor
+}
+
+material {
+    name accent_surface
+    type lambertian
+    texture accent_pattern
+}
+
+material {
+    name perfect_chrome
+    type metal
+    color 0.95 0.95 0.98
+    fuzz 0.0
+}
+
+material {
+    name brushed_steel
+    type metal
+    color 0.7 0.7 0.75
+    fuzz 0.15
+}
+
+material {
+    name rough_iron
+    type metal
+    color 0.5 0.5 0.52
+    fuzz 0.4
+}
+
+material {
+    name polished_gold
+    type metal
+    color 0.9 0.7 0.3
+    fuzz 0.02
+}
+
+material {
+    name aged_copper
+    type metal
+    color 0.7 0.4 0.2
+    fuzz 0.25
+}
+
+material {
+    name bright_silver
+    type metal
+    color 0.95 0.93 0.88
+    fuzz 0.05
+}
+
+material {
+    name rose_gold
+    type metal
+    color 0.85 0.6 0.5
+    fuzz 0.08
+}
+
+material {
+    name titanium
+    type metal
+    color 0.6 0.65 0.7
+    fuzz 0.12
+}
+
+material {
+    name crystal_clear
+    type dielectric
+    ref_idx 1.5
+}
+
+material {
+    name amber_glass
+    type dielectric
+    ref_idx 1.6
+}
+
+material {
+    name key_light
+    type diffuse_light
+    emit_color 25.0 20.0 15.0
+}
+
+material {
+    name fill_light
+    type diffuse_light
+    emit_color 8.0 10.0 15.0
+}
+
+material {
+    name rim_light
+    type diffuse_light
+    emit_color 12.0 8.0 18.0
+}
+
+material {
+    name accent_light
+    type diffuse_light
+    emit_color 15.0 12.0 6.0
+}
+
+plane {
+    material floor_dark
+    point 0.0 0.0 0.0
+    normal 0.0 1.0 0.0
+}
+
+quad {
+    material accent_surface
+    Q -4.0 0.01 -4.0
+    u 2.0 0.0 0.0
+    v 0.0 0.0 2.0
+}
+
+quad {
+    material accent_surface
+    Q 2.0 0.01 1.0
+    u 1.5 0.0 0.0
+    v 0.0 0.0 1.5
+}
+
+sphere {
+    center 0.0 1.0 0.0
+    radius 0.8
+    material perfect_chrome
+}
+
+sphere {
+    center -2.5 0.7 1.0
+    radius 0.5
+    material brushed_steel
+}
+
+sphere {
+    center 2.5 0.8 -0.5
+    radius 0.6
+    material polished_gold
+}
+
+sphere {
+    center -1.2 0.4 -2.0
+    radius 0.3
+    material rough_iron
+}
+
+sphere {
+    center 1.8 0.5 2.2
+    radius 0.35
+    material aged_copper
+}
+
+sphere {
+    center 0.5 0.3 -3.0
+    radius 0.25
+    material bright_silver
+}
+
+sphere {
+    center -3.0 0.6 -1.0
+    radius 0.4
+    material brushed_steel
+}
+
+sphere {
+    center 3.2 0.45 1.8
+    radius 0.3
+    material rose_gold
+}
+
+sphere {
+    center -0.8 0.35 3.5
+    radius 0.28
+    material titanium
+}
+
+sphere {
+    center 1.0 1.2 -1.5
+    radius 0.4
+    material crystal_clear
+}
+
+sphere {
+    center -1.8 0.8 0.5
+    radius 0.35
+    material amber_glass
+}
+
+sphere {
+    center 0.0 2.5 0.0
+    radius 0.2
+    material crystal_clear
+}
+
+sphere {
+    center -0.5 0.15 1.5
+    radius 0.12
+    material rose_gold
+}
+
+sphere {
+    center 2.0 0.2 -2.8
+    radius 0.15
+    material perfect_chrome
+}
+
+sphere {
+    center -2.8 0.25 -2.5
+    radius 0.18
+    material polished_gold
+}
+
+triangle {
+    v0 -1.0 0.0 -0.5
+    v1 -0.5 0.0 -1.2
+    v2 -0.75 0.8 -0.85
+    material titanium
+}
+
+triangle {
+    v0 1.5 0.0 1.0
+    v1 2.0 0.0 0.8
+    v2 1.75 0.6 0.9
+    material brushed_steel
+}
+
+quad {
+    material key_light
+    Q -1.5 8.0 -1.0
+    u 3.0 0.0 0.0
+    v 0.0 0.0 2.0
+}
+
+quad {
+    material fill_light
+    Q 3.0 6.0 3.0
+    u 2.0 0.0 2.0
+    v 0.0 0.0 2.0
+}
+
+quad {
+    material rim_light
+    Q -5.0 4.0 5.0
+    u 1.0 0.0 0.0
+    v 0.0 0.0 1.0
+}
+
+sphere {
+    center 4.0 7.0 -3.0
+    radius 0.3
+    material accent_light
+}

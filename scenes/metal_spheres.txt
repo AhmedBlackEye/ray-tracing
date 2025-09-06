@@ -1,0 +1,144 @@
+camera {
+    lookfrom 0.0 3.0 10.0    
+    lookat   0.0 1.0 0.0  
+    vup      0 1 0
+    vfov     30              
+    defocus_angle 0.0      
+    focus_distance 10.0     
+    samples_per_pixel 1200
+    max_depth 30         
+    width 1080        
+    aspect_ratio 16 9
+    background 0.0 0.0 0.0
+    lighting on
+}
+
+texture {
+    name dramatic_floor
+    type checkered
+    scale 1.0
+    color1 0.1 0.1 0.12
+    color2 0.05 0.05 0.06
+}
+
+material {
+    name floor_dark
+    type lambertian
+    texture dramatic_floor
+}
+
+material {
+    name perfect_chrome
+    type metal
+    color 0.95 0.95 0.98
+    fuzz 0.0
+}
+
+material {
+    name brushed_steel
+    type metal
+    color 0.7 0.7 0.75
+    fuzz 0.15
+}
+
+material {
+    name rough_iron
+    type metal
+    color 0.5 0.5 0.52
+    fuzz 0.4
+}
+
+material {
+    name polished_gold
+    type metal
+    color 0.9 0.7 0.3
+    fuzz 0.02
+}
+
+material {
+    name aged_copper
+    type metal
+    color 0.7 0.4 0.2
+    fuzz 0.25
+}
+
+material {
+    name bright_silver
+    type metal
+    color 0.95 0.93 0.88
+    fuzz 0.05
+}
+
+material {
+    name key_light
+    type diffuse_light
+    emit_color 25.0 20.0 15.0
+}
+
+material {
+    name fill_light
+    type diffuse_light
+    emit_color 8.0 10.0 15.0
+}
+
+plane {
+    material floor_dark
+    point 0.0 0.0 0.0
+    normal 0.0 1.0 0.0
+}
+
+sphere {
+    center 0.0 1.0 0.0
+    radius 0.8
+    material perfect_chrome
+}
+
+sphere {
+    center -2.5 0.7 1.0
+    radius 0.5
+    material brushed_steel
+}
+
+sphere {
+    center 2.5 0.8 -0.5
+    radius 0.6
+    material polished_gold
+}
+
+sphere {
+    center -1.2 0.4 -2.0
+    radius 0.3
+    material rough_iron
+}
+
+sphere {
+    center 1.8 0.5 2.2
+    radius 0.35
+    material aged_copper
+}
+
+sphere {
+    center 0.5 0.3 -3.0
+    radius 0.25
+    material bright_silver
+}
+
+sphere {
+    center -3.0 0.6 -1.0
+    radius 0.4
+    material brushed_steel
+}
+
+quad {
+    material key_light
+    Q -1.5 8.0 -1.0
+    u 3.0 0.0 0.0
+    v 0.0 0.0 2.0
+}
+
+quad {
+    material fill_light
+    Q 3.0 6.0 3.0
+    u 2.0 0.0 0.0
+    v 0.0 0.0 2.0
+}

@@ -1,0 +1,129 @@
+camera {
+    lookfrom 3.0 2.5 5.0    
+    lookat   0.0 0.8 0.0  
+    vup      0 1 0
+    vfov     35              
+    defocus_angle 0.0      
+    focus_distance 6.0     
+    samples_per_pixel 150
+    max_depth 30         
+    width 512        
+    aspect_ratio 16 9
+    background 0.05 0.08 0.12
+    lighting on
+}
+
+texture {
+    name zen_floor
+    type checkered
+    scale 8.0
+    color1 0.8 0.8 0.85
+    color2 0.7 0.7 0.75
+}
+
+material {
+    name floor_mat
+    type lambertian
+    texture zen_floor
+}
+
+material {
+    name perfect_mirror
+    type metal
+    color 0.95 0.95 0.98
+    fuzz 0.0
+}
+
+material {
+    name brushed_gold
+    type metal
+    color 0.85 0.65 0.3
+    fuzz 0.08
+}
+
+material {
+    name matte_black
+    type lambertian
+    color 0.1 0.1 0.1
+}
+
+material {
+    name crystal_clear
+    type dielectric
+    ref_idx 1.5
+}
+
+material {
+    name soft_light
+    type diffuse_light
+    emit_color 8.0 10.0 15.0
+}
+
+material {
+    name rim_light
+    type diffuse_light
+    emit_color 20.0 15.0 10.0
+}
+
+plane {
+    material floor_mat
+    point 0.0 0.0 0.0
+    normal 0.0 1.0 0.0
+}
+
+sphere {
+    center 0.0 0.8 0.0
+    radius 0.6
+    material perfect_mirror
+}
+
+sphere {
+    center -1.8 0.5 0.8
+    radius 0.4
+    material brushed_gold
+}
+
+sphere {
+    center 1.5 0.4 -0.6
+    radius 0.3
+    material crystal_clear
+}
+
+sphere {
+    center -0.5 0.2 -2.0
+    radius 0.15
+    material matte_black
+}
+
+sphere {
+    center 2.5 0.25 1.2
+    radius 0.2
+    material perfect_mirror
+}
+
+quad {
+    material crystal_clear
+    Q -3.0 0.0 -1.0
+    u 0.3 0.0 0.2
+    v 0.0 2.5 0.0
+}
+
+quad {
+    material crystal_clear
+    Q 2.8 0.0 1.5
+    u -0.2 0.0 0.3
+    v 0.0 2.0 0.0
+}
+quad {
+    material soft_light
+    Q -2.0 8.0 2.0
+    u 4.0 0.0 0.0
+    v 0.0 0.0 2.0
+}
+
+quad {
+    material rim_light
+    Q 4.0 6.0 -3.0
+    u 1.0 0.0 0.0
+    v 0.0 0.0 1.0
+}

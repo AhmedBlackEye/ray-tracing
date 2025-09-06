@@ -1,0 +1,85 @@
+camera {
+  lookfrom 0.5 2.2 -2.4  
+  lookat   0 1.95 -3.8  
+  vup      0 1 0
+  vfov     35             
+  defocus_angle 0.0      
+  focus_distance 2.2     
+  samples_per_pixel 1000
+  max_depth 30
+  width 1080      
+  aspect_ratio 16 9
+  background 0.0005 0.0008 0.0008
+  lighting on
+}
+
+texture {
+    name worn_stone
+    type checkered
+    scale 8.0               
+    color1 0.08 0.09 0.12
+    color2 0.06 0.07 0.10
+}
+
+material {
+    name statue_bronze
+    type metal
+    color 0.18 0.16 0.20  
+    fuzz 0.3          
+}
+
+material {
+    name moonlit_ground
+    type lambertian
+    texture worn_stone
+}
+
+material {
+    name primary_moonlight
+    type diffuse_light
+    emit_color 15.0 22.0 35.0         
+}
+
+material {
+    name rim_light
+    type diffuse_light
+    emit_color 8.0 14.0 25.0         
+}
+
+sphere {
+    material moonlit_ground
+    center 0 -1000 0
+    radius 1000
+}
+
+obj_model {
+    file models/statue.obj
+    material statue_bronze
+    position 0 2 -3.8
+    scale 1.1 1.1 1.1
+    rotation 0 45 0        
+}
+
+sphere {
+    center -3.5 8.0 -1.0
+    radius 1.2
+    material primary_moonlight
+}
+
+sphere {
+    center 2.8 6.5 -2.5
+    radius 0.8
+    material rim_light
+}
+
+sphere {
+    center -2 6.0 -2.0
+    radius 1.7
+    material rim_light
+}
+
+sphere {
+    center 2 6.0 -2.0
+    radius 1.7
+    material rim_light
+}

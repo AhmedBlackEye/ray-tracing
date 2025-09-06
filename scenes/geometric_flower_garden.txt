@@ -1,0 +1,250 @@
+camera {
+    lookfrom 3.0 2.5 5.0    
+    lookat   0.0 1.0 0.0  
+    vup      0 1 0
+    vfov     50              
+    defocus_angle 0.0      
+    focus_distance 6.0     
+    samples_per_pixel 150
+    max_depth 30         
+    width 512        
+    aspect_ratio 16 9
+    background 0.05 0.08 0.02
+    lighting on
+}
+
+texture {
+    name garden_floor
+    type checkered
+    scale 1.5
+    color1 0.2 0.3 0.15
+    color2 0.15 0.25 0.1
+}
+
+material {
+    name grass_mat
+    type lambertian
+    texture garden_floor
+}
+
+material {
+    name petal_glass
+    type dielectric
+    ref_idx 1.4
+}
+
+material {
+    name stem_metal
+    type metal
+    color 0.2 0.6 0.3
+    fuzz 0.2
+}
+
+material {
+    name center_gold
+    type metal
+    color 0.9 0.8 0.2
+    fuzz 0.1
+}
+
+material {
+    name crystal_petal
+    type dielectric
+    ref_idx 1.9
+}
+
+material {
+    name sun_light
+    type diffuse_light
+    emit_color 25.0 22.0 15.0
+}
+
+material {
+    name flower_glow
+    type diffuse_light
+    emit_color 12.0 8.0 15.0
+}
+
+plane {
+    material grass_mat
+    point 0.0 0.0 0.0
+    normal 0.0 1.0 0.0
+}
+
+triangle {
+    v0 0.0 1.5 0.0
+    v1 -0.3 1.2 0.2
+    v2 -0.1 1.8 0.1
+    material petal_glass
+}
+
+triangle {
+    v0 0.0 1.5 0.0
+    v1 0.2 1.2 0.3
+    v2 0.1 1.8 0.1
+    material petal_glass
+}
+
+triangle {
+    v0 0.0 1.5 0.0
+    v1 0.3 1.2 -0.2
+    v2 0.1 1.8 -0.1
+    material petal_glass
+}
+
+triangle {
+    v0 0.0 1.5 0.0
+    v1 -0.2 1.2 -0.3
+    v2 -0.1 1.8 -0.1
+    material petal_glass
+}
+
+triangle {
+    v0 0.0 1.5 0.0
+    v1 0.0 1.2 0.4
+    v2 0.0 1.8 0.2
+    material petal_glass
+}
+
+triangle {
+    v0 0.0 1.5 0.0
+    v1 0.0 1.2 -0.4
+    v2 0.0 1.8 -0.2
+    material petal_glass
+}
+
+sphere {
+    center 0.0 1.5 0.0
+    radius 0.1
+    material center_gold
+}
+
+quad {
+    material stem_metal
+    Q -0.02 0.0 -0.02
+    u 0.04 0.0 0.0
+    v 0.0 1.2 0.0
+}
+
+triangle {
+    v0 -2.0 1.2 1.5
+    v1 -2.4 0.9 1.3
+    v2 -1.8 1.6 1.2
+    material crystal_petal
+}
+
+triangle {
+    v0 -2.0 1.2 1.5
+    v1 -1.7 0.9 1.8
+    v2 -1.8 1.6 1.6
+    material crystal_petal
+}
+
+triangle {
+    v0 -2.0 1.2 1.5
+    v1 -1.6 0.9 1.2
+    v2 -1.8 1.6 1.4
+    material crystal_petal
+}
+
+triangle {
+    v0 -2.0 1.2 1.5
+    v1 -2.3 0.9 1.7
+    v2 -2.2 1.6 1.6
+    material crystal_petal
+}
+
+sphere {
+    center -2.0 1.2 1.5
+    radius 0.08
+    material flower_glow
+}
+
+quad {
+    material stem_metal
+    Q -2.02 0.0 1.48
+    u 0.04 0.0 0.0
+    v 0.0 0.9 0.0
+}
+
+triangle {
+    v0 2.5 0.8 -1.0
+    v1 2.2 0.6 -1.2
+    v2 2.6 1.1 -1.1
+    material petal_glass
+}
+
+triangle {
+    v0 2.5 0.8 -1.0
+    v1 2.8 0.6 -0.8
+    v2 2.7 1.1 -0.9
+    material petal_glass
+}
+
+triangle {
+    v0 2.5 0.8 -1.0
+    v1 2.3 0.6 -0.7
+    v2 2.4 1.1 -0.8
+    material petal_glass
+}
+
+triangle {
+    v0 2.5 0.8 -1.0
+    v1 2.7 0.6 -1.3
+    v2 2.8 1.1 -1.2
+    material petal_glass
+}
+
+sphere {
+    center 2.5 0.8 -1.0
+    radius 0.06
+    material center_gold
+}
+
+quad {
+    material stem_metal
+    Q 2.48 0.0 -1.02
+    u 0.04 0.0 0.0
+    v 0.0 0.6 0.0
+}
+
+triangle {
+    v0 -1.2 0.6 -2.0
+    v1 -1.0 0.4 -2.2
+    v2 -1.1 0.9 -2.1
+    material crystal_petal
+}
+
+triangle {
+    v0 -1.2 0.6 -2.0
+    v1 -1.4 0.4 -1.8
+    v2 -1.3 0.9 -1.9
+    material crystal_petal
+}
+
+triangle {
+    v0 -1.2 0.6 -2.0
+    v1 -0.9 0.4 -1.8
+    v2 -1.0 0.9 -1.9
+    material crystal_petal
+}
+
+sphere {
+    center -1.2 0.6 -2.0
+    radius 0.05
+    material flower_glow
+}
+
+quad {
+    material stem_metal
+    Q -1.22 0.0 -2.02
+    u 0.04 0.0 0.0
+    v 0.0 0.4 0.0
+}
+
+quad {
+    material sun_light
+    Q -2.0 6.0 -1.0
+    u 4.0 0.0 0.0
+    v 0.0 0.0 2.0
+}

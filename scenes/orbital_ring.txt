@@ -1,0 +1,181 @@
+camera {
+    lookfrom 5.0 3.0 5.0    
+    lookat   0.0 1.0 0.0  
+    vup      0 1 0
+    vfov     45              
+    defocus_angle 0.0      
+    focus_distance 7.0     
+    samples_per_pixel 150
+    max_depth 30         
+    width 512        
+    aspect_ratio 16 9
+    background 0.0 0.0 0.02
+    lighting on
+}
+
+texture {
+    name space_floor
+    type checkered
+    scale 4.0
+    color1 0.05 0.05 0.1
+    color2 0.02 0.02 0.05
+}
+
+material {
+    name dark_surface
+    type lambertian
+    texture space_floor
+}
+
+material {
+    name central_core
+    type metal
+    color 0.9 0.7 0.3
+    fuzz 0.02
+}
+
+material {
+    name ring_metal
+    type metal
+    color 0.7 0.7 0.8
+    fuzz 0.05
+}
+
+material {
+    name orbit_glass
+    type dielectric
+    ref_idx 1.8
+}
+
+material {
+    name energy_core
+    type diffuse_light
+    emit_color 25.0 20.0 10.0
+}
+
+material {
+    name ring_lights
+    type diffuse_light
+    emit_color 8.0 12.0 20.0
+}
+
+material {
+    name ambient_glow
+    type diffuse_light
+    emit_color 5.0 8.0 15.0
+}
+
+plane {
+    material dark_surface
+    point 0.0 0.0 0.0
+    normal 0.0 1.0 0.0
+}
+
+sphere {
+    center 0.0 1.0 0.0
+    radius 0.4
+    material central_core
+}
+
+sphere {
+    center 0.0 1.0 0.0
+    radius 0.2
+    material energy_core
+}
+
+sphere {
+    center 1.5 1.0 0.0
+    radius 0.12
+    material ring_metal
+}
+
+sphere {
+    center -1.5 1.0 0.0
+    radius 0.12
+    material ring_metal
+}
+
+sphere {
+    center 0.0 1.0 1.5
+    radius 0.12
+    material ring_metal
+}
+
+sphere {
+    center 0.0 1.0 -1.5
+    radius 0.12
+    material ring_metal
+}
+
+sphere {
+    center 1.06 1.0 1.06
+    radius 0.1
+    material orbit_glass
+}
+
+sphere {
+    center -1.06 1.0 1.06
+    radius 0.1
+    material orbit_glass
+}
+
+sphere {
+    center 1.06 1.0 -1.06
+    radius 0.1
+    material orbit_glass
+}
+
+sphere {
+    center -1.06 1.0 -1.06
+    radius 0.1
+    material orbit_glass
+}
+
+sphere {
+    center 2.3 1.2 0.0
+    radius 0.08
+    material ring_lights
+}
+
+sphere {
+    center -2.3 1.2 0.0
+    radius 0.08
+    material ring_lights
+}
+
+sphere {
+    center 0.0 1.2 2.3
+    radius 0.08
+    material ring_lights
+}
+
+sphere {
+    center 0.0 1.2 -2.3
+    radius 0.08
+    material ring_lights
+}
+
+sphere {
+    center 2.8 0.6 1.2
+    radius 0.15
+    material orbit_glass
+}
+
+sphere {
+    center -1.8 0.8 -2.2
+    radius 0.2
+    material ring_metal
+}
+
+sphere {
+    center 1.2 0.4 2.8
+    radius 0.18
+    material central_core
+}
+
+quad {
+    material ambient_glow
+    Q -3.0 6.0 -2.0
+    u 6.0 0.0 0.0
+    v 0.0 0.0 4.0
+}

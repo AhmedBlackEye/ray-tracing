@@ -1,0 +1,131 @@
+camera {
+    lookfrom 2.0 2.0 6.0    
+    lookat   0.0 1.5 0.0  
+    vup      0 1 0
+    vfov     50              
+    defocus_angle 0.0      
+    focus_distance 6.5     
+    samples_per_pixel 500
+    max_depth 30         
+    width 512        
+    aspect_ratio 16 9
+    background 0.02 0.02 0.05
+    lighting on
+}
+
+texture {
+    name cave_floor
+    type checkered
+    scale 2.5
+    color1 0.2 0.15 0.25
+    color2 0.15 0.12 0.2
+}
+
+material {
+    name rocky_floor
+    type lambertian
+    texture cave_floor
+}
+
+material {
+    name clear_crystal
+    type dielectric
+    ref_idx 1.6
+}
+
+material {
+    name dense_crystal
+    type dielectric
+    ref_idx 2.0
+}
+
+material {
+    name rare_crystal
+    type dielectric
+    ref_idx 2.4
+}
+
+material {
+    name crystal_light
+    type diffuse_light
+    emit_color 15.0 18.0 25.0
+}
+
+material {
+    name warm_glow
+    type diffuse_light
+    emit_color 20.0 12.0 8.0
+}
+
+plane {
+    material rocky_floor
+    point 0.0 0.0 0.0
+    normal 0.0 1.0 0.0
+}
+
+sphere {
+    center 0.0 1.2 0.0
+    radius 0.9
+    material clear_crystal
+}
+
+sphere {
+    center -1.5 0.6 1.2
+    radius 0.4
+    material dense_crystal
+}
+
+sphere {
+    center 1.8 0.8 -0.8
+    radius 0.5
+    material rare_crystal
+}
+
+sphere {
+    center -2.5 1.0 -0.5
+    radius 0.6
+    material clear_crystal
+}
+
+sphere {
+    center 0.8 0.4 2.0
+    radius 0.3
+    material dense_crystal
+}
+
+sphere {
+    center 2.2 0.3 1.5
+    radius 0.25
+    material rare_crystal
+}
+
+sphere {
+    center -0.5 0.35 -2.2
+    radius 0.28
+    material clear_crystal
+}
+
+sphere {
+    center -1.8 1.5 0.2
+    radius 0.7
+    material dense_crystal
+}
+
+quad {
+    material crystal_light
+    Q -2.0 7.0 -1.0
+    u 4.0 0.0 0.0
+    v 0.0 0.0 2.0
+}
+
+sphere {
+    center 3.0 5.0 2.0
+    radius 0.3
+    material warm_glow
+}
+
+sphere {
+    center -2.5 6.0 1.5
+    radius 0.4
+    material crystal_light
+}

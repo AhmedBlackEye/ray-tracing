@@ -1,0 +1,83 @@
+camera {
+    lookfrom 3.0 2.5 6.0
+    lookat   0.0 1.0 0.0
+    vup      0 1 0
+    vfov     45
+    defocus_angle 2.0
+    focus_distance 7.0
+    samples_per_pixel 2000
+    max_depth 80
+    width 720
+    aspect_ratio 4 3
+    background 0.8 0.9 1.0
+    lighting on
+}
+
+material {
+    name soft_white
+    type lambertian
+    color 0.8 0.8 0.8
+}
+
+material {
+    name ruby_glass
+    type dielectric
+    ref_idx 2.4
+}
+
+material {
+    name polished_gold
+    type metal
+    color 0.8 0.6 0.2
+    fuzz 0.0
+}
+
+material {
+    name chrome_sphere
+    type metal
+    color 0.9 0.9 0.95
+    fuzz 0.0
+}
+
+material {
+    name gentle_light
+    type diffuse_light
+    emit_color 8.0 8.5 9.0
+}
+
+material {
+    name blue_flame
+    type diffuse_light
+    emit_color 0.9 0.9 0.9
+}
+
+plane {
+    material soft_white
+    point 0.0 0.0 0.0
+    normal 0.0 1.0 0.0
+}
+
+sphere {
+    center 0.0 1.0 0.0
+    radius 1.0
+    material ruby_glass
+}
+
+sphere {
+    center -2.2 0.6 1.0
+    radius 0.6
+    material polished_gold
+}
+
+sphere {
+    center 2.0 0.8 -0.5
+    radius 0.8
+    material chrome_sphere
+}
+
+sphere {
+    center 0.0 15.0 5.0
+    radius 2.0
+    material gentle_light
+}
+

@@ -1,0 +1,199 @@
+camera {
+    lookfrom 6.0 2.5 6.0    
+    lookat   0.0 1.5 0.0  
+    vup      0 1 0
+    vfov     40              
+    defocus_angle 0.0      
+    focus_distance 8.5     
+    samples_per_pixel 150
+    max_depth 30         
+    width 512        
+    aspect_ratio 16 9
+    background 0.02 0.05 0.1
+    lighting on
+}
+
+texture {
+    name bridge_floor
+    type checkered
+    scale 3.0
+    color1 0.25 0.2 0.3
+    color2 0.2 0.15 0.25
+}
+
+material {
+    name ground_mat
+    type lambertian
+    texture bridge_floor
+}
+
+material {
+    name bridge_glass
+    type dielectric
+    ref_idx 1.7
+}
+
+material {
+    name support_metal
+    type metal
+    color 0.4 0.4 0.5
+    fuzz 0.15
+}
+
+material {
+    name accent_crystal
+    type dielectric
+    ref_idx 2.2
+}
+
+material {
+    name bridge_light
+    type diffuse_light
+    emit_color 12.0 15.0 25.0
+}
+
+material {
+    name pillar_light
+    type diffuse_light
+    emit_color 18.0 12.0 8.0
+}
+
+plane {
+    material ground_mat
+    point 0.0 0.0 0.0
+    normal 0.0 1.0 0.0
+}
+
+quad {
+    material bridge_glass
+    Q -3.0 1.0 -0.2
+    u 6.0 0.0 0.0
+    v 0.0 0.0 0.4
+}
+
+quad {
+    material bridge_glass
+    Q -3.0 1.0 -0.2
+    u 6.0 0.0 0.0
+    v 0.0 0.8 0.0
+}
+
+quad {
+    material bridge_glass
+    Q -3.0 1.0 0.2
+    u 6.0 0.0 0.0
+    v 0.0 0.8 0.0
+}
+
+sphere {
+    center -2.5 0.3 0.0
+    radius 0.25
+    material support_metal
+}
+
+sphere {
+    center -1.5 0.35 0.0
+    radius 0.28
+    material support_metal
+}
+
+sphere {
+    center -0.5 0.4 0.0
+    radius 0.3
+    material support_metal
+}
+
+sphere {
+    center 0.5 0.4 0.0
+    radius 0.3
+    material support_metal
+}
+
+sphere {
+    center 1.5 0.35 0.0
+    radius 0.28
+    material support_metal
+}
+
+sphere {
+    center 2.5 0.3 0.0
+    radius 0.25
+    material support_metal
+}
+
+sphere {
+    center -2.5 1.5 0.0
+    radius 0.15
+    material accent_crystal
+}
+
+sphere {
+    center -1.0 1.6 0.0
+    radius 0.18
+    material accent_crystal
+}
+
+sphere {
+    center 0.0 1.7 0.0
+    radius 0.2
+    material accent_crystal
+}
+
+sphere {
+    center 1.0 1.6 0.0
+    radius 0.18
+    material accent_crystal
+}
+
+sphere {
+    center 2.5 1.5 0.0
+    radius 0.15
+    material accent_crystal
+}
+
+quad {
+    material bridge_glass
+    Q -3.5 0.0 -1.5
+    u 0.0 2.5 0.0
+    v 0.3 0.0 0.0
+}
+
+quad {
+    material bridge_glass
+    Q 3.5 0.0 -1.5
+    u 0.0 2.5 0.0
+    v -0.3 0.0 0.0
+}
+
+quad {
+    material bridge_glass
+    Q -3.5 0.0 1.5
+    u 0.0 2.5 0.0
+    v 0.3 0.0 0.0
+}
+
+quad {
+    material bridge_glass
+    Q 3.5 0.0 1.5
+    u 0.0 2.5 0.0
+    v -0.3 0.0 0.0
+}
+
+sphere {
+    center -3.5 2.8 0.0
+    radius 0.3
+    material pillar_light
+}
+
+sphere {
+    center 3.5 2.8 0.0
+    radius 0.3
+    material pillar_light
+}
+
+quad {
+    material bridge_light
+    Q -2.0 4.0 -1.0
+    u 4.0 0.0 0.0
+    v 0.0 0.0 2.0
+}

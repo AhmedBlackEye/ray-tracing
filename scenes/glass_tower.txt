@@ -1,0 +1,199 @@
+camera {
+    lookfrom 3.0 4.5 8.0    
+    lookat   0.0 2.0 0.0  
+    vup      0 1 0
+    vfov     35              
+    defocus_angle 0.0      
+    focus_distance 9.0     
+    samples_per_pixel 500
+    max_depth 80         
+    width 512        
+    aspect_ratio 16 9
+    background 0.01 0.03 0.08
+    lighting on
+}
+
+texture {
+    name dark_grid
+    type checkered
+    scale 2.0
+    color1 0.15 0.15 0.2
+    color2 0.1 0.1 0.15
+}
+
+material {
+    name floor_mat
+    type lambertian
+    texture dark_grid
+}
+
+material {
+    name tower_glass
+    type dielectric
+    ref_idx 1.6
+}
+
+material {
+    name frame_metal
+    type metal
+    color 0.3 0.3 0.35
+    fuzz 0.1
+}
+
+material {
+    name accent_gold
+    type metal
+    color 0.9 0.7 0.2
+    fuzz 0.05
+}
+
+material {
+    name top_light
+    type diffuse_light
+    emit_color 20.0 25.0 35.0
+}
+
+material {
+    name side_light
+    type diffuse_light
+    emit_color 15.0 12.0 8.0
+}
+
+plane {
+    material floor_mat
+    point 0.0 0.0 0.0
+    normal 0.0 1.0 0.0
+}
+
+quad {
+    material tower_glass
+    Q -0.8 0.0 -0.8
+    u 1.6 0.0 0.0
+    v 0.0 1.0 0.0
+}
+
+quad {
+    material tower_glass
+    Q 0.8 0.0 -0.8
+    u 0.0 0.0 1.6
+    v 0.0 1.0 0.0
+}
+
+quad {
+    material tower_glass
+    Q 0.8 0.0 0.8
+    u -1.6 0.0 0.0
+    v 0.0 1.0 0.0
+}
+
+quad {
+    material tower_glass
+    Q -0.8 0.0 0.8
+    u 0.0 0.0 -1.6
+    v 0.0 1.0 0.0
+}
+
+quad {
+    material tower_glass
+    Q -0.6 1.0 -0.6
+    u 1.2 0.0 0.0
+    v 0.0 1.2 0.0
+}
+
+quad {
+    material tower_glass
+    Q 0.6 1.0 -0.6
+    u 0.0 0.0 1.2
+    v 0.0 1.2 0.0
+}
+
+quad {
+    material tower_glass
+    Q 0.6 1.0 0.6
+    u -1.2 0.0 0.0
+    v 0.0 1.2 0.0
+}
+
+quad {
+    material tower_glass
+    Q -0.6 1.0 0.6
+    u 0.0 0.0 -1.2
+    v 0.0 1.2 0.0
+}
+
+quad {
+    material tower_glass
+    Q -0.4 2.2 -0.4
+    u 0.8 0.0 0.0
+    v 0.0 1.5 0.0
+}
+
+quad {
+    material tower_glass
+    Q 0.4 2.2 -0.4
+    u 0.0 0.0 0.8
+    v 0.0 1.5 0.0
+}
+
+quad {
+    material tower_glass
+    Q 0.4 2.2 0.4
+    u -0.8 0.0 0.0
+    v 0.0 1.5 0.0
+}
+
+quad {
+    material tower_glass
+    Q -0.4 2.2 0.4
+    u 0.0 0.0 -0.8
+    v 0.0 1.5 0.0
+}
+
+sphere {
+    center 0.0 0.15 0.0
+    radius 0.1
+    material frame_metal
+}
+
+sphere {
+    center 0.0 1.1 0.0
+    radius 0.08
+    material frame_metal
+}
+
+sphere {
+    center 0.0 2.3 0.0
+    radius 0.06
+    material frame_metal
+}
+
+sphere {
+    center 0.0 3.9 0.0
+    radius 0.15
+    material accent_gold
+}
+
+sphere {
+    center -2.0 0.4 1.5
+    radius 0.3
+    material frame_metal
+}
+
+sphere {
+    center 2.5 0.5 -1.0
+    radius 0.35
+    material accent_gold
+}
+
+quad {
+    material top_light
+    Q -2.0 8.0 -1.0
+    u 4.0 0.0 0.0
+    v 0.0 0.0 2.0
+}
+
+sphere {
+    center 3.0 6.0 2.0
+    radius 0.4
+    material side_light
+}
