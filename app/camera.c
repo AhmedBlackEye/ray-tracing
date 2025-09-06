@@ -7,7 +7,7 @@
 #include "hittable/hittable.h"
 #include "hittable/hittable_list.h"
 #include "material/material.h"
-#include "shared.h"
+#include "progress.h"
 
 static bool use_lighting = true;
 

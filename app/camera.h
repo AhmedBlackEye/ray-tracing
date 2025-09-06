@@ -1,10 +1,10 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "core/color.h"
-#include "core/dyn_array.h"
-#include "core/vec3.h"
-#include "hittable/hittable.h"
+#include "../core/color.h"
+#include "../core/dyn_array.h"
+#include "../core/vec3.h"
+#include "../hittable/hittable.h"
 #include <stdbool.h>
 
 typedef struct Camera {

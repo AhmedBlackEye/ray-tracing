@@ -1,7 +1,5 @@
 #include "stdio.h"
 
-#include "shared.h"
-
 void update_progress_bar(int current, int total) {
   int bar_width = 50;
   float progress = (float)current / total;

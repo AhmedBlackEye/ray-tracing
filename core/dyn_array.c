@@ -4,7 +4,7 @@
 
 #include "dyn_array.h"
 #include "generic_types.h"
-#include "shared.h"
+#include "util.h"
 
 #define MIN_CAPACITY 8
 

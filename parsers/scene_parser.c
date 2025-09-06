@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../../common/debug.h"
-#include "camera.h"
+#include "core/debug.h"
+#include "../app/camera.h"
 #include "core/dyn_array.h"
 #include "core/generic_types.h"
 #include "core/vec3.h"

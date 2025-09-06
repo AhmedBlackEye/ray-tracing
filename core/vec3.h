@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "shared.h"
+#include "util.h"
 
 #define DBL_EPSILON 1e-6
 

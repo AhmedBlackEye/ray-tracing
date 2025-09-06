@@ -11,11 +11,20 @@ set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 add_library(core
   core/color.c
   core/dyn_array.c
-  core/scene_parser.c
-  core/obj_parser.c
   core/aabb.c
 )
 target_include_directories(core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+# Create material library
+add_library(material
+material/material.c
+material/lambertian.c
+material/metal.c
+material/dielectric.c
+material/diffuse_light.c
+)
+target_include_directories(material PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(material PUBLIC core)
 
 # Create hittable library
 add_library(hittable
@@ -33,17 +42,7 @@ add_library(hittable
   hittable/bvh_node.c
 )
 target_include_directories(hittable PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(hittable PUBLIC core)
-
-# Create material library
-add_library(material
-material/material.c
-material/lambertian.c
-material/metal.c
-material/dielectric.c
-material/diffuse_light.c
-)
-target_include_directories(material PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(hittable PUBLIC material)
 
 # Create texture library
 add_library(texture
@@ -52,10 +51,28 @@ texture/checkered.c
 texture/solid_color.c
 )
 target_include_directories(texture PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(texture PUBLIC hittable)
+
+# Create parsers library
+add_library(parsers
+parsers/obj_parser.c
+parsers/scene_parser.c
+)
+target_include_directories(parsers PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(parsers PUBLIC texture)
+
+# Create application layer
+add_library(app
+app/progress.c
+app/scene.c
+app/camera.c
+)
+target_include_directories(app PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(app PUBLIC parsers)
 
 
 # Create main executable
-add_executable(raytracer main.c camera.c shared.c scene.c)
+add_executable(raytracer main.c)
 
 # Link everything properly
-target_link_libraries(raytracer core hittable material texture m)
+target_link_libraries(raytracer PRIVATE app m)

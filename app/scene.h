@@ -1,10 +1,10 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-#include "core/dyn_array.h"
-#include "hittable/hittable.h"
-#include "material/material.h"
-#include "texture/texture.h"
+#include "../core/dyn_array.h"
+#include "../hittable/hittable.h"
+#include "../material/material.h"
+#include "../texture/texture.h"
 
 typedef struct Scene {
   Hittable *objects;

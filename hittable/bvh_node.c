@@ -12,7 +12,6 @@
 #include "hittable.h"
 
 #include "material/material.h"
-#include "shared.h"
 
 typedef struct BVHNode {
   Hittable *left;
